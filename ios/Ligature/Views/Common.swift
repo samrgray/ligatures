@@ -13,19 +13,56 @@ struct Avatar: View {
             Text(initials)
                 .font(.system(size: size * 0.4, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white)
-            if let u = Photo.url(url, px: Int(size * 3)) {
-                AsyncImage(url: u) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() }
-                }
+            if let image = shown {
+                Image(uiImage: image).resizable().scaledToFill()
             }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
         .accessibilityHidden(true)
+        .task(id: "\(px) \(url)") {
+            if let have = Photo.cache.object(forKey: url as NSString), have.px >= px {
+                loaded = (url, have.image)
+                return
+            }
+            if let image = await Photo.load(url, px: px), !Task.isCancelled { loaded = (url, image) }
+        }
+    }
+
+    @State private var loaded: (url: String, image: UIImage)?
+
+    /// Sizes go up in steps, so pinching only fetches a few times.
+    private var px: Int { max(1, Int((size * 3 / 64).rounded(.up))) * 64 }
+
+    /// Whatever’s on hand for this photo, at any size, so it never blanks while a sharper one loads.
+    private var shown: UIImage? {
+        if let loaded, loaded.url == url { return loaded.image }
+        return Photo.cache.object(forKey: url as NSString)?.image
     }
 }
 
 enum Photo {
+    final class Cached {
+        let px: Int
+        let image: UIImage
+        init(px: Int, image: UIImage) { self.px = px; self.image = image }
+    }
+
+    /// The sharpest copy loaded so far of each photo, by its stored URL.
+    static let cache = NSCache<NSString, Cached>()
+
+    static func load(_ raw: String, px: Int) async -> UIImage? {
+        guard let u = url(raw, px: px),
+              let (data, _) = try? await URLSession.shared.data(from: u),
+              let image = UIImage(data: data) else { return nil }
+        // Only Google photos come in sizes; anything else is already full size.
+        let got = raw.contains("googleusercontent.com") ? px : .max
+        if (cache.object(forKey: raw as NSString)?.px ?? 0) < got {
+            cache.setObject(Cached(px: got, image: image), forKey: raw as NSString)
+        }
+        return image
+    }
+
     /// Google photo URLs take a size suffix; ask for one that fits.
     static func url(_ raw: String, px: Int) -> URL? {
         guard !raw.isEmpty else { return nil }
