@@ -28,6 +28,8 @@ struct ContactDetailView: View {
     @State private var working = false
     private var detail: ContactDetail? { store.details[id] }
     @State private var pastOpen = false
+    /// Which of their addresses the header’s map shows.
+    @State private var placeKey: String?
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -237,22 +239,40 @@ struct ContactDetailView: View {
         let subtitle = [card?.title ?? row?.title ?? "", card?.organization ?? row?.organization ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")
         let phones = unique(card?.phones ?? (row.map { $0.phone.isEmpty ? [] : [Labeled(value: $0.phone, label: "")] } ?? []))
         let emails = unique(card?.emails ?? (row.map { $0.email.isEmpty ? [] : [Labeled(value: $0.email, label: "")] } ?? []))
+        let places = self.places
+        let place = places.first { $0.id == placeKey } ?? places.first
         return Group {
-            VStack(spacing: 10) {
-                Button { if !photo.isEmpty { showPhoto = true } } label: {
-                    Avatar(url: photo, initials: card?.initials ?? row?.initials ?? "?", size: 104)
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Button { if !photo.isEmpty { showPhoto = true } } label: {
+                        Avatar(url: photo, initials: card?.initials ?? row?.initials ?? "?", size: 104)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(photo.isEmpty)
+                    .accessibilityLabel(photo.isEmpty ? "No photo" : "Enlarge photo")
+                    Text(name.isEmpty ? "No Name" : name)
+                        .font(.title.weight(.semibold))
+                    if !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .buttonStyle(.plain)
-                .disabled(photo.isEmpty)
-                .accessibilityLabel(photo.isEmpty ? "No photo" : "Enlarge photo")
-                Text(name.isEmpty ? "No Name" : name)
-                    .font(.title.weight(.semibold))
-                    .multilineTextAlignment(.center)
-                if !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, place == nil ? 0 : 22)
+                .background {
+                    // Where they live (or work), faintly behind them, out to the card’s edges.
+                    if let place {
+                        HeaderMap(point: place.point)
+                            .padding(.horizontal, -16)
+                            .id(place.id)
+                    }
+                }
+                .overlay(alignment: .bottomTrailing) {
+                    if places.count > 1 {
+                        placeSwitcher(places, current: place?.id)
+                            .padding(.bottom, 2)
+                    }
                 }
                 HStack(spacing: 8) {
                     ActionButton(title: "message", icon: "message.fill", options: phones) { Links.sms($0) }
@@ -278,8 +298,50 @@ struct ContactDetailView: View {
                 }
                 .padding(.top, 6)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private struct Place: Identifiable {
+        let id: String
+        let title: String
+        let point: MapPoint
+    }
+
+    /// Their places on the map, one per address that could be found.
+    private var places: [Place] {
+        let points = store.mapPoints.filter { $0.id == id }
+        var seen: [String: Int] = [:]
+        return points.map { p in
+            let n = (seen[p.type] ?? 0) + 1
+            seen[p.type] = n
+            let title = p.type.capitalized + (n > 1 ? " \(n)" : "")
+            return Place(id: "\(p.type)-\(n)", title: title, point: p)
+        }
+        // Home first, as on the card.
+        .sorted { ($0.point.type == "home" ? 0 : 1) < ($1.point.type == "home" ? 0 : 1) }
+    }
+
+    /// A very small switcher between their addresses, at the foot of the map.
+    private func placeSwitcher(_ places: [Place], current: String?) -> some View {
+        HStack(spacing: 0) {
+            ForEach(places) { p in
+                let on = p.id == current
+                Button { withAnimation(.easeInOut(duration: 0.25)) { placeKey = p.id } } label: {
+                    Text(p.title)
+                        .font(.caption2.weight(on ? .semibold : .regular))
+                        .foregroundStyle(on ? Theme.ink : Color.secondary)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(on ? Theme.card : Color.clear))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
+            }
+        }
+        .padding(2)
+        .background(Capsule().fill(Theme.paper))
+        .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 0.5))
     }
 
     private func ownValue(_ key: String) -> String {

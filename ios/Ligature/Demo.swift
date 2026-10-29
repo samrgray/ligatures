@@ -72,6 +72,11 @@ extension Store {
             if i % 9 == 8 { return MapPoint(id: c.id, label: "home", precision: "city", lat: 45.5152, lng: -122.6784, text: "Portland, OR") }
             return MapPoint(id: c.id, label: i % 4 == 1 ? "work" : "home", precision: "address", lat: lat, lng: lng, text: "")
         }
+        // Some with a company have a work address too, downtown.
+        for (i, c) in contacts.enumerated() where Self.demoWorks(c) {
+            mapPoints.append(MapPoint(id: c.id, label: "work", precision: "address", lat: 45.5189, lng: -122.6795 + Double(i % 5) * 0.002,
+                                      text: "\(200 + i * 7) SW Morrison St, Portland, OR 97204"))
+        }
         mapLoaded = true
         pins = [Pin(id: "demo-pin", label: "Washington Park", address: "Washington Park, Portland, OR", lat: 45.5100, lng: -122.7160)]
         // Zoe and Rosa show as one; Eli is Zoe’s son, shown on his own.
@@ -88,6 +93,12 @@ extension Store {
         Bundle.main.url(forResource: "demo-\(first.lowercased())", withExtension: "jpg")?.absoluteString ?? ""
     }
 
+    /// The demo people with a work address as well as a home one (as on the web).
+    static func demoWorks(_ c: ContactRow) -> Bool {
+        guard let i = Int(c.id.replacingOccurrences(of: "demo-", with: "")) else { return false }
+        return !c.organization.isEmpty && i % 3 == 1
+    }
+
     func demoDetail(_ c: ContactRow) -> ContactDetail {
         var phones = [Labeled(value: c.phone, label: "mobile")]
         var emails = [Labeled(value: c.email, label: "home")]
@@ -99,7 +110,9 @@ extension Store {
             givenName: c.givenName, familyName: c.familyName, displayName: c.displayName, organization: c.organization, title: c.title,
             phones: phones, emails: emails, urls: [],
             addresses: [PostalAddress(label: "home", street: "466 Quarry Bend Rd", city: "Portland", region: "OR", postalCode: "97214",
-                                      value: "466 Quarry Bend Rd\nPortland, OR 97214")],
+                                      value: "466 Quarry Bend Rd\nPortland, OR 97214")]
+                + (Self.demoWorks(c) ? [PostalAddress(label: "work", street: "249 SW Morrison St", city: "Portland", region: "OR", postalCode: "97204",
+                                                      value: "249 SW Morrison St\nPortland, OR 97204")] : []),
             relations: [], events: [], birthday: "September 19, 1986", notes: "Kids go to Lincoln.", photoUrl: c.photoUrl, groups: c.groups
         )
         return ContactDetail(id: c.id, etag: "demo", draft: c.draft, card: card, fields: c.fields, account: AccountRef(id: "demo", providerName: "Google"))
