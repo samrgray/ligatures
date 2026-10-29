@@ -345,6 +345,9 @@ struct ContactsListView: View {
                 .presentationDetents([.medium, .large])
         }
         .onAppear(perform: openDemoScreen)
+        // Where everyone is, for the map behind each contact’s name, even before the Map view opens.
+        // Places not yet looked up are only looked up while the map is showing.
+        .task(id: store.contacts.hashValue) { await store.loadMap { showMap } }
     }
 
     /// One list of contacts: everyone, or one list.
