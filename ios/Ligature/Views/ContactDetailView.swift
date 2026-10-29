@@ -116,14 +116,10 @@ struct ContactDetailView: View {
         if let onClose { onClose() } else { dismiss() }
     }
 
-    /// Close, switch between people shown together, and the card’s actions: all on the card.
+    /// Switch between people shown together, and the card’s actions: all on the card.
+    /// (Pull the card down to close it.)
     private var topBar: some View {
         HStack(spacing: 10) {
-            if onClose != nil {
-                Button { close() } label: { Image(systemName: "chevron.down") }
-                    .buttonStyle(RoundIconStyle())
-                    .accessibilityLabel("Close")
-            }
             if members.count > 1 {
                 HStack(spacing: 2) {
                     ForEach(members) { m in

@@ -42,7 +42,7 @@ struct PersonView: View {
     /// Cards run edge to edge, with a gap so the ones beside stay out of sight until you swipe.
     private static let gap: CGFloat = 16
     /// How much of the list shows above the card.
-    private static let topGap: CGFloat = 92
+    private static let topGap: CGFloat = 56
 
     private func closeCard() {
         guard !closing else { return }
