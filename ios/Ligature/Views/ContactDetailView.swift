@@ -56,8 +56,11 @@ struct ContactDetailView: View {
                     if !pastFields.isEmpty { pastSection }
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 14)
+                .padding(.top, 24)
                 .padding(.bottom, 60)
+                // In a card you can pull down, the card moves instead of its contents: undo the
+                // scroll view’s stretch at the top.
+                .offset(y: onPull == nil ? 0 : -pull)
             }
             .scrollIndicators(.hidden)
             // Pulled down past the top: the card follows, and letting go far enough closes it.

@@ -39,9 +39,10 @@ struct PersonView: View {
         order.contains { $0.contains(id) } ? order : [[id]]
     }
 
-    private static let inset: CGFloat = 14
-    /// Wider than the inset, so the cards beside this one stay out of sight until you swipe.
-    private static let gap: CGFloat = 28
+    /// Cards run edge to edge, with a gap so the ones beside stay out of sight until you swipe.
+    private static let gap: CGFloat = 16
+    /// How much of the list shows above the card.
+    private static let topGap: CGFloat = 92
 
     private func closeCard() {
         guard !closing else { return }
@@ -57,12 +58,13 @@ struct PersonView: View {
         let current = position ?? id
         GeometryReader { geo in
             let height = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
-            ZStack {
-                // Takes the taps around the cards, so the list underneath doesn’t.
-                Color.clear.contentShape(Rectangle()).ignoresSafeArea()
-                // The paper behind the cards fades as you pull one down, showing the list.
-                PaperBackground()
-                    .opacity(shown ? max(0, 1 - pull / 320) : 0)
+            ZStack(alignment: .top) {
+                // The list stays visible above the card, a little dimmed; tap it to put the card away.
+                Color.black.opacity(shown ? 0.14 * max(0, 1 - pull / 300) : 0)
+                    .ignoresSafeArea()
+                    .contentShape(Rectangle())
+                    .onTapGesture { closeCard() }
+                    .accessibilityLabel("Close")
                 ScrollView(.horizontal) {
                     LazyHStack(spacing: Self.gap) {
                         ForEach(entries.compactMap(\.first), id: \.self) { lead in
@@ -75,32 +77,36 @@ struct PersonView: View {
                                 onChoose: { chosen[lead] = $0 },
                                 onPull: { distance, released in
                                     guard lead == current, !closing else { return }
-                                    if released && distance > 70 { closeCard() } else { pull = released ? 0 : distance }
+                                    if released && distance > 50 { closeCard() } else { pull = released ? 0 : distance }
                                 }
                             )
                             .contentMargins(.bottom, 40, for: .scrollContent)
                             .background { ZStack { Theme.cardGround; Theme.grain.blendMode(.multiply).accessibilityHidden(true) } }
                             // Rounded at the top; the bottom runs off the screen.
-                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
+                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 30, topTrailingRadius: 30, style: .continuous))
                             .overlay(
-                                UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous)
+                                UnevenRoundedRectangle(topLeadingRadius: 30, topTrailingRadius: 30, style: .continuous)
                                     .stroke(Theme.line, lineWidth: 0.5)
                             )
-                            .shadow(color: Theme.shadow.opacity(0.14), radius: 16, y: 4)
-                            .padding(.top, 8)
-                            // The scroll view’s margins are already taken off this width.
+                            // A grabber, so it reads as something you can pull down.
+                            .overlay(alignment: .top) {
+                                Capsule().fill(Color.secondary.opacity(0.35)).frame(width: 40, height: 5).padding(.top, 8)
+                                    .accessibilityHidden(true)
+                            }
+                            .shadow(color: Theme.shadow.opacity(0.16), radius: 20, y: -2)
                             .containerRelativeFrame(.horizontal)
-                            // Pulled down from the top, the card follows your finger.
-                            .offset(y: lead == current ? pull : 0)
+                            // Pulled down from the top, the whole card follows your finger (its
+                            // contents hold still inside it).
+                            .offset(y: lead == current ? pull * 1.7 : 0)
                         }
                     }
                     .scrollTargetLayout()
                 }
-                .contentMargins(.horizontal, Self.inset, for: .scrollContent)
                 .scrollTargetBehavior(.viewAligned)
                 .scrollPosition(id: $position)
                 .scrollIndicators(.hidden)
                 .scrollClipDisabled()
+                .padding(.top, Self.topGap)
                 .ignoresSafeArea(edges: .bottom)
                 // Slides up from the bottom when it opens, and back down when it closes.
                 .offset(y: shown ? 0 : height)
