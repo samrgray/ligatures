@@ -15,6 +15,8 @@ enum Theme {
     /// Behind the sections of a contact card.
     static let cardGround = dynamic(0xF7F2EC, 0x1B1917)
     static let line = dynamic(0xE6DFD5, 0x38332D)
+    /// Table rows you’ve ticked: the card shifted toward the warm accent.
+    static let selected = dynamic(0xFBEDE2, 0x2E2620)
     /// The warm accent: the app mark, drafts, small highlights.
     static let brand = dynamic(0xE2722F, 0xF08A4B)
     static let ink = dynamic(0x2A2622, 0xF1ECE5)

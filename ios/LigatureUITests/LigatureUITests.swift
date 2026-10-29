@@ -99,14 +99,34 @@ final class LigatureUITests: XCTestCase {
         XCTAssertFalse(add.waitForExistence(timeout: 2), "Add to Google didn’t make it real")
     }
 
-    func testSelectModeTicksPeople() {
-        XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5))
-        app.navigationBars.buttons["Select"].tap()
+    func testHoldingAPhotoStartsSelecting() {
+        let row = app.cells.containing(NSPredicate(format: "label CONTAINS %@", "Albrecht")).firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars.buttons["Select"].exists, "the list still has a Select button")
+        // The photo sits at the row’s leading edge.
+        row.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5)).withOffset(CGVector(dx: 40, dy: 0)).press(forDuration: 0.8)
         sleep(1)
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(app.staticTexts["1 Selected"].waitForExistence(timeout: 3), "holding the photo didn’t start selecting")
+        app.cells.containing(NSPredicate(format: "label CONTAINS %@", "Ashby")).firstMatch.tap()
         sleep(1)
         shot("ui-select")
-        XCTAssertTrue(app.staticTexts["1 Selected"].waitForExistence(timeout: 3), "Select mode didn’t tick the row")
+        XCTAssertTrue(app.staticTexts["2 Selected"].waitForExistence(timeout: 3), "Select mode didn’t tick the row")
+        XCTAssertFalse(app.buttons["Edit"].exists, "Select mode opened the contact instead")
+    }
+
+    func testHoldingAPhotoInTheTableStartsSelecting() {
+        XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5))
+        app.buttons["Layout"].tap()
+        app.buttons["Table"].tap()
+        let photo = app.buttons["Open Jonah Albrecht"]
+        XCTAssertTrue(photo.waitForExistence(timeout: 3), "no table")
+        photo.press(forDuration: 0.8)
+        sleep(1)
+        XCTAssertTrue(app.staticTexts["1 Selected"].waitForExistence(timeout: 3), "holding the photo didn’t start selecting")
+        app.buttons["Will Ashby"].firstMatch.tap()
+        sleep(1)
+        shot("ui-table-select")
+        XCTAssertTrue(app.staticTexts["2 Selected"].waitForExistence(timeout: 3), "tapping a row didn’t tick it")
         XCTAssertFalse(app.buttons["Edit"].exists, "Select mode opened the contact instead")
     }
 

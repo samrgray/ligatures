@@ -23,6 +23,10 @@ private struct CellRef: Hashable, Identifiable {
 struct ContactsTable: View {
     let items: [ContactRow]
     let filter: ListFilter
+    var selecting = false
+    @Binding var selection: Set<String>
+    /// Holding a photo starts selecting, with that person ticked.
+    var startSelecting: (String) -> Void = { _ in }
     let open: (String) -> Void
 
     @Environment(Store.self) private var store
@@ -199,26 +203,51 @@ struct ContactsTable: View {
     }
 
     private func row(_ c: ContactRow, _ cols: [(def: TableColumnDef, width: CGFloat)]) -> some View {
-        HStack(spacing: 0) {
+        let ticked = selecting && selection.contains(c.id)
+        let ground = ticked ? Theme.selected : Theme.card
+        return HStack(spacing: 0) {
             Button { open(c.id) } label: {
-                Avatar(url: c.photoUrl, initials: c.initials, size: avatarSize)
-                    .overlay {
-                        if c.isDraft {
-                            Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
-                        }
+                Group {
+                    if selecting {
+                        Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
+                            .font(.title2)
+                            .foregroundStyle(ticked ? Color.accentColor : Color.secondary)
+                    } else {
+                        Avatar(url: c.photoUrl, initials: c.initials, size: avatarSize)
+                            .overlay {
+                                if c.isDraft {
+                                    Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
+                                }
+                            }
                     }
-                    .frame(width: photoColumn, height: rowHeight)
-                    .contentShape(Rectangle())
+                }
+                .frame(width: photoColumn, height: rowHeight)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .background(Theme.card)
+            .gesture(HoldToSelect(enabled: !selecting) { startSelecting(c.id) })
+            .background(ground)
             .offset(x: scrollX)
             .zIndex(1)
             .accessibilityLabel("Open \(c.displayName)")
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
                 cell(c, col.def)
                     .frame(width: width(i, col.width), height: rowHeight, alignment: .leading)
-                    .background(Theme.card)
+                    .background(ground)
+            }
+        }
+        // While selecting, a tap anywhere on the row ticks it instead of opening or editing.
+        .overlay {
+            if selecting {
+                Button {
+                    if ticked { selection.remove(c.id) } else { selection.insert(c.id) }
+                } label: {
+                    Color.clear.contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .zIndex(2)
+                .accessibilityLabel(c.displayName)
+                .accessibilityAddTraits(ticked ? [.isButton, .isSelected] : .isButton)
             }
         }
         .overlay(alignment: .bottom) { Divider() }

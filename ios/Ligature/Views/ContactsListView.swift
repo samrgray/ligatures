@@ -220,7 +220,8 @@ struct ContactsListView: View {
                     VStack(spacing: 0) {
                         if tabs.count > 1 { tabStrip }
                         if showTable {
-                            ContactsTable(items: visible, filter: filter) { open($0) }
+                            ContactsTable(items: visible, filter: filter, selecting: selecting, selection: $selection,
+                                          startSelecting: startSelecting) { open($0) }
                                 .simultaneousGesture(pinch)
                                 .environment(\.cardZoomNamespace, cardZoom)
                                 .id(filter)
@@ -246,10 +247,11 @@ struct ContactsListView: View {
                                 selection = all ? [] : ids
                             }
                         } else {
-                            let rows = entries(visible)
-                            let all = !rows.isEmpty && rows.allSatisfy { selection.contains($0.id) }
+                            // The list ticks whole rows (people shown together); the table, each person.
+                            let ids = showTable ? visible.map(\.id) : entries(visible).map(\.id)
+                            let all = !ids.isEmpty && ids.allSatisfy { selection.contains($0) }
                             Button(all ? "Deselect All" : "Select All") {
-                                selection = all ? [] : Set(rows.map(\.id))
+                                selection = all ? [] : Set(ids)
                             }
                         }
                     }
@@ -288,7 +290,8 @@ struct ContactsListView: View {
                         }
                         .accessibilityLabel("Layout")
                     }
-                    if !showTable {
+                    // The list and table start selecting when you hold someone’s photo.
+                    if showMap {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Select") { withAnimation { editMode = .active } }
                                 .disabled(store.contacts.isEmpty)
@@ -352,9 +355,9 @@ struct ContactsListView: View {
                 Button { open(e.id) } label: {
                     HStack(spacing: 8) {
                         if e.members.count > 1 {
-                            TogetherRowView(members: e.members)
+                            TogetherRowView(members: e.members, holdPhoto: { startSelecting(e.id) })
                         } else {
-                            ContactRowView(contact: c, sortByFirst: sortByFirst)
+                            ContactRowView(contact: c, sortByFirst: sortByFirst, holdPhoto: { startSelecting(e.id) })
                         }
                         Spacer(minLength: 0)
                         Image(systemName: "chevron.right")
@@ -644,6 +647,7 @@ struct ContactsListView: View {
     /// Selected people in the order they’re shown.
     /// Everyone ticked: whole rows from the list, or single people from the map.
     private var selectedIDs: [String] {
+        if showTable { return visible.map(\.id).filter { selection.contains($0) } }
         var seen = Set<String>()
         return entries(visible).flatMap { e in
             e.members.filter { selection.contains(e.id) || selection.contains($0.id) }.map(\.id)
@@ -758,6 +762,15 @@ struct ContactsListView: View {
         return parts.joined(separator: " · ")
     }
 
+    /// Holding someone’s photo: start selecting, with them ticked.
+    private func startSelecting(_ id: String) {
+        guard !selecting else { return }
+        withAnimation {
+            editMode = .active
+            selection = [id]
+        }
+    }
+
     private func endSelecting() {
         withAnimation {
             editMode = .inactive
@@ -801,6 +814,7 @@ struct ContactsListView: View {
 /// People shown together: overlapping photos and “Alex & Jamie Smith”.
 struct TogetherRowView: View {
     let members: [ContactRow]
+    var holdPhoto: (() -> Void)?
     @Environment(\.photoSize) private var size
 
     var body: some View {
@@ -813,6 +827,8 @@ struct TogetherRowView: View {
                 }
             }
             .frame(width: size, height: size)
+            .contentShape(Rectangle())
+            .gesture(HoldToSelect(enabled: holdPhoto != nil) { holdPhoto?() })
             Text(Together.name(members))
                 .fontWeight(.semibold)
                 .lineLimit(1)
@@ -846,6 +862,7 @@ struct DraftTag: View {
 struct ContactRowView: View {
     let contact: ContactRow
     let sortByFirst: Bool
+    var holdPhoto: (() -> Void)?
     @Environment(\.photoSize) private var size
 
     var body: some View {
@@ -856,6 +873,7 @@ struct ContactRowView: View {
                         Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
                     }
                 }
+                .gesture(HoldToSelect(enabled: holdPhoto != nil) { holdPhoto?() })
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {
                     name.italic(contact.isDraft)
