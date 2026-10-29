@@ -1,7 +1,8 @@
 import SwiftUI
 
-// Ligature’s own controls for the contact card: soft raised buttons, grouped panels, labelled
-// rows and input fields. Built from the theme rather than the system’s grouped lists.
+// Ligature’s own controls for the contact card: soft raised buttons, plain sections split by
+// faint lines, labelled rows and input fields. Built from the theme rather than the system’s
+// grouped lists.
 
 /// A small uppercase heading, tracked out.
 struct CardLabel: View {
@@ -14,36 +15,35 @@ struct CardLabel: View {
     }
 }
 
-/// A raised panel of rows, with an optional heading and note.
+/// Rows as plain text on the card, with a faint line above to set the section apart, and an
+/// optional heading and note.
 struct CardSection<Content: View>: View {
     var title: String? = nil
     var note: String? = nil
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let title { CardLabel(text: title).padding(.horizontal, 6) }
+        VStack(alignment: .leading, spacing: 12) {
+            if let title { CardLabel(text: title) }
             VStack(alignment: .leading, spacing: 0) { content() }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .softCard(radius: 18)
             if let note {
-                Text(note).font(.footnote).foregroundStyle(.secondary).padding(.horizontal, 6)
+                Text(note).font(.footnote).foregroundStyle(.secondary)
             }
         }
+        .padding(.top, 24)
+        .overlay(alignment: .top) { Rectangle().fill(Theme.line).frame(height: 0.5) }
     }
 }
 
-/// Padding for a row inside a CardSection, with a hairline above unless it’s the first.
+/// Spacing for a row inside a CardSection. The first sits flush under the line or heading.
 struct CardRow: ViewModifier {
     var first = false
     func body(content: Content) -> some View {
-        VStack(spacing: 0) {
-            if !first { Rectangle().fill(Theme.line).frame(height: 0.5).padding(.leading, 16) }
-            content
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
+        content
+            .padding(.top, first ? 0 : 10)
+            .padding(.bottom, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -90,19 +90,15 @@ struct RoundIconStyle: ButtonStyle {
     }
 }
 
-/// An input well: recessed, warm, with an accent ring while you type.
+/// An input that reads as plain text, with a line under it while you type.
 struct FieldWell: ViewModifier {
     var focused: Bool
     func body(content: Content) -> some View {
         content
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.paper.opacity(0.7)))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(focused ? Color.accentColor : Theme.line, lineWidth: focused ? 1.5 : 0.5)
-            )
-            .shadow(color: focused ? Color.accentColor.opacity(0.18) : .clear, radius: 4)
+            .padding(.vertical, 3)
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(focused ? Color.accentColor : Color.clear).frame(height: 1).offset(y: 2)
+            }
     }
 }
 

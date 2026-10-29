@@ -55,7 +55,7 @@ struct ContactDetailView: View {
                     yourFields
                     if !pastFields.isEmpty { pastSection }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 60)
                 // In a card you can pull down, the card moves instead of its contents: undo the
@@ -612,7 +612,7 @@ struct FieldEditor: View {
     @State private var pickedDate = Date()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 2) {
             if field.type != "checkbox" {
                 Text(field.label).font(.caption).foregroundStyle(.secondary)
             }
