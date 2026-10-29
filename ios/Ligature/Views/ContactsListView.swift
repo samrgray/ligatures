@@ -150,8 +150,9 @@ struct ContactsListView: View {
 
     private var selecting: Bool { editMode.isEditing }
 
+    /// No “Contacts” header: only a list’s name, when there are no tabs to show it.
     private var title: String {
-        tabs.count > 1 ? "Contacts" : tabName(filter)
+        tabs.count > 1 || filter == .all ? "" : tabName(filter)
     }
 
     private func tabName(_ f: ListFilter) -> String {
@@ -236,6 +237,7 @@ struct ContactsListView: View {
             .environment(\.photoSize, CGFloat(showTable ? tablePhotoSize : photoSize))
             .environment(\.editMode, $editMode)
             .navigationTitle(selecting ? (selection.isEmpty ? "Select People" : "\(selectedIDs.count) Selected") : title)
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
             .toolbar {
                 if selecting {
@@ -618,7 +620,7 @@ struct ContactsListView: View {
             }
             Divider()
             Button { compose = ComposeTarget(ids: visible.map(\.id)) } label: {
-                Label(filter == .all ? "Message Everyone…" : "Message Everyone in \(title)…", systemImage: "paperplane")
+                Label(filter == .all ? "Message Everyone…" : "Message Everyone in \(tabName(filter))…", systemImage: "paperplane")
             }
             .disabled(visible.isEmpty)
             Button { showLists = true } label: { Label("Manage Lists…", systemImage: "list.bullet") }
