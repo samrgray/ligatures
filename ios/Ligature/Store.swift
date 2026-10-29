@@ -29,6 +29,7 @@ final class Store {
     /// Lists shown as tabs above the contacts, in order.
     var pinned: [ListRef] = []
     var listParents: [ListParent] = []
+    var listStyles: [ListStyle] = []
     /// The table’s setup per view, shared with the web (prefs.views), and the older single setup.
     var viewPrefs: [String: ViewPrefs] = [:]
     var legacyView = ViewPrefs()
@@ -102,6 +103,7 @@ final class Store {
         pinned = []
         listOrder = []
         listParents = []
+        listStyles = []
         viewPrefs = [:]
         legacyView = ViewPrefs()
         lastSynced = nil
@@ -209,6 +211,7 @@ final class Store {
             pinned = s.user?.prefs?.pinnedLists ?? []
             listOrder = s.user?.prefs?.listOrder ?? []
             listParents = s.user?.prefs?.listParents ?? []
+            listStyles = s.user?.prefs?.listStyles ?? []
             viewPrefs = s.user?.prefs?.views ?? [:]
             legacyView = ViewPrefs(columns: s.user?.prefs?.columns, sort: s.user?.prefs?.sort, nameSort: s.user?.prefs?.nameSort)
             let c: ContactsResponse = try await api.get("/contacts")
@@ -530,6 +533,30 @@ final class Store {
         }
     }
 
+    // MARK: - List colors and emoji
+
+    func style(_ r: ListRef) -> ListStyle {
+        listStyles.first { $0.accountId == r.accountId && $0.id == r.id } ?? ListStyle(accountId: r.accountId, id: r.id)
+    }
+
+    func setStyle(_ r: ListRef, color: String?, emoji: String?) async {
+        listStyles.removeAll { $0.accountId == r.accountId && $0.id == r.id }
+        if color != nil || emoji != nil { listStyles.append(ListStyle(accountId: r.accountId, id: r.id, color: color, emoji: emoji)) }
+        saveCache()
+        if demo { return }
+        do {
+            let enc: [[String: String]] = listStyles.map { s in
+                var d = ["accountId": s.accountId, "id": s.id]
+                if let c = s.color { d["color"] = c }
+                if let e = s.emoji { d["emoji"] = e }
+                return d
+            }
+            let _: Empty = try await api.patch("/prefs", ["set": ["listStyles": enc]])
+        } catch {
+            handle(error)
+        }
+    }
+
     /// Reorder pinned lists (drag in Manage Lists).
     func movePinned(from: IndexSet, to: Int) async {
         var refs = pinnedLists.map { $0.ref }
@@ -655,6 +682,7 @@ final class Store {
         if demo { return }
         do {
             let r: ListResult = try await api.post("/lists", ["action": "delete", "accountId": accountId, "groupId": list.id])
+            listStyles.removeAll { $0.accountId == accountId && $0.id == list.id } // the server forgets it too
             applyLists(r, accountId: accountId)
         } catch {
             handle(error)
@@ -931,6 +959,7 @@ final class Store {
         var pinned: [ListRef]?
         var listOrder: [ListRef]?
         var listParents: [ListParent]?
+        var listStyles: [ListStyle]?
         var relationships: [Relationship]?
         var archived: [ContactRow]?
     }
@@ -943,7 +972,7 @@ final class Store {
 
     private func saveCache() {
         guard !demo else { return }
-        let cache = Cache(accounts: accounts, fields: fields, contacts: contacts, details: details, pinned: pinned, listOrder: listOrder, listParents: listParents, relationships: relationships, archived: archived)
+        let cache = Cache(accounts: accounts, fields: fields, contacts: contacts, details: details, pinned: pinned, listOrder: listOrder, listParents: listParents, listStyles: listStyles, relationships: relationships, archived: archived)
         if let data = try? JSONEncoder().encode(cache) {
             try? data.write(to: cacheURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
         }
@@ -958,6 +987,7 @@ final class Store {
         pinned = c.pinned ?? []
         listOrder = c.listOrder ?? []
         listParents = c.listParents ?? []
+        listStyles = c.listStyles ?? []
         relationships = c.relationships ?? []
         archived = c.archived ?? []
         return !contacts.isEmpty

@@ -79,6 +79,12 @@ extension Store {
             Relationship(id: "demo-r1", a: "demo-0", b: "demo-2", kind: "spouse", label: "", combined: true),
             Relationship(id: "demo-r2", a: "demo-0", b: "demo-5", kind: "parent", label: "", combined: false),
         ]
+        listStyles = [
+            ListStyle(accountId: "demo", id: "contactGroups/starred", color: "yellow", emoji: "⭐"),
+            ListStyle(accountId: "demo", id: "contactGroups/book", color: "purple", emoji: "📚"),
+            ListStyle(accountId: "demo", id: "contactGroups/neighbors", color: "green", emoji: "🏠"),
+            ListStyle(accountId: "demo", id: "contactGroups/work", color: "blue", emoji: nil),
+        ]
         if ProcessInfo.processInfo.arguments.contains("-nopins") { return }
         pinned = ["contactGroups/starred", "contactGroups/book", "contactGroups/neighbors", "contactGroups/work"].map { ListRef(accountId: "demo", id: $0) }
     }

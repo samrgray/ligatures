@@ -48,6 +48,13 @@ const PEOPLE = [
   ['Theo', 'Marsh', 'Marsh Woodworks', 'Carpenter', []],
 ];
 // Photos for most people, bundled so the demo still makes no network calls (Unsplash, free to use).
+// Colors and emoji for some lists, so the demo shows them.
+const DEMO_STYLES = [
+  { id: 'contactGroups/starred', color: 'yellow', emoji: '⭐' },
+  { id: 'contactGroups/book', color: 'purple', emoji: '📚' },
+  { id: 'contactGroups/neighbors', color: 'green', emoji: '🏠' },
+  { id: 'contactGroups/work', color: 'blue' },
+];
 const PHOTOS = new Set(['zoe', 'jonah', 'rosa', 'marco', 'eli', 'imani', 'ava', 'aaron', 'paul', 'wren', 'noah', 'olivia', 'nadia', 'zane', 'lena', 'uma', 'sofia']);
 const STREETS = ['SE Belmont St', 'NE Alberta St', 'SE Division St', 'N Mississippi Ave', 'NW 23rd Ave', 'SE Hawthorne Blvd', 'NE Fremont St', 'SW Vista Ave'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -130,7 +137,10 @@ function seed() {
       { id: 'demo-r2', a: 'demo-0', b: 'demo-5', kind: 'parent', label: '', combined: false },
     ],
     pins: [{ id: 'demo-pin', label: 'Washington Park', address: 'Washington Park, Portland, OR', lat: 45.51, lng: -122.716 }],
-    prefs: { pinnedLists: ['contactGroups/starred', 'contactGroups/book', 'contactGroups/neighbors', 'contactGroups/work'].map((id) => ({ accountId: ACCOUNT, id })) },
+    prefs: {
+      pinnedLists: ['contactGroups/starred', 'contactGroups/book', 'contactGroups/neighbors', 'contactGroups/work'].map((id) => ({ accountId: ACCOUNT, id })),
+      listStyles: DEMO_STYLES.map((x) => ({ accountId: ACCOUNT, ...x })),
+    },
     syncedAt: Date.now(),
     n: 0,
   };

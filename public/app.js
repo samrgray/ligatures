@@ -247,6 +247,7 @@ function renderShell() {
     <dialog id="fields-dlg" aria-labelledby="fields-title"></dialog>
     <dialog id="columns-dlg" class="columns-dlg" aria-labelledby="columns-title"></dialog>
     <dialog id="confirm-dlg" class="confirm-dlg" aria-labelledby="confirm-title"></dialog>
+    <dialog id="list-style-dlg" class="list-style-dlg" aria-labelledby="list-style-title"></dialog>
     <dialog id="photo-dlg" class="photo-dlg" aria-label="Photo"></dialog>
     <dialog id="rel-dlg" class="rel-dlg" aria-labelledby="rel-title"></dialog>
     <dialog id="compose-dlg" class="compose-dlg" aria-labelledby="compose-title"></dialog>
@@ -576,10 +577,10 @@ function renderSidebar() {
                 : ''
             }
             <button class="nav-item" data-filter="group" data-id="${h(g.id)}" data-account="${h(g.accountId)}" aria-current="${current}">
-              <span>${h(g.name)}${multi ? ` <span class="count">· ${h(g.accountLabel)}</span>` : ''}${
+              <span>${listMark(g.accountId, g.id)}${h(g.name)}${multi ? ` <span class="count">· ${h(g.accountLabel)}</span>` : ''}${
                 isPinned(g.accountId, g.id) ? `<span class="pin-mark" title="Pinned" aria-label="Pinned">${ICON.pin}</span>` : ''
               }</span><span class="count">${g.count}</span></button>
-            <button type="button" class="nav-more" data-action="list-menu" data-id="${h(g.id)}" data-account="${h(g.accountId)}" aria-label="Options for ${h(g.name)}" title="${g.system ? 'Pin' : 'Pin, rename or delete'}">${ICON.more}</button>
+            <button type="button" class="nav-more" data-action="list-menu" data-id="${h(g.id)}" data-account="${h(g.accountId)}" aria-label="Options for ${h(g.name)}" title="${g.system ? 'Pin, color or icon' : 'Pin, color, icon, rename or delete'}">${ICON.more}</button>
           </div>`;
         })
         .join('')}
@@ -1103,7 +1104,10 @@ function gridRow(c, j, members, i, cols) {
         : h(v);
       if (v && (col.id === 'email' || col.id === 'phone')) inner = `<span class="copyable">${inner}${copyBtn(v, col.id === 'email' ? 'email' : 'number')}</span>`;
       else if (v) inner = `<span class="clamp">${inner}</span>`;
-      if (col.id === 'lists') return `<td class="editable lists-cell" data-lists="${h(c.id)}"${title}>${inner}</td>`;
+      if (col.id === 'lists') {
+        const badges = contactLists(c.accountId, c.groups).map((g) => listBadge(c.accountId, g)).join('');
+        return `<td class="editable lists-cell" data-lists="${h(c.id)}"${title}><span class="list-badges">${badges}</span></td>`;
+      }
       if (col.field) return `<td class="editable${col.nums ? ' nums' : ''}" data-edit="${h(col.field.id)}"${title}>${inner}</td>`;
       return `<td class="${col.nums ? 'nums' : ''}"${title}>${inner}</td>`;
     })
@@ -1653,6 +1657,123 @@ function isPinned(accountId, id) {
   return pinnedLists().some((x) => x.accountId === accountId && x.id === id);
 }
 
+// A list’s color and emoji, only in Ligature (Google labels have neither).
+// Saved to your account: prefs.listStyles = [{ accountId, id, color?, emoji? }].
+const LIST_COLORS = ['red', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink', 'gray'];
+const LIST_EMOJI = ['⭐', '❤️', '🏠', '👪', '🧑‍🤝‍🧑', '💼', '🎓', '🏫', '⚽', '🏃', '🎵', '🎨', '📚', '☕', '🍽️', '🍷', '✈️', '🌱', '🐶', '🎉', '🙏', '🏥', '💻', '📍'];
+
+function listStyles() {
+  const p = S.session.user.prefs?.listStyles;
+  return Array.isArray(p) ? p.filter((x) => x && typeof x.id === 'string' && typeof x.accountId === 'string') : [];
+}
+
+function listStyle(accountId, id) {
+  const x = listStyles().find((y) => y.accountId === accountId && y.id === id);
+  return { color: LIST_COLORS.includes(x?.color) ? x.color : '', emoji: typeof x?.emoji === 'string' ? x.emoji : '' };
+}
+
+/** The emoji, or a dot in the list’s color, to put before its name. */
+function listMark(accountId, id) {
+  const st = listStyle(accountId, id);
+  if (st.emoji) return `<span class="list-emoji" aria-hidden="true">${h(st.emoji)}</span>`;
+  if (st.color) return `<span class="list-dot" data-color="${st.color}" aria-hidden="true"></span>`;
+  return '';
+}
+
+/** A list as a label: its emoji and name, in its color. */
+function listBadge(accountId, g, st = listStyle(accountId, g.id)) {
+  return `<span class="list-badge"${st.color ? ` data-color="${st.color}"` : ''}>${st.emoji ? `<span class="list-emoji" aria-hidden="true">${h(st.emoji)}</span>` : ''}<span class="list-badge-name">${h(g.name)}</span></span>`;
+}
+
+/** The lists a contact is on, in your order. */
+function contactLists(accountId, groups) {
+  return orderedLists(accountId).filter((g) => groups.includes(g.id) && g.id !== 'contactGroups/myContacts');
+}
+
+/** The first emoji someone typed (an emoji can be several characters). */
+function firstGrapheme(text) {
+  const t = String(text ?? '').trim();
+  if (!t) return '';
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) return [...new Intl.Segmenter().segment(t)][0]?.segment ?? '';
+  return [...t][0];
+}
+
+/** Choose a list’s color and emoji. */
+async function editListStyle(target) {
+  $('#list-menu')?.hidePopover();
+  const g = target && accountById(target.accountId)?.groups.find((x) => x.id === target.id);
+  if (!g) return;
+  let st = listStyle(target.accountId, g.id);
+  const dlg = $('#list-style-dlg');
+  const draw = () => {
+    dlg.innerHTML = `<form method="dialog" class="dlg">
+        <h2 id="list-style-title">Color &amp; Icon</h2>
+        <div class="ls-preview"></div>
+        <div class="ls-h">Color</div>
+        <div class="ls-colors" role="radiogroup" aria-label="Color">
+          <button type="button" class="ls-swatch none" role="radio" aria-checked="${!st.color}" data-ls-color="" title="No color" aria-label="No color"></button>
+          ${LIST_COLORS.map((c) => `<button type="button" class="ls-swatch" role="radio" aria-checked="${st.color === c}" data-ls-color="${c}" data-color="${c}" title="${c[0].toUpperCase() + c.slice(1)}" aria-label="${c}"></button>`).join('')}
+        </div>
+        <div class="ls-h">Emoji</div>
+        <div class="ls-emoji" role="radiogroup" aria-label="Emoji">
+          <button type="button" class="ls-em none" role="radio" aria-checked="${!st.emoji}" data-ls-emoji="" title="No emoji" aria-label="No emoji">${ICON.x}</button>
+          ${[...new Set([...(st.emoji && !LIST_EMOJI.includes(st.emoji) ? [st.emoji] : []), ...LIST_EMOJI])]
+            .map((e) => `<button type="button" class="ls-em" role="radio" aria-checked="${st.emoji === e}" data-ls-emoji="${h(e)}">${h(e)}</button>`)
+            .join('')}
+        </div>
+        <label class="f">Or type any emoji<input class="input ls-typed" id="ls-typed" maxlength="16" autocomplete="off" placeholder="Press ⌃⌘Space for emoji"></label>
+        <div class="dlg-foot">
+          <button class="btn" value="cancel">Cancel</button>
+          <button class="btn primary" value="ok">Done</button>
+        </div>
+      </form>`;
+  };
+  // The list as it’ll look, with what you’ve chosen so far.
+  const preview = () => {
+    dlg.querySelector('.ls-preview').innerHTML = listBadge(target.accountId, g, st);
+    for (const b of dlg.querySelectorAll('[data-ls-color]')) b.setAttribute('aria-checked', String(b.dataset.lsColor === st.color));
+    for (const b of dlg.querySelectorAll('[data-ls-emoji]')) b.setAttribute('aria-checked', String(b.dataset.lsEmoji === st.emoji));
+  };
+  draw();
+  preview();
+  const onClick = (e) => {
+    const c = e.target.closest('[data-ls-color]');
+    const em = e.target.closest('[data-ls-emoji]');
+    if (c) st = { ...st, color: c.dataset.lsColor };
+    else if (em) {
+      st = { ...st, emoji: em.dataset.lsEmoji };
+      dlg.querySelector('#ls-typed').value = '';
+    } else return;
+    preview();
+  };
+  const onInput = (e) => {
+    if (e.target.id !== 'ls-typed') return;
+    const em = firstGrapheme(e.target.value);
+    if (em) st = { ...st, emoji: em };
+    preview();
+  };
+  dlg.addEventListener('click', onClick);
+  dlg.addEventListener('input', onInput);
+  dlg.returnValue = '';
+  dlg.showModal();
+  dlg.querySelector('[aria-checked="true"]')?.focus();
+  const ok = await new Promise((resolve) => dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true }));
+  dlg.removeEventListener('click', onClick);
+  dlg.removeEventListener('input', onInput);
+  if (!ok) return;
+  const rest = listStyles().filter((x) => !(x.accountId === target.accountId && x.id === g.id));
+  const next = st.color || st.emoji ? [...rest, { accountId: target.accountId, id: g.id, ...(st.color ? { color: st.color } : {}), ...(st.emoji ? { emoji: st.emoji } : {}) }] : rest;
+  S.session.user.prefs = { ...(S.session.user.prefs || {}), listStyles: next };
+  renderSidebar();
+  renderGrid();
+  if (S.detail && S.mode === 'view') renderDetail();
+  try {
+    await api('/prefs', { method: 'PATCH', body: { set: { listStyles: next } } });
+  } catch (e) {
+    handleError(e);
+  }
+}
+
 async function togglePin(target) {
   $('#list-menu')?.hidePopover();
   if (!target) return;
@@ -1696,7 +1817,8 @@ function openListMenu(btn) {
       (x) => `<button type="button" role="menuitem" data-action="list-nest" data-parent="${h(x.id)}"${x.id === parent ? ' aria-checked="true"' : ''}><span class="menu-check">${x.id === parent ? ICON.check : ''}</span>${h(x.name)}</button>`,
     )
     .join('')}`;
-  m.innerHTML = `<button type="button" role="menuitem" data-action="list-pin"><span class="menu-check"></span>${isPinned(LM.accountId, LM.id) ? 'Unpin' : 'Pin to Top'}</button>${
+  m.innerHTML = `<button type="button" role="menuitem" data-action="list-pin"><span class="menu-check"></span>${isPinned(LM.accountId, LM.id) ? 'Unpin' : 'Pin to Top'}</button>
+    <button type="button" role="menuitem" data-action="list-style"><span class="menu-check"></span>Color &amp; Icon…</button>${
     g?.system
       ? ''
       : `<button type="button" role="menuitem" data-action="list-rename"><span class="menu-check"></span>Rename…</button>
@@ -1732,7 +1854,8 @@ async function deleteList(target) {
     const parents = listParents()
       .filter((x) => !(x.accountId === target.accountId && x.id === g.id))
       .flatMap((x) => (x.accountId === target.accountId && x.parentId === g.id ? (up ? [{ ...x, parentId: up }] : []) : [x]));
-    S.session.user.prefs = { ...(S.session.user.prefs || {}), listParents: parents };
+    const styles = listStyles().filter((x) => !(x.accountId === target.accountId && x.id === g.id));
+    S.session.user.prefs = { ...(S.session.user.prefs || {}), listParents: parents, listStyles: styles };
     if (S.filter.type === 'group' && S.filter.id === g.id && S.filter.accountId === target.accountId) S.filter = { type: 'all' };
     applyListResult(target.accountId, r);
     toast(`Deleted ${g.name}.`, 2500);
@@ -1819,7 +1942,7 @@ function fillListPicker() {
       const n = mine.filter((c) => c.groups.includes(g.id)).length;
       const state = n === 0 ? 'false' : n === mine.length ? 'true' : 'mixed';
       return `<button type="button" role="menuitemcheckbox" aria-checked="${state}" data-lp-account="${h(aid)}" data-lp-group="${h(g.id)}"${LP.busy ? ' disabled' : ''}>
-          <span class="menu-check">${state === 'true' ? ICON.check : state === 'mixed' ? ICON.dash : ''}</span><span class="lp-name">${h(g.name)}</span></button>`;
+          <span class="menu-check">${state === 'true' ? ICON.check : state === 'mixed' ? ICON.dash : ''}</span><span class="lp-name">${listMark(aid, g.id)}${h(g.name)}</span></button>`;
     });
     const head = accountIds.length > 1 ? `<div class="menu-h">${h(a?.label || a?.providerName || '')}</div>` : '';
     return head + (items.join('') || '<div class="menu-empty">No lists yet.</div>');
@@ -1950,13 +2073,14 @@ function propRows(card) {
   for (const r of card.relations) rows.push([r.label || 'related', h(r.value)]);
   {
     const account = accountById(S.detail?.account?.id) ?? S.session.accounts[0];
-    const listed = (account?.groups ?? []).filter((g) => card.groups.includes(g.id)).map((g) => g.name);
+    const listed = account ? contactLists(account.id, card.groups) : [];
+    const badges = `<span class="list-badges wrap">${listed.map((g) => listBadge(account.id, g)).join('')}</span>`;
     if (S.detail?.archived) {
-      if (listed.length) rows.push(['lists', h(listed.join(', '))]);
+      if (listed.length) rows.push(['lists', badges]);
     } else rows.push([
       'lists',
       `<button type="button" class="lists-btn" id="lists-contact-btn" data-action="lists-contact" aria-haspopup="menu">${
-        listed.length ? h(listed.join(', ')) : '<span class="muted">Add to a list</span>'
+        listed.length ? badges : '<span class="muted">Add to a list</span>'
       }${ICON.down}</button>`,
     ]);
   }
@@ -4294,6 +4418,8 @@ document.addEventListener('click', async (e) => {
       return togglePin(LM);
     case 'list-rename':
       return startListName('rename', LM);
+    case 'list-style':
+      return editListStyle(LM);
     case 'list-delete':
       return deleteList(LM);
     case 'list-nest':

@@ -158,7 +158,9 @@ struct ContactsListView: View {
     private func tabName(_ f: ListFilter) -> String {
         switch f {
         case .all: return filter == .all && tabs.count == 1 ? "Contacts" : "All"
-        case let .list(accountId, id): return store.listName(id, accountId: accountId) ?? "List"
+        case let .list(accountId, id):
+            let emoji = store.style(ListRef(accountId: accountId, id: id)).emoji.map { "\($0) " } ?? ""
+            return emoji + (store.listName(id, accountId: accountId) ?? "List")
         }
     }
 

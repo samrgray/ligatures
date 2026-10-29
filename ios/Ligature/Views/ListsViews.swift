@@ -20,7 +20,8 @@ struct ListPickerView: View {
                         Button {
                             Task { await toggle(list, allIn: count == people.count) }
                         } label: {
-                            HStack {
+                            HStack(spacing: 8) {
+                                ListMark(style: store.style(ListRef(accountId: accountId, id: list.id)))
                                 Text(list.name).foregroundStyle(Color.primary)
                                 Spacer()
                                 if busy == list.id {
@@ -81,6 +82,13 @@ struct ManageListsView: View {
     @State private var naming: Naming?
     @State private var name = ""
     @State private var deleting: (list: ContactList, accountId: String)?
+    @State private var styling: Styling?
+
+    private struct Styling: Identifiable {
+        let accountId: String
+        let list: ContactList
+        var id: String { "\(accountId)/\(list.id)" }
+    }
 
     private struct Naming: Identifiable {
         let accountId: String
@@ -112,7 +120,7 @@ struct ManageListsView: View {
                 } header: {
                     Text(store.pinnedLists.isEmpty ? "" : "Lists")
                 } footer: {
-                    Text("Press and hold a list to drag it, or to put it inside another list (nesting is only in Ligature). Favorites, Family, Friends and Coworkers are built into Google: you can add people to them, but not rename or delete them.")
+                    Text("Press and hold a list to drag it, put it inside another list, or give it a color and emoji (nesting, colors and emoji are only in Ligature). Favorites, Family, Friends and Coworkers are built into Google: you can add people to them, but not rename or delete them.")
                 }
             }
             .navigationTitle("Lists")
@@ -146,6 +154,7 @@ struct ManageListsView: View {
             } message: {
                 Text("The people in it stay; they’re just no longer in this list. The label is deleted in Google Contacts too.")
             }
+            .sheet(item: $styling) { s in ListStyleView(list: s.list, accountId: s.accountId) }
         }
         .storeAlert()
     }
@@ -154,7 +163,8 @@ struct ManageListsView: View {
     private func row(_ g: ContactList, accountId: String) -> some View {
         let count = store.contacts.filter { $0.accountId == accountId && $0.groups.contains(g.id) }.count
         let pinned = store.isPinned(g, accountId: accountId)
-        HStack {
+        HStack(spacing: 8) {
+            ListMark(style: store.style(ListRef(accountId: accountId, id: g.id)))
             Text(g.name)
             if store.accounts.count > 1, let a = store.accounts.first(where: { $0.id == accountId }) {
                 Text(a.label ?? a.providerName).font(.footnote).foregroundStyle(.secondary)
@@ -171,12 +181,17 @@ struct ManageListsView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            guard !g.system else { return }
-            name = g.name
-            naming = Naming(accountId: accountId, list: g)
+            // Built-in lists can’t be renamed, but they can have a color and emoji.
+            if g.system {
+                styling = Styling(accountId: accountId, list: g)
+            } else {
+                name = g.name
+                naming = Naming(accountId: accountId, list: g)
+            }
         }
         .contextMenu {
             let ref = ListRef(accountId: accountId, id: g.id)
+            Button { styling = Styling(accountId: accountId, list: g) } label: { Label("Color & Icon", systemImage: "paintpalette") }
             let inside = store.descendants(of: ref)
             let parent = store.parentOf(ref)
             Menu("Move Inside") {
@@ -195,6 +210,7 @@ struct ManageListsView: View {
                 Button("Delete", role: .destructive) { deleting = (g, accountId) }
                 Button("Rename") { name = g.name; naming = Naming(accountId: accountId, list: g) }
             }
+            Button("Color") { styling = Styling(accountId: accountId, list: g) }.tint(.indigo)
         }
     }
 

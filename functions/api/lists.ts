@@ -6,21 +6,29 @@ import { refreshContacts, setDraftMembership } from '../../lib/contacts';
 
 const MAX_MEMBERS = 1000;
 
-/** Nesting lives only in Ligature (in your settings). A deleted list’s sublists move up a level. */
-async function liftSublists(db: D1Database, userId: string, accountId: string, listId: string) {
+/**
+ * Nesting, colors and emoji live only in Ligature (in your settings). A deleted list’s
+ * sublists move up a level, and its color and emoji go.
+ */
+async function forgetList(db: D1Database, userId: string, accountId: string, listId: string) {
   const row = await db.prepare('SELECT prefs FROM users WHERE id = ?1').bind(userId).first<{ prefs: string | null }>();
-  let prefs: { listParents?: { accountId: string; id: string; parentId: string }[] } & Record<string, unknown>;
+  type Ref = { accountId: string; id: string };
+  let prefs: { listParents?: (Ref & { parentId: string })[]; listStyles?: Ref[] } & Record<string, unknown>;
   try {
     prefs = JSON.parse(row?.prefs || '{}') ?? {};
   } catch {
     return;
   }
   const parents = Array.isArray(prefs.listParents) ? prefs.listParents : [];
-  if (!parents.some((x) => x.accountId === accountId && (x.parentId === listId || x.id === listId))) return;
-  const up = parents.find((x) => x.accountId === accountId && x.id === listId)?.parentId;
+  const styles = Array.isArray(prefs.listStyles) ? prefs.listStyles : [];
+  const mine = (x: Ref) => x.accountId === accountId && x.id === listId;
+  const nested = parents.some((x) => x.accountId === accountId && (x.parentId === listId || x.id === listId));
+  if (!nested && !styles.some(mine)) return;
+  const up = parents.find(mine)?.parentId;
   prefs.listParents = parents
-    .filter((x) => !(x.accountId === accountId && x.id === listId))
+    .filter((x) => !mine(x))
     .flatMap((x) => (x.accountId === accountId && x.parentId === listId ? (up ? [{ ...x, parentId: up }] : []) : [x]));
+  if (styles.length) prefs.listStyles = styles.filter((x) => !mine(x));
   await db.prepare('UPDATE users SET prefs = ?2 WHERE id = ?1').bind(userId, JSON.stringify(prefs)).run();
 }
 
@@ -111,7 +119,7 @@ export const onRequestPost: PagesFunction<Env, string, Data> = async ({ request,
           .all<ContactRow>()
       ).results;
       changed = [...(await refreshContacts(env, account, rows)), ...(await setDraftMembership(env.DB, drafts, g.id, false, account.provider))];
-      await liftSublists(env.DB, user.id, account.id, g.id);
+      await forgetList(env.DB, user.id, account.id, g.id);
       break;
     }
     case 'members': {

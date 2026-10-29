@@ -21,6 +21,7 @@ struct Prefs: Codable, Hashable {
     var pinnedLists: [ListRef]?
     var listOrder: [ListRef]?
     var listParents: [ListParent]?
+    var listStyles: [ListStyle]?
     /// The table’s setup for each view (All Contacts, each list…), shared with the web.
     var views: [String: ViewPrefs]?
     /// The setup from before views were separate: where a view you haven’t changed starts.
@@ -61,6 +62,14 @@ struct ListParent: Codable, Hashable {
     let accountId: String
     let id: String
     let parentId: String
+}
+
+/// A list’s color and emoji (only in Ligature; Google labels have neither).
+struct ListStyle: Codable, Hashable {
+    let accountId: String
+    let id: String
+    var color: String?
+    var emoji: String?
 }
 
 /// A list in a particular account.

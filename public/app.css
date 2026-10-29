@@ -677,6 +677,52 @@ textarea.cell-editor {
 
 .pin-mark { display: inline-flex; margin-left: 6px; color: var(--secondary); vertical-align: 0; }
 
+/* List colors and emoji (only in Ligature). Labels mix the color into the card, so they read
+   in light and dark without transparency. */
+[data-color='red'] { --lc: #d4493f; }
+[data-color='orange'] { --lc: #e2722f; }
+[data-color='yellow'] { --lc: #c99a12; }
+[data-color='green'] { --lc: #3f9452; }
+[data-color='teal'] { --lc: #23928f; }
+[data-color='blue'] { --lc: #3a6bd0; }
+[data-color='purple'] { --lc: #8657c4; }
+[data-color='pink'] { --lc: #cf4f8a; }
+[data-color='gray'] { --lc: #8a8178; }
+.list-emoji { display: inline-block; margin-right: 6px; font-size: 0.95em; line-height: 1; }
+.list-dot { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--lc); vertical-align: 1px; }
+.list-badges { display: inline-flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; overflow: hidden; vertical-align: middle; }
+.list-badges.wrap { flex-wrap: wrap; overflow: visible; }
+.list-badges:not(.wrap) .list-badge { flex: 0 1 auto; min-width: 48px; }
+.list-badge:not([data-color]) { --lc: var(--secondary); }
+.list-badge {
+  display: inline-flex; align-items: center; flex: none; height: 20px; padding: 0 8px; border-radius: 10px; font-size: 12px; font-weight: 500; white-space: nowrap;
+  background: color-mix(in srgb, var(--lc) 9%, var(--card)); color: color-mix(in srgb, var(--lc) 45%, var(--text));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lc) 22%, var(--card)), 0 1px 1px rgb(60 40 20 / 0.06);
+}
+.list-badge[data-color] { background: color-mix(in srgb, var(--lc) 16%, var(--card)); color: color-mix(in srgb, var(--lc) 68%, var(--text)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lc) 30%, var(--card)), 0 1px 1px rgb(60 40 20 / 0.06); }
+.list-badge .list-emoji { margin-right: 4px; font-size: 11px; }
+.list-badge-name { overflow: hidden; text-overflow: ellipsis; }
+.props .list-badge { height: 24px; padding: 0 10px; border-radius: 12px; font-size: 13px; }
+.props .list-badge .list-emoji { font-size: 12px; }
+.props .list-badges.wrap { gap: 6px; padding: 1px 0; }
+.lists-btn .list-badges { pointer-events: none; }
+
+dialog.list-style-dlg { width: min(400px, calc(100vw - 32px)); }
+.ls-preview { display: flex; justify-content: center; padding: 14px 0 6px; }
+.ls-preview .list-badge { height: 28px; padding: 0 14px; border-radius: 14px; font-size: 14px; }
+.ls-preview .list-badge .list-emoji { font-size: 13px; margin-right: 6px; }
+.ls-h { font-size: 12px; font-weight: 600; color: var(--secondary); margin-bottom: -8px; }
+.ls-colors { display: flex; flex-wrap: wrap; gap: 10px; }
+.ls-swatch { width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: var(--lc); cursor: pointer; }
+.ls-swatch.none { background: var(--card); box-shadow: inset 0 0 0 1.5px var(--border); position: relative; }
+.ls-swatch.none::after { content: ''; position: absolute; left: 5px; right: 5px; top: 12px; height: 1.5px; background: var(--secondary); transform: rotate(-45deg); }
+.ls-swatch[aria-checked='true'] { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--lc, var(--accent)); }
+.ls-swatch.none[aria-checked='true'] { box-shadow: inset 0 0 0 1.5px var(--border), 0 0 0 2px var(--card), 0 0 0 4px var(--accent); }
+.ls-emoji { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; }
+.ls-em { height: 36px; padding: 0; border: 0; border-radius: 8px; background: none; font-size: 19px; line-height: 1; cursor: pointer; color: var(--secondary); display: inline-flex; align-items: center; justify-content: center; }
+.ls-em:hover { background: var(--field); }
+.ls-em[aria-checked='true'] { background: color-mix(in srgb, var(--accent) 16%, var(--card)); box-shadow: inset 0 0 0 1.5px var(--accent); }
+
 /* Dragging lists in the sidebar */
 .nav-row.row-dragging .nav-item { background: var(--field); }
 body.moving-list, body.moving-list * { cursor: grabbing !important; user-select: none; }

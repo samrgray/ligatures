@@ -273,8 +273,19 @@ struct ContactsTable: View {
             }
             .buttonStyle(.plain)
         case .lists:
-            Button { listsFor = c } label: { textCell(def.value(c), numeric: false) }
-                .buttonStyle(.plain)
+            Button { listsFor = c } label: {
+                HStack(spacing: 4) {
+                    ForEach(store.lists(for: c.accountId).filter { c.groups.contains($0.id) && $0.id != "contactGroups/myContacts" }) { l in
+                        ListBadge(name: l.name, style: store.style(ListRef(accountId: c.accountId, id: l.id)))
+                    }
+                }
+                .padding(.horizontal, 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .clipped()
+                .contentShape(Rectangle())
+                .accessibilityLabel(def.value(c))
+            }
+            .buttonStyle(.plain)
         case let .field(f):
             fieldCell(c, f, def)
         case .text:

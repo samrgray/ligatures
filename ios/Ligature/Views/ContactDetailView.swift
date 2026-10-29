@@ -357,14 +357,18 @@ struct ContactDetailView: View {
     // MARK: Lists
 
     private func listsSection(_ row: ContactRow) -> some View {
-        let names = store.lists(for: row.accountId).filter { row.groups.contains($0.id) }.map(\.name)
+        let lists = store.lists(for: row.accountId).filter { row.groups.contains($0.id) && $0.id != "contactGroups/myContacts" }
         return CardSection {
             Button { pickingLists = true } label: {
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("lists").font(.caption).foregroundStyle(.secondary)
-                        Text(names.isEmpty ? "Add to a List" : names.joined(separator: ", "))
-                            .foregroundStyle(names.isEmpty ? Color.accentColor : Color.primary)
+                        if lists.isEmpty {
+                            Text("Add to a List").foregroundStyle(Color.accentColor)
+                        } else {
+                            ListBadges(lists: lists, accountId: row.accountId, large: true)
+                                .accessibilityLabel(lists.map(\.name).joined(separator: ", "))
+                        }
                     }
                     Spacer()
                     Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color(.tertiaryLabel))
