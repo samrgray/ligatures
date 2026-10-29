@@ -7,6 +7,13 @@ struct ContactDetailView: View {
     /// Closes the card (back to the list). The carousel passes its own, since a card inside it
     /// can’t reliably dismiss the screen.
     var onClose: (() -> Void)? = nil
+    /// For people shown together: everyone in the entry, who’s shown, and how to switch.
+    var members: [ContactRow] = []
+    var chosen: String? = nil
+    var onChoose: ((String) -> Void)? = nil
+    /// How far the card is pulled down past its top, and whether you’ve let go (to close it).
+    var onPull: ((CGFloat, Bool) -> Void)? = nil
+    @State private var pull: CGFloat = 0
     @Environment(Store.self) private var store
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
@@ -24,76 +31,50 @@ struct ContactDetailView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-        List {
-            if detail?.draft == true && archived == nil { draftBanner }
-            header
-            if let d = detail {
-                googleSections(d)
-            } else if row != nil {
-                Section { HStack { Spacer(); ProgressView(); Spacer() } }
-            }
-            if let archived {
-                Section {
-                    Text("Archived \(Date(timeIntervalSince1970: archived.at / 1000).formatted(date: .abbreviated, time: .omitted)). Not in Google Contacts; everything is kept here. Restore puts them back in Google\(archived.groups.contains { $0 != "contactGroups/myContacts" } ? ", on the same lists" : "").")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                if let row { listsSection(row) }
-                if row != nil { RelationshipsSection(id: id, editing: $editingRelationship) }
-            }
-            yourFields
-            if !pastFields.isEmpty { pastSection }
-        }
-        .onAppear {
-            if store.demo, store.demoScreen == "fields" {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { proxy.scrollTo("fields", anchor: .top) }
-            }
-        }
-        }
-        .listStyle(.insetGrouped)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if active && archived != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button(role: .destructive) { confirmForget = true } label: { Label("Delete Forever", systemImage: "trash") }
-                    } label: { Image(systemName: "ellipsis.circle") }
-                    .accessibilityLabel("More")
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Restore") {
-                        working = true
-                        Task {
-                            await store.archive(.restore, ids: [id])
-                            await store.loadDetail(id)
-                            working = false
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    topBar
+                    if detail?.draft == true && archived == nil { draftBanner }
+                    header
+                    if let d = detail {
+                        googleSections(d)
+                    } else if row != nil {
+                        ProgressView().frame(maxWidth: .infinity).padding(.vertical, 20)
                     }
-                    .bold()
-                    .disabled(working)
+                    if let archived {
+                        CardSection {
+                            Text("Archived \(Date(timeIntervalSince1970: archived.at / 1000).formatted(date: .abbreviated, time: .omitted)). \(detail?.draft == true ? "Restore brings it back as a draft." : "Not in Google Contacts; everything is kept here. Restore puts them back in Google\(archived.groups.contains { $0 != "contactGroups/myContacts" } ? ", on the same lists" : "").")")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .cardRow(first: true)
+                        }
+                    } else {
+                        if let row { listsSection(row) }
+                        if row != nil { RelationshipsSection(id: id, editing: $editingRelationship) }
+                    }
+                    yourFields
+                    if !pastFields.isEmpty { pastSection }
                 }
-            } else if active {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button {
-                            working = true
-                            Task {
-                                let done = await store.archive(.archive, ids: [id], etags: [id: detail?.etag ?? ""])
-                                working = false
-                                if !done.isEmpty { close() }
-                            }
-                        } label: { Label("Archive", systemImage: "archivebox") }
-                    } label: { Image(systemName: "ellipsis.circle") }
-                    .accessibilityLabel("More")
-                    .disabled(detail == nil || working)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Edit") { editing = true }
-                        .disabled(detail == nil)
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+                .padding(.bottom, 60)
+            }
+            .scrollIndicators(.hidden)
+            // Pulled down past the top: the card follows, and letting go far enough closes it.
+            .onScrollGeometryChange(for: CGFloat.self) { g in -(g.contentOffset.y + g.contentInsets.top) } action: { _, v in
+                pull = max(0, v)
+                onPull?(pull, false)
+            }
+            .onScrollPhaseChange { old, new in
+                if old == .interacting && new != .interacting { onPull?(pull, true) }
+            }
+            .onAppear {
+                if store.demo, store.demoScreen == "fields" {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { proxy.scrollTo("fields", anchor: .top) }
                 }
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("Delete this contact forever?", isPresented: $confirmForget, titleVisibility: .visible) {
             Button("Delete Forever", role: .destructive) {
                 Task {
@@ -131,12 +112,91 @@ struct ContactDetailView: View {
         if let onClose { onClose() } else { dismiss() }
     }
 
+    /// Close, switch between people shown together, and the card’s actions: all on the card.
+    private var topBar: some View {
+        HStack(spacing: 10) {
+            if onClose != nil {
+                Button { close() } label: { Image(systemName: "chevron.down") }
+                    .buttonStyle(RoundIconStyle())
+                    .accessibilityLabel("Close")
+            }
+            if members.count > 1 {
+                HStack(spacing: 2) {
+                    ForEach(members) { m in
+                        let on = (chosen ?? id) == m.id
+                        Button { onChoose?(m.id) } label: {
+                            Text(m.givenName.isEmpty ? m.displayName : m.givenName)
+                                .font(.subheadline.weight(.semibold))
+                                .padding(.horizontal, 12)
+                                .frame(height: 30)
+                                .background(Capsule().fill(on ? Theme.card : Color.clear))
+                                .shadow(color: Theme.shadow.opacity(on ? 0.12 : 0), radius: 2, y: 1)
+                                .foregroundStyle(on ? Theme.ink : Color.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(3)
+                .background(Capsule().fill(Theme.paper.opacity(0.8)))
+            }
+            Spacer(minLength: 0)
+            Group {
+                if archived != nil {
+                    Menu {
+                        Button(role: .destructive) { confirmForget = true } label: { Label("Delete Forever", systemImage: "trash") }
+                    } label: { roundIcon("ellipsis") }
+                    .accessibilityLabel("More")
+                    Button("Restore") {
+                        working = true
+                        Task {
+                            await store.archive(.restore, ids: [id])
+                            await store.loadDetail(id)
+                            working = false
+                        }
+                    }
+                    .buttonStyle(TactileButtonStyle(kind: .primary, compact: true))
+                    .disabled(working)
+                } else {
+                    Menu {
+                        Button {
+                            working = true
+                            Task {
+                                let done = await store.archive(.archive, ids: [id], etags: [id: detail?.etag ?? ""])
+                                working = false
+                                if !done.isEmpty { close() }
+                            }
+                        } label: { Label("Archive", systemImage: "archivebox") }
+                    } label: { roundIcon("ellipsis") }
+                    .accessibilityLabel("More")
+                    .disabled(detail == nil || working)
+                    Button("Edit") { editing = true }
+                        .buttonStyle(TactileButtonStyle(compact: true))
+                        .disabled(detail == nil)
+                }
+            }
+            // The cards beside this one keep their layout but not their buttons.
+            .opacity(active ? 1 : 0)
+            .allowsHitTesting(active)
+            .accessibilityHidden(!active)
+        }
+    }
+
+    private func roundIcon(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(Theme.ink)
+            .frame(width: 36, height: 36)
+            .background(Circle().fill(Theme.card))
+            .overlay(Circle().strokeBorder(Theme.line, lineWidth: 0.5))
+            .shadow(color: Theme.shadow.opacity(0.1), radius: 4, y: 2)
+    }
+
     @State private var promoting = false
     @State private var promoteError: String?
 
     /// Drafts are only in Ligature; one tap makes them real.
     private var draftBanner: some View {
-        Section {
+        Group {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 6) {
                     DraftTag()
@@ -154,10 +214,12 @@ struct ContactDetailView: View {
                 } label: {
                     if promoting { ProgressView().frame(maxWidth: .infinity) } else { Text("Add to Google").frame(maxWidth: .infinity) }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(TactileButtonStyle(kind: .primary))
                 .disabled(promoting)
             }
-            .padding(.vertical, 4)
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.brand.opacity(0.08)))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.brand.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
         }
         .alert("Couldn’t Add to Google", isPresented: Binding(get: { promoteError != nil }, set: { if !$0 { promoteError = nil } })) {
             Button("OK", role: .cancel) {}
@@ -175,7 +237,7 @@ struct ContactDetailView: View {
         let subtitle = [card?.title ?? row?.title ?? "", card?.organization ?? row?.organization ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")
         let phones = unique(card?.phones ?? (row.map { $0.phone.isEmpty ? [] : [Labeled(value: $0.phone, label: "")] } ?? []))
         let emails = unique(card?.emails ?? (row.map { $0.email.isEmpty ? [] : [Labeled(value: $0.email, label: "")] } ?? []))
-        return Section {
+        return Group {
             VStack(spacing: 10) {
                 Button { if !photo.isEmpty { showPhoto = true } } label: {
                     Avatar(url: photo, initials: card?.initials ?? row?.initials ?? "?", size: 104)
@@ -217,8 +279,6 @@ struct ContactDetailView: View {
                 .padding(.top, 6)
             }
             .frame(maxWidth: .infinity)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
         }
     }
 
@@ -244,49 +304,53 @@ struct ContactDetailView: View {
     private func googleSections(_ d: ContactDetail) -> some View {
         let c = d.card
         if !c.phones.isEmpty {
-            Section {
-                ForEach(c.phones) { p in
+            CardSection {
+                ForEach(Array(c.phones.enumerated()), id: \.element.id) { i, p in
                     ValueRow(label: p.label.isEmpty ? "phone" : p.label, value: p.value, url: Links.tel(p.value)) {
                         Button { if let u = Links.sms(p.value) { openURL(u) } } label: { Image(systemName: "message.fill") }
-                            .buttonStyle(.borderless)
+                            .buttonStyle(RoundIconStyle())
                             .accessibilityLabel("Message \(p.value)")
                     } menu: {
                         Button { if let u = Links.tel(p.value) { openURL(u) } } label: { Label("Call", systemImage: "phone") }
                         Button { if let u = Links.sms(p.value) { openURL(u) } } label: { Label("Message", systemImage: "message") }
                     }
+                    .cardRow(first: i == 0)
                 }
             }
         }
         if !c.emails.isEmpty {
-            Section {
-                ForEach(c.emails) { e in
-                    ValueRow(label: e.label.isEmpty ? "email" : e.label, value: e.value, url: Links.mail(e.value))
+            CardSection {
+                ForEach(Array(c.emails.enumerated()), id: \.element.id) { i, e in
+                    ValueRow(label: e.label.isEmpty ? "email" : e.label, value: e.value, url: Links.mail(e.value)).cardRow(first: i == 0)
                 }
             }
         }
         if !c.addresses.isEmpty {
-            Section {
-                ForEach(c.addresses) { a in
-                    ValueRow(label: a.label.isEmpty ? "address" : a.label, value: a.value, url: Links.maps(a.value), tinted: false)
+            CardSection {
+                ForEach(Array(c.addresses.enumerated()), id: \.element.id) { i, a in
+                    ValueRow(label: a.label.isEmpty ? "address" : a.label, value: a.value, url: Links.maps(a.value), tinted: false).cardRow(first: i == 0)
                 }
             }
         }
         if !c.urls.isEmpty {
-            Section {
-                ForEach(c.urls) { u in
-                    ValueRow(label: u.label.isEmpty ? "website" : u.label, value: u.value, url: Links.web(u.value))
+            CardSection {
+                ForEach(Array(c.urls.enumerated()), id: \.element.id) { i, u in
+                    ValueRow(label: u.label.isEmpty ? "website" : u.label, value: u.value, url: Links.web(u.value)).cardRow(first: i == 0)
                 }
             }
         }
-        if !c.birthday.isEmpty || !c.events.isEmpty || !c.relations.isEmpty {
-            Section {
-                if !c.birthday.isEmpty { ValueRow(label: "birthday", value: c.birthday, url: nil, tinted: false) }
-                ForEach(c.events) { e in ValueRow(label: e.label.isEmpty ? "date" : e.label, value: e.value, url: nil, tinted: false) }
-                ForEach(c.relations) { r in ValueRow(label: r.label.isEmpty ? "related" : r.label, value: r.value, url: nil, tinted: false) }
+        let dates: [(String, String)] = (c.birthday.isEmpty ? [] : [("birthday", c.birthday)])
+            + c.events.map { ($0.label.isEmpty ? "date" : $0.label, $0.value) }
+            + c.relations.map { ($0.label.isEmpty ? "related" : $0.label, $0.value) }
+        if !dates.isEmpty {
+            CardSection {
+                ForEach(Array(dates.enumerated()), id: \.offset) { i, x in
+                    ValueRow(label: x.0, value: x.1, url: nil, tinted: false).cardRow(first: i == 0)
+                }
             }
         }
         if !c.notes.isEmpty {
-            Section { ValueRow(label: "notes", value: c.notes, url: nil, tinted: false) }
+            CardSection { ValueRow(label: "notes", value: c.notes, url: nil, tinted: false).cardRow(first: true) }
         }
     }
 
@@ -294,11 +358,11 @@ struct ContactDetailView: View {
 
     private func listsSection(_ row: ContactRow) -> some View {
         let names = store.lists(for: row.accountId).filter { row.groups.contains($0.id) }.map(\.name)
-        return Section {
+        return CardSection {
             Button { pickingLists = true } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("lists").font(.subheadline).foregroundStyle(Color(.secondaryLabel))
+                        Text("lists").font(.caption).foregroundStyle(.secondary)
                         Text(names.isEmpty ? "Add to a List" : names.joined(separator: ", "))
                             .foregroundStyle(names.isEmpty ? Color.accentColor : Color.primary)
                     }
@@ -308,6 +372,7 @@ struct ContactDetailView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .cardRow(first: true)
         }
     }
 
@@ -334,25 +399,22 @@ struct ContactDetailView: View {
 
     @ViewBuilder
     private var yourFields: some View {
-        Section {
+        let own = currentFields.filter { $0.listId == nil }
+        CardSection(title: "Your fields", note: "Only in Ligature. Never synced to Google, iPhone or Mac.") {
             if store.fields.isEmpty {
-                Text("No fields yet. Add them in Ligature on the web.").foregroundStyle(.secondary)
+                Text("No fields yet. Add them in Ligature on the web.").foregroundStyle(.secondary).cardRow(first: true)
             }
-            ForEach(currentFields.filter { $0.listId == nil }) { f in
-                FieldEditor(contactId: id, field: f, stored: stored(f))
+            ForEach(Array(own.enumerated()), id: \.element.id) { i, f in
+                FieldEditor(contactId: id, field: f, stored: stored(f)).cardRow(first: i == 0)
             }
-        } header: {
-            Text("Your Fields")
-        } footer: {
-            Text("Only in Ligature. Never synced to Google, iPhone or Mac.")
         }
         .id("fields")
         // A list’s own fields, under the list’s name.
         ForEach(listFieldGroups, id: \.listId) { group in
-            Section {
-                ForEach(group.fields) { f in FieldEditor(contactId: id, field: f, stored: stored(f)) }
-            } header: {
-                Text(group.name)
+            CardSection(title: group.name) {
+                ForEach(Array(group.fields.enumerated()), id: \.element.id) { i, f in
+                    FieldEditor(contactId: id, field: f, stored: stored(f)).cardRow(first: i == 0)
+                }
             }
         }
     }
@@ -384,34 +446,43 @@ struct ContactDetailView: View {
 
     /// Collapsed until you open it; values grouped under the list they came from.
     private var pastSection: some View {
-        Section {
-            DisclosureGroup(isExpanded: $pastOpen) {
+        CardSection(note: "From lists they’re no longer on, or that were deleted.") {
+            Button { withAnimation(.snappy) { pastOpen.toggle() } } label: {
+                HStack {
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .rotationEffect(.degrees(pastOpen ? 90 : 0))
+                        .foregroundStyle(.secondary)
+                    Text("Past Fields").font(.body.weight(.medium))
+                    Spacer()
+                    Text("\(pastFields.count)").foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .cardRow(first: true)
+            if pastOpen {
                 ForEach(pastGroups, id: \.key) { group in
                     HStack(spacing: 6) {
                         Text(group.name).font(.subheadline.weight(.semibold))
                         Text(group.deleted ? "Deleted list" : "Not on this list").font(.subheadline).foregroundStyle(.secondary)
                     }
+                    .cardRow()
                     ForEach(group.fields) { f in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(f.label).font(.subheadline).foregroundStyle(.secondary)
-                            Text(pastValue(f)).textSelection(.enabled)
-                        }
-                        .swipeActions {
-                            Button("Remove", role: .destructive) {
-                                Task { await store.saveField(id, fieldId: f.id, value: "") }
+                        HStack(alignment: .firstTextBaseline) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(f.label).font(.caption).foregroundStyle(.secondary)
+                                Text(pastValue(f)).textSelection(.enabled)
                             }
+                            Spacer()
+                            Button { Task { await store.saveField(id, fieldId: f.id, value: "") } } label: { Image(systemName: "xmark") }
+                                .buttonStyle(RoundIconStyle())
+                                .accessibilityLabel("Remove \(f.label)")
                         }
+                        .cardRow()
                     }
                 }
-            } label: {
-                HStack {
-                    Text("Past Fields")
-                    Spacer()
-                    Text("\(pastFields.count)").foregroundStyle(.secondary)
-                }
             }
-        } footer: {
-            Text("From lists they’re no longer on, or that were deleted. Swipe a value to remove it.")
         }
     }
 
@@ -471,8 +542,8 @@ struct ActionFace: View {
             Text(title).font(.caption2.weight(.medium))
         }
         .foregroundStyle(enabled ? Color.accentColor : Color.secondary)
-        .frame(maxWidth: .infinity, minHeight: 56)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+        .frame(maxWidth: .infinity, minHeight: 60)
+        .softCard(radius: 16)
         .opacity(enabled ? 1 : 0.6)
     }
 }
@@ -507,7 +578,7 @@ struct ValueRow<Trailing: View, Extra: View>: View {
 extension ValueRow {
     fileprivate var content: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.subheadline).foregroundStyle(Color(.secondaryLabel))
+            Text(label).font(.caption).foregroundStyle(.secondary)
             Text(value)
                 .foregroundStyle(tinted && url != nil ? Color.accentColor : Color.primary)
                 .multilineTextAlignment(.leading)
@@ -533,19 +604,26 @@ struct FieldEditor: View {
     @State private var text = ""
     @FocusState private var focused: Bool
 
+    @State private var pickingDate = false
+    @State private var pickedDate = Date()
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 6) {
             if field.type != "checkbox" {
-                Text(field.label).font(.subheadline).foregroundStyle(.secondary)
+                Text(field.label).font(.caption).foregroundStyle(.secondary)
             }
             switch field.type {
             case "checkbox":
-                Toggle(field.label, isOn: Binding(get: { text == "1" }, set: { text = $0 ? "1" : ""; save() }))
+                Toggle(isOn: Binding(get: { text == "1" }, set: { text = $0 ? "1" : ""; save() })) {
+                    Text(field.label)
+                }
+                .toggleStyle(SoftToggleStyle())
             case "date": dateEditor
             case "longtext":
                 TextField("Add", text: $text, axis: .vertical)
                     .lineLimit(1...10)
                     .focused($focused)
+                    .fieldWell(focused: focused)
             default:
                 TextField(field.type == "url" ? "https://" : "Add", text: $text)
                     .keyboardType(field.type == "url" ? .URL : .default)
@@ -554,6 +632,7 @@ struct FieldEditor: View {
                     .focused($focused)
                     .submitLabel(.done)
                     .onSubmit(save)
+                    .fieldWell(focused: focused)
             }
         }
         .onAppear { text = stored }
@@ -561,20 +640,42 @@ struct FieldEditor: View {
         .onChange(of: focused) { _, isFocused in if !isFocused { save() } }
     }
 
-    @ViewBuilder
+    /// The date in a well; tap for a calendar.
     private var dateEditor: some View {
-        if let date = Self.day.date(from: text) {
+        let date = Self.day.date(from: text)
+        return Button {
+            pickedDate = date ?? Date()
+            pickingDate = true
+        } label: {
             HStack {
-                DatePicker(field.label, selection: Binding(get: { date }, set: { text = Self.day.string(from: $0); save() }), displayedComponents: .date)
-                    .labelsHidden()
+                Text(date?.formatted(date: .abbreviated, time: .omitted) ?? "Add Date")
+                    .foregroundStyle(date == nil ? Color.secondary : Color.primary)
                 Spacer()
-                Button { text = ""; save() } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary) }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Clear \(field.label)")
+                Image(systemName: "calendar").foregroundStyle(.secondary)
             }
-        } else {
-            Button("Add Date") { text = Self.day.string(from: Date()); save() }
-                .buttonStyle(.borderless)
+            .fieldWell()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(field.label): \(date?.formatted(date: .abbreviated, time: .omitted) ?? "empty")")
+        .sheet(isPresented: $pickingDate) {
+            VStack(spacing: 16) {
+                HStack {
+                    Button("Clear") { text = ""; save(); pickingDate = false }
+                        .buttonStyle(TactileButtonStyle(compact: true))
+                    Spacer()
+                    Text(field.label).font(.headline)
+                    Spacer()
+                    Button("Done") { text = Self.day.string(from: pickedDate); save(); pickingDate = false }
+                        .buttonStyle(TactileButtonStyle(kind: .primary, compact: true))
+                }
+                DatePicker(field.label, selection: $pickedDate, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                    .labelsHidden()
+            }
+            .padding(20)
+            .presentationDetents([.medium])
+            .presentationBackground { PaperBackground() }
         }
     }
 

@@ -21,7 +21,7 @@ final class LigatureUITests: XCTestCase {
         XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5), "contacts list didn’t appear")
         sleep(1)
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        let opened = app.navigationBars.buttons["Edit"].waitForExistence(timeout: 3)
+        let opened = app.buttons["Edit"].waitForExistence(timeout: 3)
         shot(name)
         print("SCREEN AFTER TAP (\(name)):\n" + app.debugDescription.split(separator: "\n").prefix(60).joined(separator: "\n"))
         XCTAssertTrue(opened, "tapping a contact didn’t open it (\(name))")
@@ -45,7 +45,7 @@ final class LigatureUITests: XCTestCase {
         XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5))
         sleep(1)
         app.cells.element(boundBy: 0).tap()
-        XCTAssertTrue(app.navigationBars.buttons["Edit"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Edit"].waitForExistence(timeout: 3))
         sleep(1)
         // The text fully on screen: the card you’re looking at (the neighbours only peek in).
         let onScreen = { () -> Set<String> in
@@ -63,7 +63,7 @@ final class LigatureUITests: XCTestCase {
         app.swipeRight()
         sleep(2)
         XCTAssertEqual(onScreen(), first, "swiping right didn’t go back")
-        XCTAssertTrue(app.navigationBars.buttons["Edit"].exists, "a swipe left the contact")
+        XCTAssertTrue(app.buttons["Edit"].exists, "a swipe left the contact")
     }
 
     func testSwipeDownClosesCard() {
@@ -73,13 +73,13 @@ final class LigatureUITests: XCTestCase {
         XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5))
         sleep(1)
         app.cells.element(boundBy: 0).tap()
-        XCTAssertTrue(app.navigationBars.buttons["Edit"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Edit"].waitForExistence(timeout: 3))
         sleep(1)
         let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
         start.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
         sleep(2)
         shot("ui-swipe-down")
-        XCTAssertFalse(app.navigationBars.buttons["Edit"].exists, "swiping the card down didn’t close it")
+        XCTAssertFalse(app.buttons["Edit"].exists, "swiping the card down didn’t close it")
         XCTAssertTrue(app.cells.firstMatch.exists, "the list didn’t come back")
     }
 
@@ -106,7 +106,7 @@ final class LigatureUITests: XCTestCase {
         sleep(1)
         shot("ui-select")
         XCTAssertTrue(app.staticTexts["1 Selected"].waitForExistence(timeout: 3), "Select mode didn’t tick the row")
-        XCTAssertFalse(app.navigationBars.buttons["Edit"].exists, "Select mode opened the contact instead")
+        XCTAssertFalse(app.buttons["Edit"].exists, "Select mode opened the contact instead")
     }
 
     func testTogetherRowOpensBoth() {
@@ -127,7 +127,7 @@ final class LigatureUITests: XCTestCase {
 
     func testEditAddress() {
         tapRowOpensCard("ui-open-for-edit")
-        app.navigationBars.buttons["Edit"].tap()
+        app.buttons["Edit"].tap()
         let city = app.textFields["City"].firstMatch
         for _ in 0..<4 where !city.isHittable { app.swipeUp() }
         XCTAssertTrue(city.waitForExistence(timeout: 3), "no address fields in the editor")
@@ -173,7 +173,7 @@ final class LigatureUITests: XCTestCase {
         app.launchArguments = ["-demo", "-nopins"]
         app.launch()
         tapRowOpensCard("ui-before-archive")
-        app.navigationBars.buttons["More"].tap()
+        app.buttons["More"].tap()
         app.buttons["Archive"].tap()
         XCTAssertTrue(app.navigationBars.buttons["Lists"].waitForExistence(timeout: 3), "didn’t go back to the list")
         app.navigationBars.buttons["Lists"].tap()
@@ -182,10 +182,10 @@ final class LigatureUITests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 3), "archived person not in Archived")
         shot("ui-archived")
         row.tap()
-        let restore = app.navigationBars.buttons["Restore"]
+        let restore = app.buttons["Restore"]
         XCTAssertTrue(restore.waitForExistence(timeout: 3), "archived card has no Restore")
         restore.tap()
-        XCTAssertTrue(app.navigationBars.buttons["Edit"].waitForExistence(timeout: 3), "restored card isn’t editable")
+        XCTAssertTrue(app.buttons["Edit"].waitForExistence(timeout: 3), "restored card isn’t editable")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.staticTexts["No Archived Contacts"].waitForExistence(timeout: 3), "restore didn’t empty the archive")
     }

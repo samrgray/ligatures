@@ -9,6 +9,15 @@ struct PersonView: View {
     @Environment(Store.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var position: String?
+    /// How far the card you’re on is pulled down.
+    @State private var pull: CGFloat = 0
+    @State private var closing = false
+
+    private func closeCard() {
+        guard !closing else { return }
+        closing = true
+        dismiss()
+    }
     /// For people shown together: which of them each card shows.
     @State private var chosen: [String: String] = [:]
 
@@ -38,7 +47,18 @@ struct PersonView: View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: Self.gap) {
                 ForEach(entries.compactMap(\.first), id: \.self) { lead in
-                    ContactDetailView(id: chosen[lead] ?? lead, active: lead == current, onClose: { dismiss() })
+                    ContactDetailView(
+                        id: chosen[lead] ?? lead,
+                        active: lead == current,
+                        onClose: { dismiss() },
+                        members: store.together[lead] ?? [],
+                        chosen: chosen[lead] ?? lead,
+                        onChoose: { chosen[lead] = $0 },
+                        onPull: { distance, released in
+                            guard lead == current else { return }
+                            if released && distance > 70 { closeCard() } else { pull = released ? 0 : distance }
+                        }
+                    )
                         .contentMargins(.bottom, 40, for: .scrollContent)
                         .scrollContentBackground(.hidden)
                         .background { ZStack { Theme.cardGround; Theme.grain.blendMode(.multiply).accessibilityHidden(true) } }
@@ -51,6 +71,9 @@ struct PersonView: View {
                         .shadow(color: .black.opacity(0.12), radius: 14, y: 4)
                         .padding(.top, 8)
                         .containerRelativeFrame(.horizontal) { w, _ in w - Self.inset * 2 }
+                        // Pulled down from the top, the card follows your finger.
+                        .offset(y: lead == current ? pull * 0.9 : 0)
+                        .scaleEffect(lead == current ? 1 - min(pull, 300) / 3000 : 1, anchor: .top)
                         // The ones beside it sit a little lower and smaller, and rise as they come in.
                         .scrollTransition(.interactive, axis: .horizontal) { content, phase in
                             content
@@ -70,19 +93,7 @@ struct PersonView: View {
         .background(PaperBackground())
         .sensoryFeedback(.selection, trigger: position)
         .modifier(CardZoom(zoom: zoom, source: current))
-        .toolbar {
-            if members.count > 1 {
-                ToolbarItem(placement: .principal) {
-                    Picker("Person", selection: Binding(get: { chosen[current] ?? current }, set: { chosen[current] = $0 })) {
-                        ForEach(members) { m in
-                            Text(m.givenName.isEmpty ? m.displayName : m.givenName).tag(m.id)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .fixedSize()
-                }
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
 
@@ -109,44 +120,51 @@ struct RelationshipsSection: View {
 
     var body: some View {
         let rels = store.relationships(of: id)
-        Section {
-            ForEach(rels) { r in
+        CardSection(title: "Relationships", note: "Only in Ligature.") {
+            ForEach(Array(rels.enumerated()), id: \.element.id) { i, r in
                 let other = r.other(than: id)
                 let person = store.contacts.first { $0.id == other }
-                NavigationLink(value: other) {
-                    HStack(spacing: 10) {
-                        Avatar(url: person?.photoUrl ?? "", initials: person?.initials ?? "?", size: 28)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(r.label(for: id)).font(.subheadline).foregroundStyle(Color(.secondaryLabel))
-                            Text(person?.displayName ?? "No Name")
+                HStack(spacing: 10) {
+                    NavigationLink(value: other) {
+                        HStack(spacing: 10) {
+                            Avatar(url: person?.photoUrl ?? "", initials: person?.initials ?? "?", size: 32)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(r.label(for: id)).font(.caption).foregroundStyle(.secondary)
+                                Text(person?.displayName ?? "No Name")
+                            }
+                            Spacer()
+                            if r.combined {
+                                Text("Together")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Capsule().fill(Theme.paper))
+                            }
                         }
-                        Spacer()
-                        if r.combined {
-                            Text("Together")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Capsule().fill(Color(.tertiarySystemFill)))
-                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
+                    Menu {
+                        Button { editing = RelationshipEditTarget(me: id, existing: r) } label: { Label("Edit", systemImage: "pencil") }
+                        Button(role: .destructive) { Task { await store.removeRelationship(r) } } label: { Label("Remove", systemImage: "trash") }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Options for \(person?.displayName ?? "relationship")")
                 }
-                .swipeActions {
-                    Button("Remove", role: .destructive) { Task { await store.removeRelationship(r) } }
-                    Button("Edit") { editing = RelationshipEditTarget(me: id, existing: r) }
-                }
-                .contextMenu {
-                    Button { editing = RelationshipEditTarget(me: id, existing: r) } label: { Label("Edit", systemImage: "pencil") }
-                    Button(role: .destructive) { Task { await store.removeRelationship(r) } } label: { Label("Remove", systemImage: "trash") }
-                }
+                .cardRow(first: i == 0)
             }
             Button { editing = RelationshipEditTarget(me: id, existing: nil) } label: {
-                Label("Add Relationship", systemImage: "plus")
+                Label("Add Relationship", systemImage: "plus").font(.body.weight(.medium))
             }
-        } header: {
-            Text("Relationships")
-        } footer: {
-            Text("Only in Ligature.")
+            .buttonStyle(.plain)
+            .foregroundStyle(Color.accentColor)
+            .cardRow(first: rels.isEmpty)
         }
     }
 }

@@ -36,7 +36,7 @@ struct ArchivedView: View {
             .searchable(text: $query, prompt: "Search")
             .navigationTitle("Archived")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: String.self) { id in ContactDetailView(id: id) }
+            .navigationDestination(for: String.self) { id in ContactDetailView(id: id).background(PaperBackground()) }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }
