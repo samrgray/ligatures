@@ -106,6 +106,8 @@ function seed() {
         urls: [],
         addresses: [
           address('home', `${100 + ((i * 131) % 4800)} ${STREETS[i % STREETS.length]}`, 'Portland', 'OR', `972${String(10 + (i % 30)).padStart(2, '0')}`),
+          // Some with a company have a work address too.
+          ...(org && i % 3 === 1 ? [address('work', `${200 + i * 7} SW Morrison St`, 'Portland', 'OR', '97204')] : []),
         ],
         relations: [],
         events: [],
@@ -237,6 +239,10 @@ function mapPoints() {
       const lng = -122.66 + (((i * 53) % 29) / 29) * 0.2 - 0.1;
       points.push({ id: c.id, label: 'home', precision: 'address', lat, lng, text });
     }
+    // Work addresses, downtown.
+    c.card.addresses.slice(1).forEach((a, k) => {
+      points.push({ id: c.id, label: a.label || 'other', precision: 'address', lat: 45.5189 + k * 0.002, lng: -122.6795 + (i % 5) * 0.002, text: a.value.replace(/\s*\n\s*/g, ', ') });
+    });
   });
   return points;
 }

@@ -437,6 +437,7 @@ function setTheme(theme) {
   else document.documentElement.dataset.theme = theme;
   renderSidebar();
   mapView?.setTheme();
+  if (S.detail && S.mode === 'view') drawHeroMap(S.detail);
 }
 
 // ---------------------------------------------------------------- data
@@ -448,6 +449,7 @@ async function loadContacts() {
     S.archived = archive.contacts;
     S.relationships = relationships ?? [];
     mapView?.invalidate();
+    S.places = null;
   } catch (e) {
     return handleError(e);
   }
@@ -2000,6 +2002,55 @@ async function signalByName() {
 }
 
 let detailTimer;
+// ---------------------------------------------------------------- the map behind a contact’s name
+
+/** A contact’s places, as the Map view found them: one per address, home first. */
+async function contactPlaces(id) {
+  S.places ??= api('/map')
+    .then(({ points }) => {
+      const byId = new Map();
+      for (const p of points) byId.set(p.id, [...(byId.get(p.id) ?? []), p]);
+      return byId;
+    })
+    .catch(() => new Map());
+  const seen = {};
+  return ((await S.places).get(id) ?? [])
+    .map((point) => {
+      const type = point.label || 'other';
+      const n = (seen[type] = (seen[type] ?? 0) + 1);
+      return { key: `${type}-${n}`, title: type[0].toUpperCase() + type.slice(1) + (n > 1 ? ` ${n}` : ''), point };
+    })
+    .sort((a, b) => (a.point.label === 'home' ? 0 : 1) - (b.point.label === 'home' ? 0 : 1));
+}
+
+/** A faint map behind their photo and name, and a very small switcher if they have several addresses. */
+async function drawHeroMap(d) {
+  const places = d.archived ? [] : await contactPlaces(d.id);
+  const host = $('#hero-map');
+  if (!host || S.detail?.id !== d.id || !places.length) return;
+  if (S.heroPlace?.id !== d.id) S.heroPlace = { id: d.id, key: places[0].key };
+  const place = places.find((p) => p.key === S.heroPlace.key) ?? places[0];
+  const hero = host.closest('.hero');
+  hero.classList.add('mapped');
+  host.hidden = false;
+  host.innerHTML = `<span class="hero-dot${place.point.precision === 'address' ? '' : ' area'}"></span>`;
+  hero.querySelector('.place-switch')?.remove();
+  if (places.length > 1) {
+    hero.insertAdjacentHTML(
+      'beforeend',
+      `<div class="place-switch" role="group" aria-label="Address on the map">${places
+        .map((p) => `<button type="button" data-hero-place="${h(p.key)}" aria-pressed="${p === place}">${h(p.title)}</button>`)
+        .join('')}</div>`,
+    );
+  }
+  try {
+    const { heroMap } = await import('./map.js');
+    await heroMap(host, place.point, isDark());
+  } catch {
+    host.hidden = true; // no map today; the header is fine without it
+  }
+}
+
 function renderDetailSoon() {
   clearTimeout(detailTimer);
   detailTimer = setTimeout(() => {
@@ -2073,6 +2124,7 @@ function renderDetail() {
             }`
       }
       <div class="hero">
+        <div class="hero-map" id="hero-map" hidden aria-hidden="true"></div>
         ${
           c.photoUrl
             ? `<button type="button" class="avatar avatar-btn" data-action="enlarge-photo" aria-label="Enlarge photo" title="Enlarge photo"><img src="${h(c.photoUrl)}" alt="" referrerpolicy="no-referrer"></button>`
@@ -2136,6 +2188,7 @@ function renderDetail() {
 
   for (const ta of el.querySelectorAll('textarea.own-input')) autosize(ta);
   for (const m of el.querySelectorAll('.menu[popover]')) anchorMenu(m);
+  drawHeroMap(d);
 }
 
 function ownFieldRow(f) {
@@ -2406,7 +2459,10 @@ async function flushFieldSaves() {
   if (status) status.textContent = 'Saving…';
   try {
     const d = await api(`/contacts/${encodeURIComponent(id)}/fields`, { method: 'PUT', body: { values } });
-    if (Object.keys(values).some((f) => fieldById(f)?.key === 'neighborhood')) mapView?.invalidate();
+    if (Object.keys(values).some((f) => fieldById(f)?.key === 'neighborhood')) {
+      mapView?.invalidate();
+      S.places = null;
+    }
     if (S.detail?.id === id) {
       const wasLinked = S.detail.linked;
       S.detail = { ...S.detail, fields: d.fields, linked: d.linked, etag: d.etag, card: d.card };
@@ -4034,7 +4090,10 @@ async function saveCellValue(ce, row) {
       if (S.mode === 'view' && !document.activeElement?.closest?.('#detail')) renderDetail();
     }
     if (d.linkError) toast(`Saved. Couldn’t link to Google yet: ${d.linkError}`);
-    if (fieldById(ce.fieldId)?.key === 'neighborhood') mapView?.invalidate();
+    if (fieldById(ce.fieldId)?.key === 'neighborhood') {
+      mapView?.invalidate();
+      S.places = null;
+    }
     if (!cellEdit) renderGrid();
   } catch (e) {
     // Put the old value back so the table shows what’s actually stored.
@@ -4073,6 +4132,11 @@ document.addEventListener('click', async (e) => {
   const pick = e.target.closest('.pick-menu');
   if (pick && (copy || e.target.closest('a'))) setTimeout(() => pick.hidePopover(), copy ? 400 : 0);
   if (copy) return copyClick(copy);
+  const hp = e.target.closest('[data-hero-place]');
+  if (hp && S.detail) {
+    S.heroPlace = { id: S.detail.id, key: hp.dataset.heroPlace };
+    return drawHeroMap(S.detail);
+  }
   const lp = e.target.closest('[data-lp-group]');
   if (lp) return togglePickerList(lp.dataset.lpAccount, lp.dataset.lpGroup);
   const ns = e.target.closest('[data-name-sort]');

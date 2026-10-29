@@ -731,3 +731,42 @@ export class PeopleMap {
     );
   }
 }
+
+// ---------------------------------------------------------------- behind a contact’s name
+
+const HERO_ZOOM = { address: 13.5, neighborhood: 12.5, postal: 11.5, city: 10.5 };
+let hero = null; // one small map, moved into each contact’s header as it’s drawn
+
+/**
+ * A faint, still map behind a contact’s photo and name: their place centred vertically and
+ * three quarters of the way across (the left half is padding, so the centre lands there).
+ */
+export async function heroMap(host, point, dark) {
+  const ml = await loadLib();
+  const theme = dark ? 'dark' : 'light';
+  if (!hero) {
+    const el = document.createElement('div');
+    el.className = 'hero-map-canvas';
+    const map = new ml.Map({
+      container: el,
+      style: window.LIGATURE_MAP_STYLE ?? STYLES[theme],
+      center: [point.lng, point.lat],
+      zoom: HERO_ZOOM[point.precision] ?? 6.5,
+      interactive: false,
+      attributionControl: false,
+    });
+    hero = { el, map, theme };
+  }
+  if (!host.isConnected) return;
+  host.prepend(hero.el);
+  if (hero.theme !== theme && !window.LIGATURE_MAP_STYLE) {
+    hero.theme = theme;
+    hero.map.setStyle(STYLES[theme]);
+  }
+  hero.map.resize();
+  hero.map.jumpTo({
+    center: [point.lng, point.lat],
+    zoom: HERO_ZOOM[point.precision] ?? 6.5,
+    padding: { left: host.clientWidth * 0.5, top: 0, right: 0, bottom: 0 },
+  });
+}
