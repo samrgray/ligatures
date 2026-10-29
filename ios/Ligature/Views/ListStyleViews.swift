@@ -65,10 +65,11 @@ struct ListMark: View {
     let style: ListStyle
 
     var body: some View {
+        // The same width either way, so names line up.
         if let e = style.emoji {
-            Text(e).accessibilityHidden(true)
+            Text(e).frame(width: 24).accessibilityHidden(true)
         } else if let c = style.color {
-            Circle().fill(ListColor.base(c)).frame(width: 9, height: 9).accessibilityHidden(true)
+            Circle().fill(ListColor.base(c)).frame(width: 9, height: 9).frame(width: 24).accessibilityHidden(true)
         }
     }
 }
