@@ -41,8 +41,7 @@ struct PersonView: View {
                     ContactDetailView(id: chosen[lead] ?? lead, active: lead == current, onClose: { dismiss() })
                         .contentMargins(.bottom, 40, for: .scrollContent)
                         .scrollContentBackground(.hidden)
-                        .background(Theme.cardGround)
-                        .grain()
+                        .background { ZStack { Theme.cardGround; Theme.grain.blendMode(.multiply).accessibilityHidden(true) } }
                         // Rounded at the top; the bottom runs off the screen.
                         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
                         .overlay(
@@ -52,12 +51,11 @@ struct PersonView: View {
                         .shadow(color: .black.opacity(0.12), radius: 14, y: 4)
                         .padding(.top, 8)
                         .containerRelativeFrame(.horizontal) { w, _ in w - Self.inset * 2 }
-                        // Like a hand of cards: the ones moving off tilt from the bottom and drop back.
+                        // The ones beside it sit a little lower and smaller, and rise as they come in.
                         .scrollTransition(.interactive, axis: .horizontal) { content, phase in
                             content
-                                .rotationEffect(.degrees(phase.value * 6), anchor: .bottom)
                                 .scaleEffect(1 - abs(phase.value) * 0.05, anchor: .bottom)
-                                .offset(y: abs(phase.value) * 24)
+                                .offset(y: abs(phase.value) * 18)
                         }
                 }
             }

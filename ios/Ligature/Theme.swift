@@ -51,7 +51,7 @@ struct PaperBackground: View {
             Theme.paper
             RadialGradient(colors: [Color(red: 1, green: 0.77, blue: 0.59).opacity(0.22), .clear], center: .topLeading, startRadius: 0, endRadius: 520)
             RadialGradient(colors: [Color(red: 0.63, green: 0.73, blue: 1).opacity(0.14), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 560)
-            Theme.grain.blendMode(.multiply)
+            Theme.grain.blendMode(.multiply).accessibilityHidden(true)
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
@@ -61,7 +61,7 @@ struct PaperBackground: View {
 /// Grain over a surface (cards, glass), very lightly.
 struct GrainOverlay: ViewModifier {
     func body(content: Content) -> some View {
-        content.overlay { Theme.grain.opacity(0.6).blendMode(.multiply).allowsHitTesting(false) }
+        content.background { Theme.grain.opacity(0.6).blendMode(.multiply).accessibilityHidden(true) }
     }
 }
 
