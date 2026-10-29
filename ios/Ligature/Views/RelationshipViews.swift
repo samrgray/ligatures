@@ -88,7 +88,8 @@ struct PersonView: View {
                             )
                             .shadow(color: Theme.shadow.opacity(0.14), radius: 16, y: 4)
                             .padding(.top, 8)
-                            .containerRelativeFrame(.horizontal) { w, _ in w - Self.inset * 2 }
+                            // The scroll view’s margins are already taken off this width.
+                            .containerRelativeFrame(.horizontal)
                             // Pulled down from the top, the card follows your finger.
                             .offset(y: lead == current ? pull : 0)
                         }
