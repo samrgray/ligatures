@@ -29,7 +29,7 @@ enum Theme {
             for y in 0..<size {
                 for x in 0..<size {
                     let v = CGFloat(UInt8.random(in: 0...255, using: &rng)) / 255
-                    ctx.cgContext.setFillColor(UIColor(red: 0.3, green: 0.22, blue: 0.15, alpha: v * 0.09).cgColor)
+                    ctx.cgContext.setFillColor(UIColor(red: 0.3, green: 0.22, blue: 0.15, alpha: v * 0.05).cgColor)
                     ctx.cgContext.fill(CGRect(x: x, y: y, width: 1, height: 1))
                 }
             }
@@ -61,7 +61,7 @@ struct PaperBackground: View {
 /// Grain over a surface (cards, glass), very lightly.
 struct GrainOverlay: ViewModifier {
     func body(content: Content) -> some View {
-        content.background { Theme.grain.opacity(0.6).blendMode(.multiply).accessibilityHidden(true) }
+        content.background { Theme.grain.opacity(0.5).blendMode(.multiply).accessibilityHidden(true) }
     }
 }
 

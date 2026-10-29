@@ -1,33 +1,34 @@
 import SwiftUI
 
-/// A contact’s screen. For people shown together, a switcher at the top moves between them.
+/// Opens a contact’s card (from a relationship, say). Set by the contacts list.
+private struct OpenPersonKey: EnvironmentKey { static let defaultValue: (String) -> Void = { _ in } }
+extension EnvironmentValues {
+    var openPerson: (String) -> Void {
+        get { self[OpenPersonKey.self] }
+        set { self[OpenPersonKey.self] = newValue }
+    }
+}
+
+/// Contact cards over the list. Swipe sideways between the people in the list you came from;
+/// pull a card down to put it away (only the card moves; the list shows through as it goes).
 struct PersonView: View {
     let id: String
     /// Everyone shown in the list you came from, in order (people shown together are one entry).
-    /// Each is a card; swipe sideways to the next or previous one.
     var order: [[String]] = []
+    var onClose: () -> Void = {}
     @Environment(Store.self) private var store
-    @Environment(\.dismiss) private var dismiss
     @State private var position: String?
     /// How far the card you’re on is pulled down.
     @State private var pull: CGFloat = 0
+    @State private var shown = false
     @State private var closing = false
-
-    private func closeCard() {
-        guard !closing else { return }
-        closing = true
-        dismiss()
-    }
     /// For people shown together: which of them each card shows.
     @State private var chosen: [String: String] = [:]
 
-    /// Where the cards grow from: the list’s rows. Swiping a card down shrinks it back into its row.
-    var zoom: Namespace.ID?
-
-    init(id: String, order: [[String]] = [], zoom: Namespace.ID? = nil) {
+    init(id: String, order: [[String]] = [], onClose: @escaping () -> Void = {}) {
         self.id = id
         self.order = order
-        self.zoom = zoom
+        self.onClose = onClose
         let entry = order.first { $0.contains(id) }
         _position = State(initialValue: entry?.first ?? id)
         if let lead = entry?.first, lead != id { _chosen = State(initialValue: [lead: id]) }
@@ -39,76 +40,73 @@ struct PersonView: View {
     }
 
     private static let inset: CGFloat = 14
-    private static let gap: CGFloat = 8
+    /// Wider than the inset, so the cards beside this one stay out of sight until you swipe.
+    private static let gap: CGFloat = 28
+
+    private func closeCard() {
+        guard !closing else { return }
+        closing = true
+        withAnimation(.easeIn(duration: 0.22)) {
+            shown = false
+            pull = 0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) { onClose() }
+    }
 
     var body: some View {
         let current = position ?? id
-        let members = store.together[chosen[current] ?? current] ?? store.together[current] ?? []
-        ScrollView(.horizontal) {
-            LazyHStack(spacing: Self.gap) {
-                ForEach(entries.compactMap(\.first), id: \.self) { lead in
-                    ContactDetailView(
-                        id: chosen[lead] ?? lead,
-                        active: lead == current,
-                        onClose: { dismiss() },
-                        members: store.together[lead] ?? [],
-                        chosen: chosen[lead] ?? lead,
-                        onChoose: { chosen[lead] = $0 },
-                        onPull: { distance, released in
-                            guard lead == current else { return }
-                            if released && distance > 70 { closeCard() } else { pull = released ? 0 : distance }
+        GeometryReader { geo in
+            let height = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
+            ZStack {
+                // Takes the taps around the cards, so the list underneath doesn’t.
+                Color.clear.contentShape(Rectangle()).ignoresSafeArea()
+                // The paper behind the cards fades as you pull one down, showing the list.
+                PaperBackground()
+                    .opacity(shown ? max(0, 1 - pull / 320) : 0)
+                ScrollView(.horizontal) {
+                    LazyHStack(spacing: Self.gap) {
+                        ForEach(entries.compactMap(\.first), id: \.self) { lead in
+                            ContactDetailView(
+                                id: chosen[lead] ?? lead,
+                                active: lead == current,
+                                onClose: { closeCard() },
+                                members: store.together[lead] ?? [],
+                                chosen: chosen[lead] ?? lead,
+                                onChoose: { chosen[lead] = $0 },
+                                onPull: { distance, released in
+                                    guard lead == current, !closing else { return }
+                                    if released && distance > 70 { closeCard() } else { pull = released ? 0 : distance }
+                                }
+                            )
+                            .contentMargins(.bottom, 40, for: .scrollContent)
+                            .background { ZStack { Theme.cardGround; Theme.grain.blendMode(.multiply).accessibilityHidden(true) } }
+                            // Rounded at the top; the bottom runs off the screen.
+                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
+                            .overlay(
+                                UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous)
+                                    .stroke(Theme.line, lineWidth: 0.5)
+                            )
+                            .shadow(color: Theme.shadow.opacity(0.14), radius: 16, y: 4)
+                            .padding(.top, 8)
+                            .containerRelativeFrame(.horizontal) { w, _ in w - Self.inset * 2 }
+                            // Pulled down from the top, the card follows your finger.
+                            .offset(y: lead == current ? pull : 0)
                         }
-                    )
-                        .contentMargins(.bottom, 40, for: .scrollContent)
-                        .scrollContentBackground(.hidden)
-                        .background { ZStack { Theme.cardGround; Theme.grain.blendMode(.multiply).accessibilityHidden(true) } }
-                        // Rounded at the top; the bottom runs off the screen.
-                        .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
-                        .overlay(
-                            UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous)
-                                .stroke(Color(.separator).opacity(0.5), lineWidth: 0.5)
-                        )
-                        .shadow(color: .black.opacity(0.12), radius: 14, y: 4)
-                        .padding(.top, 8)
-                        .containerRelativeFrame(.horizontal) { w, _ in w - Self.inset * 2 }
-                        // Pulled down from the top, the card follows your finger.
-                        .offset(y: lead == current ? pull * 0.9 : 0)
-                        .scaleEffect(lead == current ? 1 - min(pull, 300) / 3000 : 1, anchor: .top)
-                        // The ones beside it sit a little lower and smaller, and rise as they come in.
-                        .scrollTransition(.interactive, axis: .horizontal) { content, phase in
-                            content
-                                .scaleEffect(1 - abs(phase.value) * 0.05, anchor: .bottom)
-                                .offset(y: abs(phase.value) * 18)
-                        }
+                    }
+                    .scrollTargetLayout()
                 }
+                .contentMargins(.horizontal, Self.inset, for: .scrollContent)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $position)
+                .scrollIndicators(.hidden)
+                .scrollClipDisabled()
+                .ignoresSafeArea(edges: .bottom)
+                // Slides up from the bottom when it opens, and back down when it closes.
+                .offset(y: shown ? 0 : height)
             }
-            .scrollTargetLayout()
         }
-        .contentMargins(.horizontal, Self.inset, for: .scrollContent)
-        .scrollTargetBehavior(.viewAligned)
-        .scrollPosition(id: $position)
-        .scrollIndicators(.hidden)
-        .scrollClipDisabled()
-        .ignoresSafeArea(edges: .bottom)
-        .background(PaperBackground())
         .sensoryFeedback(.selection, trigger: position)
-        .modifier(CardZoom(zoom: zoom, source: current))
-        .toolbar(.hidden, for: .navigationBar)
-    }
-}
-
-/// Grows the cards out of the tapped row; swiping a card down shrinks it back into the row of
-/// whoever it shows now.
-private struct CardZoom: ViewModifier {
-    let zoom: Namespace.ID?
-    let source: String
-
-    func body(content: Content) -> some View {
-        if let zoom {
-            content.navigationTransition(.zoom(sourceID: source, in: zoom))
-        } else {
-            content
-        }
+        .onAppear { withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) { shown = true } }
     }
 }
 
@@ -117,6 +115,7 @@ struct RelationshipsSection: View {
     let id: String
     @Binding var editing: RelationshipEditTarget?
     @Environment(Store.self) private var store
+    @Environment(\.openPerson) private var openPerson
 
     var body: some View {
         let rels = store.relationships(of: id)
@@ -125,7 +124,7 @@ struct RelationshipsSection: View {
                 let other = r.other(than: id)
                 let person = store.contacts.first { $0.id == other }
                 HStack(spacing: 10) {
-                    NavigationLink(value: other) {
+                    Button { openPerson(other) } label: {
                         HStack(spacing: 10) {
                             Avatar(url: person?.photoUrl ?? "", initials: person?.initials ?? "?", size: 32)
                             VStack(alignment: .leading, spacing: 1) {

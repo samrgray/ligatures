@@ -61,9 +61,10 @@ struct ContactDetailView: View {
             }
             .scrollIndicators(.hidden)
             // Pulled down past the top: the card follows, and letting go far enough closes it.
-            .onScrollGeometryChange(for: CGFloat.self) { g in -(g.contentOffset.y + g.contentInsets.top) } action: { _, v in
-                pull = max(0, v)
-                onPull?(pull, false)
+            // Only changes while pulled past the top, so ordinary scrolling doesn’t update anything.
+            .onScrollGeometryChange(for: CGFloat.self) { g in max(0, (-(g.contentOffset.y + g.contentInsets.top)).rounded()) } action: { _, v in
+                pull = v
+                onPull?(v, false)
             }
             .onScrollPhaseChange { old, new in
                 if old == .interacting && new != .interacting { onPull?(pull, true) }

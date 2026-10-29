@@ -54,6 +54,19 @@ struct ContactsListView: View {
     @State private var query = ""
     @State private var filter: ListFilter = .all
     @State private var path: [String] = []
+    /// The contact cards on top of the list, when open.
+    @State private var opened: OpenedCards?
+
+    private struct OpenedCards: Identifiable {
+        let id = UUID()
+        let start: String
+        let order: [[String]]
+    }
+
+    /// Opens someone’s card over the list, with everyone in the list you’re viewing beside it.
+    private func open(_ id: String) {
+        opened = OpenedCards(start: id, order: entries(visible).map { $0.members.map(\.id) })
+    }
     @State private var showNew = false
     @State private var showSettings = false
     @State private var showLists = false
@@ -191,7 +204,7 @@ struct ContactsListView: View {
                     VStack(spacing: 0) {
                         if tabs.count > 1 { tabStrip }
                         if showTable {
-                            ContactsTable(items: visible, filter: filter) { path.append($0) }
+                            ContactsTable(items: visible, filter: filter) { open($0) }
                                 .environment(\.cardZoomNamespace, cardZoom)
                                 .id(filter)
                         } else {
@@ -269,9 +282,12 @@ struct ContactsListView: View {
                 }
             }
             .toolbar(selecting ? .visible : .hidden, for: .bottomBar)
-            .navigationDestination(for: String.self) { id in
-                // Swipe sideways between everyone in the list you came from.
-                PersonView(id: id, order: entries(visible).map { $0.members.map(\.id) }, zoom: cardZoom)
+        }
+        .overlay {
+            if let o = opened {
+                PersonView(id: o.start, order: o.order, onClose: { opened = nil })
+                    .id(o.id)
+                    .environment(\.openPerson) { open($0) }
             }
         }
         .sheet(isPresented: $showNew) {
@@ -297,7 +313,7 @@ struct ContactsListView: View {
                            startSelecting: { withAnimation { editMode = .active } },
                            open: { id in
                                mapSpot = nil
-                               path.append(id)
+                               open(id)
                            })
                 .presentationDetents([.medium, .large])
         }
@@ -312,17 +328,23 @@ struct ContactsListView: View {
         return List(selection: selecting ? $selection : nil) {
             ForEach(entries(items)) { e in
                 let c = e.lead
-                NavigationLink(value: e.id) {
-                    Group {
+                // While selecting, the tap goes to the row’s tick instead.
+                Button { open(e.id) } label: {
+                    HStack(spacing: 8) {
                         if e.members.count > 1 {
                             TogetherRowView(members: e.members)
                         } else {
                             ContactRowView(contact: c, sortByFirst: sortByFirst)
                         }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
                     }
-                    // The card grows out of this row, and shrinks back into it.
-                    .matchedTransitionSource(id: e.id, in: cardZoom)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(RowButtonStyle())
+                .disabled(selecting)
                 .listRowBackground(Color.clear)
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
                         if e.members.count == 1 && !c.phone.isEmpty {
@@ -726,11 +748,11 @@ struct ContactsListView: View {
     private func openDemoScreen() {
         // Demo runs start on the list unless they ask for the map.
         if store.demo { layout = store.demoScreen == "table" ? "table" : ["map", "mapspot"].contains(store.demoScreen ?? "") ? "map" : "list" }
-        guard store.demo, path.isEmpty, let screen = store.demoScreen else { return }
+        guard store.demo, opened == nil, let screen = store.demoScreen else { return }
         let ava = store.contacts.first { $0.givenName == "Ava" }?.id ?? store.contacts.first?.id
         switch screen {
-        case "detail", "edit", "lists", "fields": if let ava { path = [ava] }
-        case "together", "relate": path = ["demo-0"]
+        case "detail", "edit", "lists", "fields": if let ava { open(ava) }
+        case "together", "relate": open("demo-0")
         case "select":
             editMode = .active
             selection = Set(entries(visible).prefix(5).map(\.id).enumerated().filter { $0.offset != 2 }.map(\.element))
@@ -780,6 +802,13 @@ struct TogetherRowView: View {
 }
 
 /// Marks a contact that’s only in Ligature.
+/// A row you tap to open: no styling of its own, just a light press.
+struct RowButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.opacity(configuration.isPressed ? 0.6 : 1)
+    }
+}
+
 struct DraftTag: View {
     var body: some View {
         Text("Draft")
