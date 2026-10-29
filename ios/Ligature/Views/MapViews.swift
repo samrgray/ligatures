@@ -616,6 +616,7 @@ struct PinSheet: View {
 /// quarters of the way across. Only to look at: touches go through to the card.
 struct HeaderMap: View {
     let point: MapPoint
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         GeometryReader { g in
@@ -625,11 +626,13 @@ struct HeaderMap: View {
                 .frame(width: g.size.width, height: g.size.height, alignment: .leading)
                 .clipped()
                 .overlay {
-                    // Shifted toward the paper, more so behind the name, so the map stays in the background.
-                    LinearGradient(stops: [.init(color: Theme.paper.opacity(0.88), location: 0),
-                                           .init(color: Theme.paper.opacity(0.88), location: 0.35),
-                                           .init(color: Theme.paper.opacity(0.55), location: 0.75),
-                                           .init(color: Theme.paper.opacity(0.7), location: 1)],
+                    // Shifted toward the paper, more so behind the name, so the map stays in the
+                    // background. The dark map is already close to the paper, so less there.
+                    let k = scheme == .dark ? 0.6 : 1.0
+                    LinearGradient(stops: [.init(color: Theme.paper.opacity(0.88 * k), location: 0),
+                                           .init(color: Theme.paper.opacity(0.88 * k), location: 0.35),
+                                           .init(color: Theme.paper.opacity(0.55 * k), location: 0.75),
+                                           .init(color: Theme.paper.opacity(0.7 * k), location: 1)],
                                    startPoint: .leading, endPoint: .trailing)
                 }
                 .overlay {

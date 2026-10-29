@@ -327,6 +327,11 @@ dialog.columns-dlg { max-height: calc(100dvh - 48px); overflow-y: auto; }
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 88%, transparent) 0 35%, color-mix(in srgb, var(--bg) 55%, transparent) 75%, color-mix(in srgb, var(--bg) 70%, transparent));
 }
+/* The dark map is already close to the background, so it’s shifted less. */
+[data-theme='dark'] .hero-map::after { background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 55%, transparent) 0 35%, color-mix(in srgb, var(--bg) 30%, transparent) 75%, color-mix(in srgb, var(--bg) 42%, transparent)); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .hero-map::after { background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 55%, transparent) 0 35%, color-mix(in srgb, var(--bg) 30%, transparent) 75%, color-mix(in srgb, var(--bg) 42%, transparent)); }
+}
 .hero-dot { position: absolute; left: 75%; top: 50%; z-index: 1; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 2px var(--card); }
 .hero-dot.area { width: 56px; height: 56px; margin: -28px; background: color-mix(in srgb, var(--brand) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 45%, transparent); }
 .place-switch { position: absolute; right: 0; bottom: 2px; display: flex; padding: 2px; border-radius: 999px; background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--border); }
