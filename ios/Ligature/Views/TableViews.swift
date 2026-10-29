@@ -171,7 +171,9 @@ struct ContactsTable: View {
 
     private var avatarSize: CGFloat { max(28, photoSize * 0.85) }
     /// The photos are the one column that stays put while you scroll sideways.
-    private var photoColumn: CGFloat { avatarSize + 20 }
+    private var photoColumn: CGFloat { avatarSize + 20 + (selecting ? checkWidth : 0) }
+    /// While selecting, the ticks sit left of the photos, as in the list.
+    private let checkWidth: CGFloat = 38
     private func width(_ i: Int, _ w: CGFloat) -> CGFloat { i == 0 ? max(100, w - 36) : w }
 
     private func header(_ cols: [(def: TableColumnDef, width: CGFloat)]) -> some View {
@@ -207,19 +209,21 @@ struct ContactsTable: View {
         let ground = ticked ? Theme.selected : Theme.card
         return HStack(spacing: 0) {
             Button { open(c.id) } label: {
-                Group {
+                HStack(spacing: 0) {
                     if selecting {
                         Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
                             .font(.title2)
                             .foregroundStyle(ticked ? Color.accentColor : Color.secondary)
-                    } else {
-                        Avatar(url: c.photoUrl, initials: c.initials, size: avatarSize)
-                            .overlay {
-                                if c.isDraft {
-                                    Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
-                                }
-                            }
+                            .frame(width: checkWidth, alignment: .trailing)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
                     }
+                    Avatar(url: c.photoUrl, initials: c.initials, size: avatarSize)
+                        .overlay {
+                            if c.isDraft {
+                                Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                 }
                 .frame(width: photoColumn, height: rowHeight)
                 .contentShape(Rectangle())
