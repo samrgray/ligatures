@@ -611,3 +611,74 @@ struct PinSheet: View {
         }
     }
 }
+
+/// A faint map behind a contact’s photo and name, with their place centred vertically and three
+/// quarters of the way across. Only to look at: touches go through to the card.
+struct HeaderMap: View {
+    let point: MapPoint
+
+    var body: some View {
+        GeometryReader { g in
+            // A map half as wide again, from the left edge: its centre is three quarters across.
+            HeaderMapView(point: point)
+                .frame(width: g.size.width * 1.5, height: g.size.height)
+                .frame(width: g.size.width, height: g.size.height, alignment: .leading)
+                .clipped()
+                .overlay {
+                    // Shifted toward the paper, more so behind the name, so the map stays in the background.
+                    LinearGradient(stops: [.init(color: Theme.paper.opacity(0.88), location: 0),
+                                           .init(color: Theme.paper.opacity(0.88), location: 0.35),
+                                           .init(color: Theme.paper.opacity(0.55), location: 0.75),
+                                           .init(color: Theme.paper.opacity(0.7), location: 1)],
+                                   startPoint: .leading, endPoint: .trailing)
+                }
+                .overlay {
+                    marker.position(x: g.size.width * 0.75, y: g.size.height / 2)
+                }
+                // Fades into the page at the top and bottom.
+                .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.15),
+                                             .init(color: .black, location: 0.8), .init(color: .clear, location: 1)],
+                                     startPoint: .top, endPoint: .bottom))
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// A dot for a street address; a soft circle when only the area is known.
+    @ViewBuilder private var marker: some View {
+        if point.precision == "address" {
+            Circle().fill(Theme.brand).frame(width: 10, height: 10)
+                .overlay(Circle().strokeBorder(Theme.card, lineWidth: 2).padding(-2))
+        } else {
+            Circle().fill(Theme.brand.opacity(0.12)).frame(width: 56, height: 56)
+                .overlay(Circle().strokeBorder(Theme.brand.opacity(0.45), lineWidth: 1))
+        }
+    }
+}
+
+private struct HeaderMapView: UIViewRepresentable {
+    let point: MapPoint
+    @Environment(\.colorScheme) private var scheme
+
+    func makeUIView(context: Context) -> MLNMapView {
+        let map = MLNMapView(frame: .zero, styleURL: scheme == .dark ? MapStyle.dark : MapStyle.light)
+        map.isUserInteractionEnabled = false
+        map.logoView.isHidden = true
+        map.attributionButton.isHidden = true
+        map.compassView.isHidden = true
+        return map
+    }
+
+    func updateUIView(_ map: MLNMapView, context: Context) {
+        let url = scheme == .dark ? MapStyle.dark : MapStyle.light
+        if map.styleURL != url { map.styleURL = url }
+        let zoom: Double = switch point.precision {
+        case "address": 13.5
+        case "neighborhood": 12.5
+        case "postal": 11.5
+        case "city": 10.5
+        default: 6.5
+        }
+        map.setCenter(CLLocationCoordinate2D(latitude: point.lat, longitude: point.lng), zoomLevel: zoom, animated: false)
+    }
+}
