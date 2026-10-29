@@ -170,3 +170,37 @@ struct StoreAlert: ViewModifier {
 extension View {
     func storeAlert() -> some View { modifier(StoreAlert()) }
 }
+
+/// Press and hold a contact’s photo to start selecting. UIKit’s long-press recognizer, so the
+/// list still scrolls, and the row’s context menu waits for it rather than opening as well.
+struct HoldToSelect: UIGestureRecognizerRepresentable {
+    let enabled: Bool
+    let action: () -> Void
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        func gestureRecognizer(_ g: UIGestureRecognizer, shouldBeRequiredToFailBy other: UIGestureRecognizer) -> Bool {
+            !(other is UIPanGestureRecognizer)
+        }
+    }
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+
+    func makeUIGestureRecognizer(context: Context) -> UILongPressGestureRecognizer {
+        let g = UILongPressGestureRecognizer()
+        g.minimumPressDuration = 0.35
+        g.allowableMovement = 10
+        g.delegate = context.coordinator
+        g.isEnabled = enabled
+        return g
+    }
+
+    func updateUIGestureRecognizer(_ g: UILongPressGestureRecognizer, context: Context) {
+        g.isEnabled = enabled
+    }
+
+    func handleUIGestureRecognizerAction(_ g: UILongPressGestureRecognizer, context: Context) {
+        guard g.state == .began else { return }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        action()
+    }
+}
