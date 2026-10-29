@@ -2147,7 +2147,7 @@ async function contactPlaces(id) {
     .sort((a, b) => (a.point.label === 'home' ? 0 : 1) - (b.point.label === 'home' ? 0 : 1));
 }
 
-/** A faint map behind their photo and name, and a very small switcher if they have several addresses. */
+/** A faint map behind their photo and name, and which address it shows if they have several. */
 async function drawHeroMap(d) {
   const places = d.archived ? [] : await contactPlaces(d.id);
   const host = $('#hero-map');
@@ -2158,14 +2158,15 @@ async function drawHeroMap(d) {
   hero.classList.add('mapped');
   host.hidden = false;
   host.innerHTML = `<span class="hero-dot${place.point.precision === 'address' ? '' : ' area'}"></span>`;
-  hero.querySelector('.place-switch')?.remove();
-  if (places.length > 1) {
-    hero.insertAdjacentHTML(
-      'beforeend',
-      `<div class="place-switch" role="group" aria-label="Address on the map">${places
-        .map((p) => `<button type="button" data-hero-place="${h(p.key)}" aria-pressed="${p === place}">${h(p.title)}</button>`)
-        .join('')}</div>`,
-    );
+  // On the title’s line (or the name’s), right-aligned: just the address’s name and a caret.
+  const slot = hero.querySelector('.place-slot');
+  if (slot) {
+    slot.innerHTML =
+      places.length > 1
+        ? `<label class="place-pick"><select data-hero-pick aria-label="Address on the map">${places
+            .map((p) => `<option value="${h(p.key)}"${p === place ? ' selected' : ''}>${h(p.title)}</option>`)
+            .join('')}</select>${ICON.down}</label>`
+        : '';
   }
   try {
     const { heroMap } = await import('./map.js');
@@ -2254,9 +2255,9 @@ function renderDetail() {
             ? `<button type="button" class="avatar avatar-btn" data-action="enlarge-photo" aria-label="Enlarge photo" title="Enlarge photo"><img src="${h(c.photoUrl)}" alt="" referrerpolicy="no-referrer"></button>`
             : `<div class="avatar" aria-hidden="true">${h(initials(c))}</div>`
         }
-        <div>
-          <h1>${h(c.displayName || 'No name')}</h1>
-          ${subtitle ? `<div class="subtitle">${h(subtitle)}</div>` : ''}
+        <div class="hero-text">
+          <div class="hero-line"><h1>${h(c.displayName || 'No name')}</h1>${subtitle ? '' : '<span class="place-slot"></span>'}</div>
+          ${subtitle ? `<div class="hero-line"><div class="subtitle">${h(subtitle)}</div><span class="place-slot"></span></div>` : ''}
           ${
             phones.length || emails.length || onSignal(d)
               ? `<div class="pills">
@@ -4256,11 +4257,6 @@ document.addEventListener('click', async (e) => {
   const pick = e.target.closest('.pick-menu');
   if (pick && (copy || e.target.closest('a'))) setTimeout(() => pick.hidePopover(), copy ? 400 : 0);
   if (copy) return copyClick(copy);
-  const hp = e.target.closest('[data-hero-place]');
-  if (hp && S.detail) {
-    S.heroPlace = { id: S.detail.id, key: hp.dataset.heroPlace };
-    return drawHeroMap(S.detail);
-  }
   const lp = e.target.closest('[data-lp-group]');
   if (lp) return togglePickerList(lp.dataset.lpAccount, lp.dataset.lpGroup);
   const ns = e.target.closest('[data-name-sort]');
@@ -4698,6 +4694,10 @@ document.addEventListener('focusin', (e) => {
 
 document.addEventListener('change', async (e) => {
   const t = e.target;
+  if (t.matches('[data-hero-pick]') && S.detail) {
+    S.heroPlace = { id: S.detail.id, key: t.value };
+    return drawHeroMap(S.detail);
+  }
   if (C && t.closest('#compose-dlg')) {
     if (t.id === 'c-tag' && t.value) return insertTag(t.value);
     if (t.dataset.rv) {

@@ -32,6 +32,8 @@ struct ContactDetailView: View {
     @State private var placeKey: String?
     /// Where the photo and name sit in the card, for the map behind them.
     @State private var heroFrame: CGRect = .zero
+    /// The middle of their photo: the place on the map is level with it.
+    @State private var photoMidY: CGFloat = 0
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -66,7 +68,7 @@ struct ContactDetailView: View {
                 // with the place level with their photo and name.
                 .background(alignment: .top) {
                     if let place = headerPlace, heroFrame.maxY > 0 {
-                        HeaderMap(point: place.point, focusY: heroFrame.midY - 13) // above the room left for the switcher
+                        HeaderMap(point: place.point, focusY: photoMidY)
                             .frame(height: heroFrame.maxY)
                             .id(place.id)
                     }
@@ -262,24 +264,34 @@ struct ContactDetailView: View {
                     .buttonStyle(.plain)
                     .disabled(photo.isEmpty)
                     .accessibilityLabel(photo.isEmpty ? "No photo" : "Enlarge photo")
-                    Text(name.isEmpty ? "No Name" : name)
-                        .font(.title.weight(.semibold))
+                    .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named("detail")).midY } action: { photoMidY = $0 }
+                    // With several addresses, which one the map shows: on the title’s line, or the
+                    // name’s when there’s no title.
+                    let picker = places.count > 1 ? placePicker(places, current: place?.id) : nil
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(name.isEmpty ? "No Name" : name)
+                            .font(.title.weight(.semibold))
+                        if subtitle.isEmpty, let picker {
+                            Spacer(minLength: 8)
+                            picker
+                        }
+                    }
                     if !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(subtitle)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            if let picker {
+                                Spacer(minLength: 8)
+                                picker
+                            }
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, place == nil ? 0 : 26)
+                .padding(.bottom, place == nil ? 0 : 14)
                 // The map behind (drawn by the card) reaches down to here.
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("detail")) } action: { heroFrame = $0 }
-                .overlay(alignment: .bottomTrailing) {
-                    if places.count > 1 {
-                        placeSwitcher(places, current: place?.id)
-                            .padding(.bottom, 2)
-                    }
-                }
                 HStack(spacing: 8) {
                     ActionButton(title: "message", icon: "message.fill", options: phones) { Links.sms($0) }
                     ActionButton(title: "call", icon: "phone.fill", options: phones) { Links.tel($0) }
@@ -334,26 +346,22 @@ struct ContactDetailView: View {
         .sorted { ($0.point.type == "home" ? 0 : 1) < ($1.point.type == "home" ? 0 : 1) }
     }
 
-    /// A very small switcher between their addresses, at the foot of the map.
-    private func placeSwitcher(_ places: [Place], current: String?) -> some View {
-        HStack(spacing: 0) {
-            ForEach(places) { p in
-                let on = p.id == current
-                Button { withAnimation(.easeInOut(duration: 0.25)) { placeKey = p.id } } label: {
-                    Text(p.title)
-                        .font(.caption2.weight(on ? .semibold : .regular))
-                        .foregroundStyle(on ? Theme.ink : Color.secondary)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(on ? Theme.card : Color.clear))
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
+    /// Which address the map shows: just its name and a caret, like their title, opening a menu.
+    private func placePicker(_ places: [Place], current: String?) -> some View {
+        Menu {
+            Picker("Address", selection: Binding(get: { current ?? "" }, set: { k in withAnimation(.easeInOut(duration: 0.25)) { placeKey = k } })) {
+                ForEach(places) { p in Text(p.title).tag(p.id) }
             }
+        } label: {
+            HStack(spacing: 3) {
+                Text(places.first { $0.id == current }?.title ?? "")
+                Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
-        .padding(2)
-        .background(Capsule().fill(Theme.paper))
-        .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 0.5))
+        .tint(.secondary)
+        .accessibilityLabel("Address on the map")
     }
 
     private func ownValue(_ key: String) -> String {

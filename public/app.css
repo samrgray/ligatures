@@ -334,9 +334,15 @@ dialog.columns-dlg { max-height: calc(100dvh - 48px); overflow-y: auto; }
 }
 .hero-dot { position: absolute; left: 75%; top: 50%; z-index: 1; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 2px var(--card); }
 .hero-dot.area { width: 56px; height: 56px; margin: -28px; background: color-mix(in srgb, var(--brand) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 45%, transparent); }
-.place-switch { position: absolute; right: 0; bottom: 2px; display: flex; padding: 2px; border-radius: 999px; background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--border); }
-.place-switch button { border: 0; background: none; font: inherit; font-size: 11px; line-height: 16px; padding: 0 7px; border-radius: 999px; color: var(--secondary); }
-.place-switch button[aria-pressed='true'] { background: var(--card); color: var(--text); font-weight: 600; box-shadow: 0 0 0 0.5px var(--border); }
+.hero-text { flex: 1; min-width: 0; }
+.hero-line { display: flex; align-items: baseline; gap: 8px; }
+.hero-line > :first-child { min-width: 0; }
+/* Which address the map shows: styled like the title, right-aligned on its line. */
+.place-slot { margin-left: auto; flex: none; }
+.place-pick { display: inline-flex; align-items: baseline; gap: 3px; color: var(--secondary); cursor: pointer; }
+.place-pick select { appearance: none; -webkit-appearance: none; border: 0; background: none; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer; field-sizing: content; }
+.place-pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.place-pick svg { align-self: center; }
 .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .pill { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 16px; background: var(--pill); color: var(--accent); font-weight: 500; }
 .pill:hover { filter: brightness(0.97); }
