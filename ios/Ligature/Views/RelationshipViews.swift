@@ -41,7 +41,8 @@ struct PersonView: View {
                     ContactDetailView(id: chosen[lead] ?? lead, active: lead == current, onClose: { dismiss() })
                         .contentMargins(.bottom, 40, for: .scrollContent)
                         .scrollContentBackground(.hidden)
-                        .background(Color(.systemGroupedBackground))
+                        .background(Theme.cardGround)
+                        .grain()
                         // Rounded at the top; the bottom runs off the screen.
                         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
                         .overlay(
@@ -68,7 +69,7 @@ struct PersonView: View {
         .scrollIndicators(.hidden)
         .scrollClipDisabled()
         .ignoresSafeArea(edges: .bottom)
-        .background(Color(.systemGray5).ignoresSafeArea())
+        .background(PaperBackground())
         .sensoryFeedback(.selection, trigger: position)
         .modifier(CardZoom(zoom: zoom, source: current))
         .toolbar {

@@ -9,7 +9,7 @@ struct Avatar: View {
 
     var body: some View {
         ZStack {
-            Circle().fill(LinearGradient(colors: [Color(white: 0.66), Color(white: 0.52)], startPoint: .top, endPoint: .bottom))
+            Circle().fill(LinearGradient(colors: [Color(red: 0.75, green: 0.69, blue: 0.62), Color(red: 0.59, green: 0.53, blue: 0.47)], startPoint: .top, endPoint: .bottom))
             Text(initials)
                 .font(.system(size: size * 0.4, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white)

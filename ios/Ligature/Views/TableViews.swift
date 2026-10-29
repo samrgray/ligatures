@@ -175,7 +175,7 @@ struct ContactsTable: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
                     .frame(width: col.width, height: 30, alignment: .leading)
-                    .background(Color(.systemBackground))
+                    .background(Theme.card)
                     .overlay(alignment: .trailing) { if i == 0 { Rectangle().fill(Color(.separator)).frame(width: 0.5) } }
                 }
                 .buttonStyle(.plain)
@@ -183,7 +183,7 @@ struct ContactsTable: View {
                 .zIndex(i == 0 ? 1 : 0)
             }
         }
-        .background(Color(.systemBackground))
+        .background(Theme.card)
         .overlay(alignment: .bottom) { Divider() }
     }
 
@@ -192,7 +192,7 @@ struct ContactsTable: View {
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
                 cell(c, col.def)
                     .frame(width: col.width, height: Self.rowHeight, alignment: .leading)
-                    .background(Color(.systemBackground))
+                    .background(Theme.card)
                     .overlay(alignment: .trailing) { if i == 0 { Rectangle().fill(Color(.separator)).frame(width: 0.5) } }
                     .offset(x: i == 0 ? scrollX : 0)
                     .zIndex(i == 0 ? 1 : 0)
@@ -210,7 +210,7 @@ struct ContactsTable: View {
                     Avatar(url: c.photoUrl, initials: c.initials, size: 28)
                         .overlay {
                             if c.isDraft {
-                                Circle().strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
+                                Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
                             }
                         }
                     Text(def.value(c)).fontWeight(.medium).italic(c.isDraft).lineLimit(1)

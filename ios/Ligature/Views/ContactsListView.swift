@@ -200,6 +200,7 @@ struct ContactsListView: View {
                     }
                 }
             }
+            .background(PaperBackground())
             .environment(\.editMode, $editMode)
             .navigationTitle(selecting ? (selection.isEmpty ? "Select People" : "\(selectedIDs.count) Selected") : title)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
@@ -322,6 +323,7 @@ struct ContactsListView: View {
                     // The card grows out of this row, and shrinks back into it.
                     .matchedTransitionSource(id: e.id, in: cardZoom)
                 }
+                .listRowBackground(Color.clear)
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
                         if e.members.count == 1 && !c.phone.isEmpty {
                             Button { if let u = Links.tel(c.phone) { openURL(u) } } label: { Label("Call", systemImage: "phone.fill") }
@@ -349,6 +351,7 @@ struct ContactsListView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .refreshable { await store.refresh(sync: true) }
         .overlay {
             if items.isEmpty {
@@ -379,7 +382,7 @@ struct ContactsListView: View {
                     if let d = tabDrag, let t = tabs.first(where: { pinnedRef($0) == d.ref }) {
                         chipLabel(t)
                             // Tab fills are translucent; give the floating one a solid base.
-                            .background(Capsule().fill(Color(.systemBackground)))
+                            .background(Capsule().fill(Theme.card))
                             .scaleEffect(d.settling ? 1 : 1.08)
                             .shadow(color: .black.opacity(d.settling ? 0 : 0.2), radius: 8, y: 3)
                             .offset(x: d.x, y: d.y)
@@ -413,8 +416,11 @@ struct ContactsListView: View {
             .lineLimit(1)
             .padding(.horizontal, 14)
             .frame(height: 32)
-            .background(Capsule().fill(on ? Color.accentColor : Color(.secondarySystemFill)))
-            .foregroundStyle(on ? Color.white : Color.primary)
+            // Raised chips on the paper; the one you’re on is inked.
+            .background(Capsule().fill(on ? Theme.ink : Theme.card))
+            .overlay(Capsule().strokeBorder(on ? Color.clear : Theme.line, lineWidth: 0.5))
+            .shadow(color: Theme.shadow.opacity(on ? 0.18 : 0.07), radius: on ? 4 : 2, y: 1)
+            .foregroundStyle(on ? Theme.card : Color.primary)
     }
 
     /// One tab. Tap to show it; press, hold and drag a pinned one to move it.
@@ -778,10 +784,10 @@ struct DraftTag: View {
     var body: some View {
         Text("Draft")
             .font(.caption2.weight(.medium))
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(Theme.brand)
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
-            .overlay(Capsule().strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
+            .overlay(Capsule().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
             .accessibilityLabel("Draft, only in Ligature")
             .accessibilityIdentifier("draft-tag")
     }
@@ -796,7 +802,7 @@ struct ContactRowView: View {
             Avatar(url: contact.photoUrl, initials: contact.initials, size: 36)
                 .overlay {
                     if contact.isDraft {
-                        Circle().strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
+                        Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
                     }
                 }
             VStack(alignment: .leading, spacing: 1) {
