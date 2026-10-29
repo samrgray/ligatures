@@ -10,25 +10,35 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    LabeledContent("Server", value: store.server.replacingOccurrences(of: "https://", with: ""))
-                    HStack {
-                        Text("Last synced")
-                        Spacer()
-                        if store.syncing {
-                            ProgressView()
-                        } else if let t = store.lastSynced {
-                            Text(t, style: .relative).foregroundStyle(.secondary) + Text(" ago").foregroundStyle(.secondary)
-                        } else {
-                            Text("Never").foregroundStyle(.secondary)
-                        }
+                if store.demo {
+                    Section {
+                        Button("Exit Demo") { switchDemo(false) }
+                    } header: {
+                        Text("Demo")
+                    } footer: {
+                        Text("You’re looking at made-up contacts, kept only on this iPhone. Nothing you do here reaches Google or your real contacts.")
                     }
-                    Button("Sync Now") { Task { await store.refresh(sync: true) } }
-                        .disabled(store.syncing)
-                } header: {
-                    Text("Google")
-                } footer: {
-                    Text("Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligature.")
+                } else {
+                    Section {
+                        LabeledContent("Server", value: store.server.replacingOccurrences(of: "https://", with: ""))
+                        HStack {
+                            Text("Last synced")
+                            Spacer()
+                            if store.syncing {
+                                ProgressView()
+                            } else if let t = store.lastSynced {
+                                Text(t, style: .relative).foregroundStyle(.secondary) + Text(" ago").foregroundStyle(.secondary)
+                            } else {
+                                Text("Never").foregroundStyle(.secondary)
+                            }
+                        }
+                        Button("Sync Now") { Task { await store.refresh(sync: true) } }
+                            .disabled(store.syncing)
+                    } header: {
+                        Text("Google")
+                    } footer: {
+                        Text("Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligature.")
+                    }
                 }
                 Section("Appearance") {
                     Picker("Appearance", selection: $appearance) {
@@ -39,8 +49,17 @@ struct SettingsView: View {
                 Section("Contacts") {
                     Toggle("Sort by first name", isOn: $sortByFirst)
                 }
+                if !store.demo {
+                    Section {
+                        Button("Demo Mode") { switchDemo(true) }
+                    } footer: {
+                        Text("Shows made-up contacts instead of yours, to try things or show Ligature to someone. Nothing reaches Google.")
+                    }
+                }
                 Section {
-                    Button("Sign Out", role: .destructive) { confirmSignOut = true }
+                    if !store.demo {
+                        Button("Sign Out", role: .destructive) { confirmSignOut = true }
+                    }
                 } footer: {
                     Text("Ligature \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""))")
                 }
@@ -60,5 +79,10 @@ struct SettingsView: View {
             }
         }
         .storeAlert()
+    }
+
+    private func switchDemo(_ on: Bool) {
+        dismiss()
+        Task { await store.setDemo(on) }
     }
 }

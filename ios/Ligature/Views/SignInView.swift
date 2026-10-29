@@ -48,9 +48,12 @@ struct SignInView: View {
             .controlSize(.large)
             .disabled(busy)
 
-            Button(showServer ? "Hide Server" : "Server…") { showServer.toggle() }
-                .font(.footnote)
-                .padding(.top, 14)
+            HStack(spacing: 20) {
+                Button("Try the Demo") { Task { await store.setDemo(true) } }
+                Button(showServer ? "Hide Server" : "Server…") { showServer.toggle() }
+            }
+            .font(.footnote)
+            .padding(.top, 14)
             if showServer {
                 VStack(alignment: .leading, spacing: 6) {
                     TextField("https://", text: $store.server)

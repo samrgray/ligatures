@@ -4,6 +4,7 @@ import {
   BUILTIN_TAGS, CHANNELS, defaultEmail, defaultPhone, findTags, formatPhoneTyping, render, signalHref, smsHref, unknownTags, whatsappHref,
 } from './messaging.js';
 import { ROLES, otherId, relationshipBody, roleLabel, roleOf, togetherGroups, togetherName } from './relations.js';
+import { demoApi, demoOn, setDemo } from './demo.js';
 
 const S = {
   session: null,
@@ -39,7 +40,11 @@ const $ = (sel, el = document) => el.querySelector(sel);
 const h = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+/** Demo mode: made-up contacts kept in this tab; nothing goes to the server or Google. */
+const DEMO = demoOn();
+
 async function api(path, { method = 'GET', body } = {}) {
+  if (DEMO) return demoApi(path, { method, body });
   const res = await fetch('/api' + path, {
     method,
     headers: body ? { 'content-type': 'application/json' } : {},
@@ -184,7 +189,8 @@ function renderSignIn(error) {
         ${
           configured
             ? `<a class="btn primary" href="/api/auth/google/start">Sign in with Google</a>
-               <p>Ligature asks for access to your contacts only.</p>`
+               <p>Ligature asks for access to your contacts only.</p>
+               <p><button type="button" class="link" data-action="demo-on">Try the demo</button> with made-up contacts.</p>`
             : `<p class="error">Google sign-in isn’t set up on this server yet.</p>
                <ol>
                  <li>Create an OAuth client (Web application) in Google Cloud and enable the People API.</li>
@@ -550,7 +556,7 @@ function renderSidebar() {
             <span>${h(a.label || a.providerName)}</span><span class="count">${countFor((c) => c.accountId === a.id)}</span></button>`,
         )
         .join('')}
-      <a class="nav-add" href="/api/auth/google/start?link=1">${ICON.plus} Add Google Account</a>
+      ${DEMO ? '' : `<a class="nav-add" href="/api/auth/google/start?link=1">${ICON.plus} Add Google Account</a>`}
     </nav>
 
     <nav class="nav" aria-label="Lists">
@@ -585,20 +591,36 @@ function renderSidebar() {
         : ''
     }
 
-    <div class="sync-line${S.syncing ? ' syncing' : ''}">
+    ${
+      DEMO
+        ? `<div class="sync-line demo">
+      <span class="dot" aria-hidden="true"></span>
+      <span class="tip-wrap">
+        <button type="button" class="tip-btn sync-when" aria-describedby="sync-tip">Demo mode</button>
+        <span class="tip" role="tooltip" id="sync-tip">Made-up contacts, kept only in this tab. Nothing you do here reaches Google or your real contacts. Reloading starts the demo over.</span>
+      </span>
+      <button class="link sync-now" data-action="demo-off">Exit Demo</button>
+    </div>`
+        : `<div class="sync-line${S.syncing ? ' syncing' : ''}">
       <span class="dot" aria-hidden="true"></span>
       <span class="tip-wrap">
         <button type="button" class="tip-btn sync-when" aria-describedby="sync-tip">${S.syncing ? 'Syncing…' : `Synced ${ago(lastSync)}`}</button>
         <span class="tip" role="tooltip" id="sync-tip">Synced with Google${lastSync ? ` ${h(syncStamp(lastSync))}` : ''}. Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligature.</span>
       </span>
       ${S.syncing ? '' : '<button class="link sync-now" data-action="sync">Sync Now</button>'}
-    </div>
+    </div>`
+    }
 
     <div class="sidebar-foot">
       <button class="link" data-action="fields">Your Fields…</button>
       <button class="link" data-action="shortcuts" title="Keyboard shortcuts (?)">Shortcuts</button>
-      <a class="link" href="/api/backup" download title="Downloads everything Ligature keeps for you, as one file">Download Backup</a>
-      <button class="link" data-action="logout">Sign Out</button>
+      ${
+        DEMO
+          ? ''
+          : `<a class="link" href="/api/backup" download title="Downloads everything Ligature keeps for you, as one file">Download Backup</a>
+      <button class="link" data-action="demo-on" title="Show made-up contacts instead of yours, to try things or show Ligature to someone">Demo Mode</button>
+      <button class="link" data-action="logout">Sign Out</button>`
+      }
       ${themeButton()}
     </div>`;
 }
@@ -3905,6 +3927,11 @@ document.addEventListener('click', async (e) => {
       return clearSelection();
     case 'close-detail':
       return closeDrawer();
+    case 'demo-on':
+    case 'demo-off':
+      setDemo(t.dataset.action === 'demo-on');
+      location.href = '/';
+      return;
     case 'logout':
       await api('/auth/logout', { method: 'POST' }).catch(() => {});
       location.href = '/';

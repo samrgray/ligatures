@@ -41,8 +41,10 @@ final class Store {
     var alertTitle = ""
     var alertMessage = ""
 
+    /// Demo mode: made-up contacts kept only on this iPhone, nothing sent to the server or Google.
+    /// Turned on in Settings, or by launching with `-demo` (screenshots and UI tests).
+    private(set) var demo = ProcessInfo.processInfo.arguments.contains("-demo") || UserDefaults.standard.bool(forKey: "demo")
     /// Screens the demo build opens straight into, for screenshots.
-    let demo = ProcessInfo.processInfo.arguments.contains("-demo")
     let demoScreen: String? = {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-screen"), i + 1 < args.count else { return nil }
@@ -78,6 +80,33 @@ final class Store {
         if loadCache() { phase = .ready }
         await refresh(sync: false)
         await checkIfStale(60)
+    }
+
+    /// Switch between the demo and your own contacts. Your contacts come back from the cache
+    /// and the server, as at launch.
+    func setDemo(_ on: Bool) async {
+        guard on != demo else { return }
+        UserDefaults.standard.set(on, forKey: "demo")
+        syncSoonTask?.cancel()
+        demo = on
+        accounts = []
+        fields = []
+        contacts = []
+        details = [:]
+        relationships = []
+        archived = []
+        mapPoints = []
+        mapFailed = []
+        mapLoaded = false
+        pins = []
+        pinned = []
+        listOrder = []
+        listParents = []
+        viewPrefs = [:]
+        legacyView = ViewPrefs()
+        lastSynced = nil
+        phase = .loading
+        await boot()
     }
 
     // MARK: - Staying current
@@ -163,6 +192,7 @@ final class Store {
                     let results: [Result]
                 }
                 let r: SyncResponse = try await api.post("/sync", [:])
+                if demo { return }
                 if let failed = r.results.first(where: { $0.error != nil }) {
                     if failed.code == "reauth" {
                         alert("Sign in again", "Google access expired. Sign out and back in to keep syncing.")
@@ -172,6 +202,7 @@ final class Store {
                 }
             }
             let s: SessionResponse = try await api.get("/session")
+            if demo { return }
             guard s.user != nil else { return expired() }
             accounts = s.accounts ?? []
             fields = s.fields ?? []
@@ -181,13 +212,15 @@ final class Store {
             viewPrefs = s.user?.prefs?.views ?? [:]
             legacyView = ViewPrefs(columns: s.user?.prefs?.columns, sort: s.user?.prefs?.sort, nameSort: s.user?.prefs?.nameSort)
             let c: ContactsResponse = try await api.get("/contacts")
+            if demo { return }
             contacts = c.contacts
             relationships = c.relationships ?? []
-            if let a: ContactsResponse = try? await api.get("/archive") { archived = a.contacts }
+            if let a: ContactsResponse = try? await api.get("/archive"), !demo { archived = a.contacts }
             lastSynced = accounts.compactMap(\.lastSyncedAt).max().map { Date(timeIntervalSince1970: $0 / 1000) }
             phase = .ready
             saveCache()
         } catch {
+            if demo { return }
             if quiet, let e = error as? APIError, e.code == "offline" || e.status >= 500 { return }
             handle(error)
             if phase == .loading { phase = contacts.isEmpty ? .signedOut : .ready }
