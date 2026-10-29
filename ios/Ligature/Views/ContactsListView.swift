@@ -10,14 +10,18 @@ struct ContactsListView: View {
     @Environment(\.openURL) private var openURL
     @AppStorage("sortByFirst") private var sortByFirst = false
     /// How big photos are in the list and table (and so how tall rows are). Pinch to change it.
+    /// The list and the table each keep their own size.
     @AppStorage("photoSize") private var photoSize = 36.0
+    @AppStorage("tablePhotoSize") private var tablePhotoSize = 36.0
     @State private var pinchBase: Double?
 
     private var pinch: some Gesture {
         MagnifyGesture()
             .onChanged { v in
-                if pinchBase == nil { pinchBase = photoSize }
-                photoSize = min(110, max(28, (pinchBase ?? photoSize) * v.magnification))
+                let current = showTable ? tablePhotoSize : photoSize
+                if pinchBase == nil { pinchBase = current }
+                let next = min(110, max(28, (pinchBase ?? current) * v.magnification))
+                if showTable { tablePhotoSize = next } else { photoSize = next }
             }
             .onEnded { _ in pinchBase = nil }
     }
@@ -228,7 +232,7 @@ struct ContactsListView: View {
                 }
             }
             .background(PaperBackground())
-            .environment(\.photoSize, CGFloat(photoSize))
+            .environment(\.photoSize, CGFloat(showTable ? tablePhotoSize : photoSize))
             .environment(\.editMode, $editMode)
             .navigationTitle(selecting ? (selection.isEmpty ? "Select People" : "\(selectedIDs.count) Selected") : title)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")

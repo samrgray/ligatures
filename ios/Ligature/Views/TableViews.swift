@@ -165,8 +165,17 @@ struct ContactsTable: View {
         .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
     }
 
+    private var avatarSize: CGFloat { max(28, photoSize * 0.85) }
+    /// The photos are the one column that stays put while you scroll sideways.
+    private var photoColumn: CGFloat { avatarSize + 20 }
+    private func width(_ i: Int, _ w: CGFloat) -> CGFloat { i == 0 ? max(100, w - 36) : w }
+
     private func header(_ cols: [(def: TableColumnDef, width: CGFloat)]) -> some View {
         HStack(spacing: 0) {
+            Theme.card
+                .frame(width: photoColumn, height: 30)
+                .offset(x: scrollX)
+                .zIndex(1)
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
                 Button { setSort(col.def.id) } label: {
                     HStack(spacing: 3) {
@@ -179,13 +188,10 @@ struct ContactsTable: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
-                    .frame(width: col.width, height: 30, alignment: .leading)
+                    .frame(width: width(i, col.width), height: 30, alignment: .leading)
                     .background(Theme.card)
-                    .overlay(alignment: .trailing) { if i == 0 { Rectangle().fill(Color(.separator)).frame(width: 0.5) } }
                 }
                 .buttonStyle(.plain)
-                .offset(x: i == 0 ? scrollX : 0)
-                .zIndex(i == 0 ? 1 : 0)
             }
         }
         .background(Theme.card)
@@ -194,13 +200,25 @@ struct ContactsTable: View {
 
     private func row(_ c: ContactRow, _ cols: [(def: TableColumnDef, width: CGFloat)]) -> some View {
         HStack(spacing: 0) {
+            Button { open(c.id) } label: {
+                Avatar(url: c.photoUrl, initials: c.initials, size: avatarSize)
+                    .overlay {
+                        if c.isDraft {
+                            Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
+                        }
+                    }
+                    .frame(width: photoColumn, height: rowHeight)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .background(Theme.card)
+            .offset(x: scrollX)
+            .zIndex(1)
+            .accessibilityLabel("Open \(c.displayName)")
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
                 cell(c, col.def)
-                    .frame(width: col.width, height: rowHeight, alignment: .leading)
+                    .frame(width: width(i, col.width), height: rowHeight, alignment: .leading)
                     .background(Theme.card)
-                    .overlay(alignment: .trailing) { if i == 0 { Rectangle().fill(Color(.separator)).frame(width: 0.5) } }
-                    .offset(x: i == 0 ? scrollX : 0)
-                    .zIndex(i == 0 ? 1 : 0)
             }
         }
         .overlay(alignment: .bottom) { Divider() }
@@ -212,22 +230,15 @@ struct ContactsTable: View {
         case .name:
             Button { open(c.id) } label: {
                 HStack(spacing: 8) {
-                    Avatar(url: c.photoUrl, initials: c.initials, size: max(28, photoSize * 0.85))
-                        .overlay {
-                            if c.isDraft {
-                                Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
-                            }
-                        }
                     Text(def.value(c)).fontWeight(.medium).italic(c.isDraft).lineLimit(textLines)
                     if c.isDraft { DraftTag() }
                     Spacer(minLength: 0)
                 }
-                .padding(.horizontal, 10)
+                .padding(.trailing, 10)
                 .frame(maxHeight: .infinity)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .matchedTransitionSourceIfAvailable(id: c.id)
         case .lists:
             Button { listsFor = c } label: { textCell(def.value(c), numeric: false) }
                 .buttonStyle(.plain)
