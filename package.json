@@ -11,7 +11,7 @@
     "test-contacts": "python3 scripts/make-test-contacts.py > test-contacts.csv"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20251014.0",
+    "@cloudflare/workers-types": "^5.20261029.1",
     "typescript": "^5.9.3",
     "wrangler": "^4.151.0"
   }
