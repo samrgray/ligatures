@@ -256,6 +256,7 @@ struct ContactsListView: View {
                     }
                 } else {
                     ToolbarItem(placement: .topBarLeading) { listsMenu }
+                    ToolbarItem(placement: .topBarLeading) { AppearanceButton() }
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             Picker("Layout", selection: Binding(get: { layout }, set: { v in withAnimation { layout = v } })) {

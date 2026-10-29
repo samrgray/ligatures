@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(Store.self) private var store
     @Environment(\.dismiss) private var dismiss
     @AppStorage("sortByFirst") private var sortByFirst = false
+    @AppStorage("appearance") private var appearance = Appearance.auto.rawValue
     @State private var confirmSignOut = false
 
     var body: some View {
@@ -28,6 +29,12 @@ struct SettingsView: View {
                     Text("Google")
                 } footer: {
                     Text("Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligature.")
+                }
+                Section("Appearance") {
+                    Picker("Appearance", selection: $appearance) {
+                        ForEach(Appearance.allCases) { a in Text(a.title).tag(a.rawValue) }
+                    }
+                    .pickerStyle(.segmented)
                 }
                 Section("Contacts") {
                     Toggle("Sort by first name", isOn: $sortByFirst)
