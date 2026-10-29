@@ -58,7 +58,7 @@ extension Store {
             if i == 7 { fields["follow"] = "2026-11-02"; fields["interests"] = "Ceramics, trail running" }
             return ContactRow(
                 id: "demo-\(i)", accountId: "demo", givenName: first, familyName: last, displayName: "\(first) \(last)",
-                organization: org, title: title, email: email, phone: phone, photoUrl: "",
+                organization: org, title: title, email: email, phone: phone, photoUrl: Self.demoPhoto(first),
                 search: "\(first) \(last) \(org) \(email) \(phone)".lowercased(), groups: groups, fields: fields, draft: i == 4 ? true : nil
             )
         }
@@ -83,6 +83,11 @@ extension Store {
         pinned = ["contactGroups/starred", "contactGroups/book", "contactGroups/neighbors", "contactGroups/work"].map { ListRef(accountId: "demo", id: $0) }
     }
 
+    /// Photos for most people, bundled so the demo still makes no network calls (Unsplash, free to use).
+    static func demoPhoto(_ first: String) -> String {
+        Bundle.main.url(forResource: "demo-\(first.lowercased())", withExtension: "jpg")?.absoluteString ?? ""
+    }
+
     func demoDetail(_ c: ContactRow) -> ContactDetail {
         var phones = [Labeled(value: c.phone, label: "mobile")]
         var emails = [Labeled(value: c.email, label: "home")]
@@ -95,7 +100,7 @@ extension Store {
             phones: phones, emails: emails, urls: [],
             addresses: [PostalAddress(label: "home", street: "466 Quarry Bend Rd", city: "Portland", region: "OR", postalCode: "97214",
                                       value: "466 Quarry Bend Rd\nPortland, OR 97214")],
-            relations: [], events: [], birthday: "September 19, 1986", notes: "Kids go to Lincoln.", photoUrl: "", groups: c.groups
+            relations: [], events: [], birthday: "September 19, 1986", notes: "Kids go to Lincoln.", photoUrl: c.photoUrl, groups: c.groups
         )
         return ContactDetail(id: c.id, etag: "demo", draft: c.draft, card: card, fields: c.fields, account: AccountRef(id: "demo", providerName: "Google"))
     }

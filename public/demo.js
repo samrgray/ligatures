@@ -47,6 +47,8 @@ const PEOPLE = [
   ['Sofia', 'Lindqvist', 'Nordic Supply', '', []],
   ['Theo', 'Marsh', 'Marsh Woodworks', 'Carpenter', []],
 ];
+// Photos for most people, bundled so the demo still makes no network calls (Unsplash, free to use).
+const PHOTOS = new Set(['zoe', 'jonah', 'rosa', 'marco', 'eli', 'imani', 'ava', 'aaron', 'paul', 'wren', 'noah', 'olivia', 'nadia', 'zane', 'lena', 'uma', 'sofia']);
 const STREETS = ['SE Belmont St', 'NE Alberta St', 'SE Division St', 'N Mississippi Ave', 'NW 23rd Ave', 'SE Hawthorne Blvd', 'NE Fremont St', 'SW Vista Ave'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -110,7 +112,7 @@ function seed() {
         birthday: i % 5 === 3 ? '' : `${MONTHS[month]} ${day}, ${1970 + ((i * 3) % 30)}`,
         birthdayKey: i % 5 === 3 ? '' : `${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
         notes: i % 4 === 2 ? 'Kids go to Lincoln.' : '',
-        photoUrl: '',
+        photoUrl: PHOTOS.has(first.toLowerCase()) ? `/demo/${first.toLowerCase()}.jpg` : '',
         groups: ['contactGroups/myContacts', ...lists],
       },
     };
