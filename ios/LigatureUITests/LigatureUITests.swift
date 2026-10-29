@@ -52,7 +52,8 @@ final class LigatureUITests: XCTestCase {
             let frame = self.app.frame
             return Set(self.app.staticTexts.allElementsBoundByIndex
                 .filter { $0.exists && frame.contains($0.frame) && $0.frame.width > 0 }
-                .map(\.label))
+                .map(\.label)
+                .filter { $0 != "Edit" })
         }
         let first = onScreen()
         app.swipeLeft()
@@ -116,7 +117,7 @@ final class LigatureUITests: XCTestCase {
         let row = app.cells.containing(NSPredicate(format: "label CONTAINS %@", "Rosa Alvarez & Zoe Abernathy")).firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 5), "no row for the couple")
         row.tap()
-        let zoe = app.segmentedControls.buttons["Zoe"]
+        let zoe = app.buttons["Zoe"]
         XCTAssertTrue(zoe.waitForExistence(timeout: 3), "no switcher between the two")
         XCTAssertTrue(app.staticTexts["Rosa Alvarez"].exists, "didn’t open Rosa, who’s named first")
         zoe.tap()
