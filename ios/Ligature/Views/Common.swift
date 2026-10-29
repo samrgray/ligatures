@@ -73,21 +73,42 @@ enum Photo {
         return URL(string: raw)
     }
 
-    /// Crop to a centred square and save as JPEG, the way the web app does.
-    static func squareJPEG(_ image: UIImage, side: CGFloat = 512) -> Data? {
-        let s = min(image.size.width, image.size.height)
-        guard s > 0 else { return nil }
-        let k = side / s
+    /// The original a photo is cropped from: upright, at most 1600 px on its longer side.
+    static func original(_ image: UIImage, maxSide: CGFloat = 1600) -> UIImage {
+        let k = min(1, maxSide / max(image.size.width, image.size.height, 1))
+        let size = CGSize(width: (image.size.width * k).rounded(), height: (image.size.height * k).rounded())
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format)
-        let out = renderer.image { _ in
+        format.opaque = true // transparent images get a white background, as on the web
+        return UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            UIColor.white.setFill()
+            ctx.fill(CGRect(origin: .zero, size: size))
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+    }
+
+    /// The largest centred square, as a crop.
+    static func centredCrop(_ size: CGSize) -> PhotoCrop {
+        let s = min(size.width, size.height)
+        return PhotoCrop(x: (size.width - s) / 2 / size.width, y: (size.height - s) / 2 / size.height, w: s / size.width, h: s / size.height)
+    }
+
+    /// The crop of `image` as a square JPEG, at most 512 px, the way the web app makes it.
+    static func croppedJPEG(_ image: UIImage, crop: PhotoCrop, side: CGFloat = 512) -> Data? {
+        let sw = crop.w * image.size.width
+        guard sw > 0 else { return nil }
+        let out = min(side, sw.rounded())
+        let k = out / sw
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: out, height: out), format: format)
+        let square = renderer.image { _ in
             image.draw(in: CGRect(
-                x: -(image.size.width - s) / 2 * k, y: -(image.size.height - s) / 2 * k,
+                x: -crop.x * image.size.width * k, y: -crop.y * image.size.height * k,
                 width: image.size.width * k, height: image.size.height * k
             ))
         }
-        return out.jpegData(compressionQuality: 0.85)
+        return square.jpegData(compressionQuality: 0.88)
     }
 }
 

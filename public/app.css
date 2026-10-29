@@ -581,6 +581,20 @@ dialog.photo-dlg::backdrop { background: rgb(0 0 0 / 0.72); }
   background: rgb(255 255 255 / 0.16); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .photo-close:hover { background: rgb(255 255 255 / 0.28); }
+/* Cropping a photo: the circle is what’s kept; the rest shows dimmed around it. */
+dialog.crop-dlg { width: min(420px, calc(100vw - 32px)); }
+.crop-stage {
+  --inset: 20px;
+  position: relative; width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; background: #1b1814;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; outline: none;
+}
+.crop-stage.dragging { cursor: grabbing; }
+.crop-stage:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.crop-stage img { position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; pointer-events: none; }
+.crop-under { filter: brightness(0.38) saturate(0.7); }
+.crop-ring { position: absolute; inset: var(--inset); border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px #d9d1c6; }
+.crop-zoom { display: flex; align-items: center; gap: 10px; color: var(--secondary); }
+.crop-zoom input { flex: 1; accent-color: var(--accent); }
 dialog.photo-dlg[open] { animation: photo-in 0.16s ease-out; }
 @keyframes photo-in { from { opacity: 0; transform: scale(0.96); } }
 @media (prefers-reduced-motion: reduce) { dialog.photo-dlg[open] { animation: none; } }

@@ -4,6 +4,7 @@ import { requireUser } from '../../lib/session';
 import { provider } from '../../lib/providers';
 import { cached, sortKeyFor } from '../../lib/contacts';
 import { fieldDefsFor, searchText } from '../../lib/payload';
+import { carryOriginal } from '../../lib/photos';
 
 const MAX = 100;
 
@@ -187,6 +188,7 @@ export const onRequestPost: PagesFunction<Env, string, Data> = async ({ request,
             .bind(r.id, pc.providerContactId, pc.etag, card.displayName, sortKeyFor(card), JSON.stringify(pc.raw), t),
           env.DB.prepare('DELETE FROM archives WHERE contact_id = ?1').bind(r.id),
         ]);
+        await carryOriginal(env.DB, r.id, p.toCard(JSON.parse(r.data_json ?? '{}')).photoUrl, card.photoUrl);
         done.push(r.id);
       } catch (e) {
         skipped.push({ id: r.id, reason: (e as Error).message });
@@ -199,6 +201,7 @@ export const onRequestPost: PagesFunction<Env, string, Data> = async ({ request,
       env.DB.prepare('DELETE FROM archives WHERE contact_id IN (SELECT value FROM json_each(?1))').bind(j),
       env.DB.prepare('DELETE FROM relationships WHERE a_id IN (SELECT value FROM json_each(?1)) OR b_id IN (SELECT value FROM json_each(?1))').bind(j),
       env.DB.prepare('DELETE FROM field_values WHERE contact_id IN (SELECT value FROM json_each(?1))').bind(j),
+      env.DB.prepare('DELETE FROM photo_originals WHERE contact_id IN (SELECT value FROM json_each(?1))').bind(j),
       env.DB.prepare('UPDATE contacts SET deleted_at = ?2, updated_at = ?2 WHERE id IN (SELECT value FROM json_each(?1))').bind(j, t),
     ]);
     done.push(...rows.map((r) => r.id));

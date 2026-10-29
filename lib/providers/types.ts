@@ -48,6 +48,8 @@ export interface Provider {
   /** Replace the contact’s photo. `jpegBase64` is the image, base64-encoded. */
   setPhoto(ctx: ProviderCtx, contact: CachedContact, jpegBase64: string): Promise<ProviderContact>;
   deletePhoto(ctx: ProviderCtx, contact: CachedContact): Promise<ProviderContact>;
+  /** The contact’s current photo as base64 (with its media type), as large as the provider has up to `px`. */
+  photo(raw: unknown, px: number): Promise<{ base64: string; type: string } | null>;
   /**
    * Delete contacts, but only those still at the etag we have: anything changed in the
    * provider since our last sync is left alone and reported in `changed`.

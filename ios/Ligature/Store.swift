@@ -301,11 +301,37 @@ final class Store {
         syncSoon()
     }
 
-    func setPhoto(_ id: String, etag: String?, jpeg: Data) async throws {
+    /// Set the photo. With the uncropped original and the crop, Ligature keeps those (never
+    /// Google) so the crop can be changed later.
+    func setPhoto(_ id: String, etag: String?, jpeg: Data, original: Data? = nil, crop: PhotoCrop? = nil) async throws {
         if demo { return }
-        let d: ContactDetail = try await api.put("/contacts/\(id)/photo", ["etag": etag ?? "", "image": jpeg.base64EncodedString()])
+        var body: [String: Any] = ["etag": etag ?? "", "image": jpeg.base64EncodedString()]
+        if let original, let crop {
+            body["original"] = original.base64EncodedString()
+            body["crop"] = ["x": crop.x, "y": crop.y, "w": crop.w, "h": crop.h]
+        }
+        let d: ContactDetail = try await api.put("/contacts/\(id)/photo", body)
         apply(d)
         syncSoon()
+    }
+
+    /// What to crop a contact’s photo from: the original kept when it was last cropped (and
+    /// that crop), or else the photo itself, as large as Google has it.
+    func photoOriginal(_ id: String) async throws -> (image: UIImage, crop: PhotoCrop?) {
+        if demo {
+            // Demo photos are bundled with the app.
+            guard let url = details[id]?.card.photoUrl, let image = await Photo.load(url, px: 1600) else {
+                throw APIError(status: 0, message: "That photo couldn’t be read.", code: nil, contact: nil)
+            }
+            return (image, nil)
+        }
+        let r: PhotoOriginal = try await api.get("/contacts/\(id)/photo/original")
+        guard let comma = r.image.firstIndex(of: ","),
+              let data = Data(base64Encoded: String(r.image[r.image.index(after: comma)...])),
+              let image = UIImage(data: data) else {
+            throw APIError(status: 0, message: "That photo couldn’t be read.", code: nil, contact: nil)
+        }
+        return (image, r.crop)
     }
 
     func deletePhoto(_ id: String, etag: String?) async throws {

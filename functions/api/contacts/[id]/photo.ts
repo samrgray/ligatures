@@ -4,8 +4,9 @@ import { requireUser } from '../../../../lib/session';
 import { provider } from '../../../../lib/providers';
 import { cached, loadContact, saveDraft, saveFromProvider } from '../../../../lib/contacts';
 import { contactPayload } from '../../../../lib/payload';
+import { MAX_ORIGINAL_BASE64, cleanCrop, cleanImage, deleteOriginal, saveOriginal } from '../../../../lib/photos';
 
-const MAX_BASE64 = 2_000_000; // about 1.5 MB of image; the browser sends a 512 px JPEG
+const MAX_BASE64 = 2_000_000; // about 1.5 MB of image; the apps send a 512 px JPEG
 
 type Ctx = Parameters<PagesFunction<Env, 'id', Data>>[0];
 
@@ -33,16 +34,20 @@ async function prepare(ctx: Ctx, etag: unknown) {
   return { user, row, account, p, pctx, draft: false };
 }
 
-// PUT /api/contacts/:id/photo  { etag, image }  → set the photo in Google (JPEG, base64).
+// PUT /api/contacts/:id/photo  { etag, image, original?, crop? }  → set the photo in Google
+// (JPEG, base64). With the uncropped original and where the photo sits in it, Ligature keeps
+// those so the crop can be changed later; they never go to Google.
 export const onRequestPut: PagesFunction<Env, 'id', Data> = async (ctx) => {
-  const body = await readJson<{ etag?: unknown; image?: unknown }>(ctx.request);
-  if (typeof body.image !== 'string' || !body.image) throw new HttpError(400, 'No image.');
-  const image = body.image.replace(/^data:image\/\w+;base64,/, '');
-  if (image.length > MAX_BASE64 || !/^[A-Za-z0-9+/]+=*$/.test(image)) throw new HttpError(400, 'That image is too large or not readable.');
+  const body = await readJson<{ etag?: unknown; image?: unknown; original?: unknown; crop?: unknown }>(ctx.request);
+  const image = cleanImage(body.image, MAX_BASE64);
+  const original = body.original == null ? null : { image: cleanImage(body.original, MAX_ORIGINAL_BASE64), crop: cleanCrop(body.crop) };
   const { user, row, account, p, pctx, draft } = await prepare(ctx, body.etag);
   const saved = draft
     ? await saveDraft(ctx.env.DB, row, p.setDraftPhoto(JSON.parse(row.data_json ?? '{}'), image), account.provider)
     : await saveFromProvider(ctx.env.DB, row, await p.setPhoto(pctx, cached(row), image), account.provider);
+  const photoUrl = p.toCard(JSON.parse(saved.data_json ?? '{}')).photoUrl;
+  if (original && photoUrl) await saveOriginal(ctx.env.DB, user.id, row.id, original.image, original.crop, photoUrl);
+  else await deleteOriginal(ctx.env.DB, row.id);
   return json(await contactPayload(ctx.env.DB, user, saved, account));
 };
 
@@ -52,5 +57,6 @@ export const onRequestDelete: PagesFunction<Env, 'id', Data> = async (ctx) => {
   const saved = draft
     ? await saveDraft(ctx.env.DB, row, p.setDraftPhoto(JSON.parse(row.data_json ?? '{}'), null), account.provider)
     : await saveFromProvider(ctx.env.DB, row, await p.deletePhoto(pctx, cached(row)), account.provider);
+  await deleteOriginal(ctx.env.DB, row.id);
   return json(await contactPayload(ctx.env.DB, user, saved, account));
 };

@@ -4,6 +4,7 @@ import { requireUser } from '../../../../lib/session';
 import { provider } from '../../../../lib/providers';
 import { loadContact, sortKeyFor } from '../../../../lib/contacts';
 import { contactPayload } from '../../../../lib/payload';
+import { carryOriginal } from '../../../../lib/photos';
 
 // POST /api/contacts/:id/promote  → make a draft real: create it in Google (with its photo and
 // lists), then keep syncing it like any other contact. Your fields and relationships stay.
@@ -28,6 +29,7 @@ export const onRequestPost: PagesFunction<Env, 'id', Data> = async ({ env, data,
     )
     .bind(row.id, pc.providerContactId, pc.etag, fresh.displayName, sortKeyFor(fresh), JSON.stringify(pc.raw), t)
     .run();
+  await carryOriginal(env.DB, row.id, card.photoUrl, fresh.photoUrl);
   const saved = { ...row, provider_contact_id: pc.providerContactId, etag: pc.etag, data_json: JSON.stringify(pc.raw), draft: 0, link_stamped: 1 };
   return json(await contactPayload(env.DB, user, saved, account));
 };

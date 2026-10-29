@@ -29,8 +29,11 @@ struct ContactEditView: View {
     @State private var confirmMakeDraft = false
 
     @State private var pickerItem: PhotosPickerItem?
-    @State private var newPhoto: (jpeg: Data, image: UIImage)?
+    /// A new photo or crop, saved with the contact: the cropped square, and what it was cropped from.
+    @State private var newPhoto: (jpeg: Data, image: UIImage, original: UIImage, crop: PhotoCrop)?
     @State private var removePhoto = false
+    @State private var cropping: CropJob?
+    @State private var loadingOriginal = false
 
     @State private var saving = false
     @State private var error: String?
@@ -151,14 +154,20 @@ struct ContactEditView: View {
             .onChange(of: pickerItem) { _, item in
                 guard let item else { return }
                 Task {
-                    if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data),
-                       let jpeg = Photo.squareJPEG(image), let square = UIImage(data: jpeg) {
-                        newPhoto = (jpeg, square)
-                        removePhoto = false
+                    if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                        cropping = CropJob(image: Photo.original(image))
                     } else {
                         error = "That image couldn’t be read."
                     }
                     pickerItem = nil
+                }
+            }
+            .fullScreenCover(item: $cropping) { job in
+                PhotoCropView(job: job) { crop in
+                    if let jpeg = Photo.croppedJPEG(job.image, crop: crop), let square = UIImage(data: jpeg) {
+                        newPhoto = (jpeg, square, job.image, crop)
+                        removePhoto = false
+                    }
                 }
             }
         }
@@ -184,6 +193,11 @@ struct ContactEditView: View {
                 HStack(spacing: 16) {
                     PhotosPicker(hasPhoto ? "Change Photo" : "Add Photo", selection: $pickerItem, matching: .images)
                     if hasPhoto {
+                        if loadingOriginal {
+                            ProgressView()
+                        } else {
+                            Button("Crop") { Task { await recrop() } }
+                        }
                         Button("Remove", role: .destructive) {
                             newPhoto = nil
                             removePhoto = original?.card.photoUrl.isEmpty == false
@@ -195,6 +209,23 @@ struct ContactEditView: View {
             }
             .frame(maxWidth: .infinity)
             .listRowBackground(Color.clear)
+        }
+    }
+
+    /// Change the crop: of the new photo, or of the contact’s current one (from its kept original).
+    private func recrop() async {
+        if let p = newPhoto {
+            cropping = CropJob(image: p.original, crop: p.crop)
+            return
+        }
+        guard let d = original else { return }
+        loadingOriginal = true
+        defer { loadingOriginal = false }
+        do {
+            let r = try await store.photoOriginal(d.id)
+            cropping = CropJob(image: Photo.original(r.image), crop: r.crop)
+        } catch {
+            self.error = error.localizedDescription
         }
     }
 
@@ -349,12 +380,12 @@ struct ContactEditView: View {
                 var edit = edit
                 if let list { edit["groups"] = [list.id] }
                 let d = try await store.create(accountId: accountId, edit: edit, draft: asDraft)
-                if let p = newPhoto { try await store.setPhoto(d.id, etag: d.etag, jpeg: p.jpeg) }
+                if let p = newPhoto { try await store.setPhoto(d.id, etag: d.etag, jpeg: p.jpeg, original: p.original.jpegData(compressionQuality: 0.9), crop: p.crop) }
             case let .edit(d):
                 var etag = d.etag
                 if !edit.isEmpty { etag = try await store.saveEdit(d.id, etag: etag, edit: edit).etag }
                 if let p = newPhoto {
-                    try await store.setPhoto(d.id, etag: etag, jpeg: p.jpeg)
+                    try await store.setPhoto(d.id, etag: etag, jpeg: p.jpeg, original: p.original.jpegData(compressionQuality: 0.9), crop: p.crop)
                 } else if removePhoto {
                     try await store.deletePhoto(d.id, etag: etag)
                 }

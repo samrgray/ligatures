@@ -4,6 +4,7 @@ import { requireUser } from '../../../../lib/session';
 import { provider } from '../../../../lib/providers';
 import { cached, loadContact, sortKeyFor } from '../../../../lib/contacts';
 import { contactPayload } from '../../../../lib/payload';
+import { carryOriginal } from '../../../../lib/photos';
 
 // POST /api/contacts/:id/demote  { etag }  → turn a real contact into a draft: keep everything
 // Google has (fields, photo, lists) here, then delete it from Google. Your fields and
@@ -39,6 +40,7 @@ export const onRequestPost: PagesFunction<Env, 'id', Data> = async ({ request, e
     )
     .bind(row.id, draftId, etag, card.displayName, sortKeyFor(card), JSON.stringify(raw), t)
     .run();
+  await carryOriginal(env.DB, row.id, p.toCard(JSON.parse(row.data_json ?? '{}')).photoUrl, card.photoUrl);
   const saved = { ...row, provider_contact_id: draftId, etag, data_json: JSON.stringify(raw), draft: 1, link_stamped: 1 };
   return json(await contactPayload(env.DB, user, saved, account));
 };

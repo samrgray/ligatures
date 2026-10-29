@@ -348,3 +348,17 @@ extension Card {
         return displayName.first.map { String($0).uppercased() } ?? "?"
     }
 }
+
+/// Where a cropped photo sits in its original, as fractions of the original’s width and height.
+struct PhotoCrop: Codable, Hashable {
+    var x: Double
+    var y: Double
+    var w: Double
+    var h: Double
+}
+
+/// What a photo is cropped from: the kept original and its crop, or the photo itself (no crop yet).
+struct PhotoOriginal: Decodable {
+    let image: String
+    let crop: PhotoCrop?
+}

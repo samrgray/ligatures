@@ -317,6 +317,11 @@ export async function demoApi(path, { method = 'GET', body } = {}) {
       return { done, skipped: [], missing: ids.filter((x) => !done.includes(x)) };
     }
     case 'GET contacts':
+      if (id && sub === 'photo') {
+        const c = find(id);
+        if (!c.card.photoUrl) throw new DemoError(404, 'This contact has no photo.', 'no_photo');
+        return c.photoOriginal ?? { image: c.card.photoUrl, crop: null };
+      }
       if (id) return payload(D.contacts.find((x) => x.id === id) ?? find(id));
       return { relationships: copy(D.relationships), contacts: live().map(row) };
     case 'POST contacts': {
@@ -360,6 +365,7 @@ export async function demoApi(path, { method = 'GET', body } = {}) {
       const c = D.contacts.find((x) => x.id === id) ?? find(id);
       if (sub === 'photo') {
         c.card.photoUrl = b.image?.startsWith('data:') ? b.image : `data:image/jpeg;base64,${b.image}`;
+        c.photoOriginal = b.original ? { image: b.original, crop: b.crop } : undefined;
         touch(c);
         return payload(c);
       }
@@ -373,6 +379,7 @@ export async function demoApi(path, { method = 'GET', body } = {}) {
     case 'DELETE contacts': {
       const c = find(id);
       c.card.photoUrl = '';
+      delete c.photoOriginal;
       touch(c);
       return payload(c);
     }

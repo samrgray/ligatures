@@ -2568,44 +2568,258 @@ function photoPicker() {
       <div class="photo-actions">
         <div class="photo-btns">
           <button type="button" class="btn" data-action="photo-choose">${shown ? 'Change Photo…' : 'Add Photo…'}</button>
+          ${shown ? '<button type="button" class="btn" data-action="photo-crop">Crop…</button>' : ''}
           ${shown ? '<button type="button" class="btn" data-action="photo-remove">Remove</button>' : ''}
           ${draft.photo ? '<button type="button" class="link" data-action="photo-undo">Undo</button>' : ''}
         </div>
         <p class="hint">${
-          draft.photo ? 'Saves to Google with the contact, then reaches your iPhone and Mac.' : 'Or drop an image here. It’s cropped to a square.'
+          draft.photo ? 'Saves to Google with the contact, then reaches your iPhone and Mac.' : 'Or drop an image here.'
         }</p>
         <input type="file" id="photo-file" accept="image/*" hidden>
       </div>
     </div>`;
 }
 
-/** Centre-crop to a square JPEG, at most 512 px, as a data URL. */
-async function squareJpeg(file, size = 512) {
-  if (!file || !/^image\//.test(file.type)) throw new Error('Choose an image file.');
+// ---- photo cropping
+// A new photo is kept uncropped (up to 1600 px) along with where the crop sits in it, so the
+// crop can be changed later. Only the cropped square goes to Google.
+
+const ORIGINAL_PX = 1600;
+
+/** Any image (a file, or a data URL) as a JPEG data URL at most `px` on its longer side. */
+async function originalJpeg(source, px = ORIGINAL_PX) {
   let bmp;
   try {
-    bmp = await createImageBitmap(file);
+    bmp = await createImageBitmap(typeof source === 'string' ? await loadImage(source) : source);
   } catch {
     throw new Error('Couldn’t read that image. Try a JPEG or PNG.');
   }
-  const side = Math.min(bmp.width, bmp.height);
-  const out = Math.min(size, side);
+  const k = Math.min(1, px / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(bmp.width * k));
+  canvas.height = Math.max(1, Math.round(bmp.height * k));
+  const g = canvas.getContext('2d');
+  g.fillStyle = '#fff'; // transparent PNGs get a white background
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  bmp.close?.();
+  return { data: canvas.toDataURL('image/jpeg', 0.9), width: canvas.width, height: canvas.height };
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Couldn’t read that image.'));
+    img.src = src;
+  });
+}
+
+/** The crop of `src` as a square JPEG, at most 512 px, as a data URL. */
+async function croppedJpeg(src, crop, size = 512) {
+  const img = await loadImage(src);
+  const sw = crop.w * img.naturalWidth;
+  const sh = crop.h * img.naturalHeight;
+  const out = Math.max(1, Math.round(Math.min(size, sw)));
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = out;
   const g = canvas.getContext('2d');
-  g.fillStyle = '#fff'; // transparent PNGs get a white background
-  g.fillRect(0, 0, out, out);
-  g.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, out, out);
-  bmp.close?.();
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(img, crop.x * img.naturalWidth, crop.y * img.naturalHeight, sw, sh, 0, 0, out, out);
   return canvas.toDataURL('image/jpeg', 0.88);
+}
+
+/** The largest centred square, as a crop. */
+function centredCrop(w, h) {
+  const side = Math.min(w, h);
+  return { x: (w - side) / 2 / w, y: (h - side) / 2 / h, w: side / w, h: side / h };
+}
+
+const CROP_INSET = 20; // room around the circle, where the rest of the photo shows dimmed
+const CROP_ZOOM = 6; // how far in you can zoom, past filling the circle
+
+/**
+ * Position and zoom a photo in a circle: drag to move, scroll, pinch or the slider to zoom.
+ * Resolves to the crop (fractions of the image), or null if cancelled.
+ */
+async function cropDialog(src, crop) {
+  const img = await loadImage(src);
+  const W = img.naturalWidth;
+  const H = img.naturalHeight;
+  const dlg = document.createElement('dialog');
+  dlg.className = 'crop-dlg';
+  dlg.setAttribute('aria-labelledby', 'crop-title');
+  dlg.innerHTML = `<form method="dialog" class="dlg">
+      <h2 id="crop-title">Crop Photo</h2>
+      <div class="crop-stage" tabindex="0" role="application" aria-label="Photo. Drag or use the arrow keys to move it; scroll, pinch, or plus and minus to zoom.">
+        <img class="crop-under" src="${h(src)}" alt="" draggable="false">
+        <div class="crop-ring"><img src="${h(src)}" alt="" draggable="false"></div>
+      </div>
+      <label class="crop-zoom">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="2"/></svg>
+        <input type="range" min="0" max="1" step="0.001" value="0" aria-label="Zoom">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="1" y="2.5" width="14" height="11" rx="2"/></svg>
+      </label>
+      <div class="dlg-foot">
+        <button type="button" class="link crop-reset">Reset</button>
+        <span class="grow"></span>
+        <button class="btn" value="cancel">Cancel</button>
+        <button class="btn primary" value="ok">Done</button>
+      </div>
+    </form>`;
+  document.body.append(dlg);
+  const stage = dlg.querySelector('.crop-stage');
+  const under = dlg.querySelector('.crop-under');
+  const top = dlg.querySelector('.crop-ring img');
+  const slider = dlg.querySelector('input[type="range"]');
+
+  // The view: k is screen px per image px; (tx, ty) is the image’s top-left corner relative
+  // to the circle’s, so both are ≤ 0 while the photo covers the circle.
+  let D = 0, k = 1, tx = 0, ty = 0, kMin = 1, kMax = 1;
+  const clamp = () => {
+    k = Math.min(kMax, Math.max(kMin, k));
+    tx = Math.min(0, Math.max(D - W * k, tx));
+    ty = Math.min(0, Math.max(D - H * k, ty));
+  };
+  const draw = () => {
+    clamp();
+    for (const [el, off] of [[under, CROP_INSET], [top, 0]]) {
+      el.style.width = `${W * k}px`;
+      el.style.height = `${H * k}px`;
+      el.style.transform = `translate(${off + tx}px, ${off + ty}px)`;
+    }
+    slider.value = kMax > kMin ? String(Math.log(k / kMin) / Math.log(kMax / kMin)) : '0';
+  };
+  const current = () => ({ x: -tx / (W * k), y: -ty / (H * k), w: D / (W * k), h: D / (H * k) });
+  const show = (c) => {
+    D = stage.clientWidth - 2 * CROP_INSET;
+    kMin = D / Math.min(W, H);
+    kMax = kMin * CROP_ZOOM;
+    k = D / (c.w * W);
+    tx = -c.x * W * k;
+    ty = -c.y * H * k;
+    draw();
+  };
+  /** Zoom by `f`, keeping the point (px, py) in the circle still. */
+  const zoom = (f, px = D / 2, py = D / 2) => {
+    const k2 = Math.min(kMax, Math.max(kMin, k * f));
+    tx = px - ((px - tx) * k2) / k;
+    ty = py - ((py - ty) * k2) / k;
+    k = k2;
+    draw();
+  };
+  const local = (e) => {
+    const r = stage.getBoundingClientRect();
+    return [e.clientX - r.left - CROP_INSET, e.clientY - r.top - CROP_INSET];
+  };
+
+  const pointers = new Map();
+  let gesture = null; // the last two-finger midpoint and spread
+  const pinch = () => {
+    const [a, b] = [...pointers.values()];
+    return { x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2, d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1 };
+  };
+  stage.addEventListener('pointerdown', (e) => {
+    stage.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, local(e));
+    gesture = pointers.size === 2 ? pinch() : null;
+    stage.classList.add('dragging');
+  });
+  stage.addEventListener('pointermove', (e) => {
+    const was = pointers.get(e.pointerId);
+    if (!was) return;
+    const now = local(e);
+    pointers.set(e.pointerId, now);
+    if (pointers.size === 1) {
+      tx += now[0] - was[0];
+      ty += now[1] - was[1];
+      draw();
+    } else if (pointers.size === 2 && gesture) {
+      const g = pinch();
+      tx += g.x - gesture.x;
+      ty += g.y - gesture.y;
+      zoom(g.d / gesture.d, g.x, g.y);
+      gesture = g;
+    }
+  });
+  const lift = (e) => {
+    pointers.delete(e.pointerId);
+    gesture = pointers.size === 2 ? pinch() : null;
+    if (!pointers.size) stage.classList.remove('dragging');
+  };
+  stage.addEventListener('pointerup', lift);
+  stage.addEventListener('pointercancel', lift);
+  stage.addEventListener(
+    'wheel',
+    (e) => {
+      e.preventDefault();
+      // A trackpad pinch arrives as a wheel with ctrlKey, in smaller steps.
+      zoom(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), ...local(e));
+    },
+    { passive: false },
+  );
+  stage.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 40 : 8;
+    const moves = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] };
+    if (moves[e.key]) {
+      tx += moves[e.key][0];
+      ty += moves[e.key][1];
+      draw();
+    } else if (e.key === '+' || e.key === '=') zoom(1.1);
+    else if (e.key === '-' || e.key === '_') zoom(1 / 1.1);
+    else return;
+    e.preventDefault();
+  });
+  slider.addEventListener('input', () => zoom((kMin * (kMax / kMin) ** Number(slider.value)) / k));
+  dlg.querySelector('.crop-reset').addEventListener('click', () => show(centredCrop(W, H)));
+  const resized = new ResizeObserver(() => D && stage.clientWidth - 2 * CROP_INSET !== D && show(current()));
+
+  dlg.returnValue = '';
+  dlg.showModal();
+  show(crop ?? centredCrop(W, H));
+  resized.observe(stage);
+  stage.focus({ focusVisible: false });
+  return new Promise((resolve) =>
+    dlg.addEventListener(
+      'close',
+      () => {
+        resized.disconnect();
+        const out = dlg.returnValue === 'ok' ? current() : null;
+        dlg.remove();
+        resolve(out);
+      },
+      { once: true },
+    ),
+  );
+}
+
+/** Crop `original` (a JPEG data URL) and stage the result; nothing changes if you cancel. */
+async function cropAndStage(original, crop) {
+  const c = await cropDialog(original, crop);
+  if (!c || !draft) return;
+  draft.photo = { action: 'set', data: await croppedJpeg(original, c), original, crop: c };
+  renderDetail();
 }
 
 async function stagePhoto(file) {
   try {
-    draft.photo = { action: 'set', data: await squareJpeg(file) };
-    renderDetail();
+    if (!file || !/^image\//.test(file.type)) throw new Error('Choose an image file.');
+    await cropAndStage((await originalJpeg(file)).data, null);
   } catch (e) {
     toast(e.message);
+  }
+}
+
+/** Change the crop of the photo being shown: a new one, or the contact’s current one. */
+async function recropPhoto() {
+  try {
+    if (draft.photo?.action === 'set') return await cropAndStage(draft.photo.original, draft.photo.crop);
+    const r = await api(`/contacts/${encodeURIComponent(S.detail.id)}/photo/original`);
+    // Kept originals are already JPEG; a photo from Google may not be.
+    await cropAndStage(r.crop ? r.image : (await originalJpeg(r.image)).data, r.crop);
+  } catch (e) {
+    handleError(e);
   }
 }
 
@@ -2616,7 +2830,7 @@ async function savePhoto(id, etag) {
   if (ph.action === 'remove') {
     return api(`/contacts/${encodeURIComponent(id)}/photo?etag=${encodeURIComponent(etag)}`, { method: 'DELETE' });
   }
-  return api(`/contacts/${encodeURIComponent(id)}/photo`, { method: 'PUT', body: { etag, image: ph.data } });
+  return api(`/contacts/${encodeURIComponent(id)}/photo`, { method: 'PUT', body: { etag, image: ph.data, original: ph.original, crop: ph.crop } });
 }
 
 function editsFromDraft() {
@@ -4049,6 +4263,8 @@ document.addEventListener('click', async (e) => {
     }
     case 'photo-choose':
       return $('#photo-file')?.click();
+    case 'photo-crop':
+      return recropPhoto();
     case 'photo-remove':
       draft.photo = { action: 'remove' };
       return renderDetail();

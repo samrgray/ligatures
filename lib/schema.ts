@@ -204,6 +204,20 @@ const MIGRATIONS: string[][] = [
     // Drafts: contacts only in Ligature, not (yet) in Google. Their provider ID is "draft:<id>".
     `ALTER TABLE contacts ADD COLUMN draft INTEGER NOT NULL DEFAULT 0`,
   ],
+  [
+    // The uncropped photo behind each photo cropped in Ligature, and the crop, so it can be
+    // changed later. photo_key is a hash of the photo the crop made: once the contact’s photo
+    // changes anywhere else, the original no longer applies and is dropped.
+    `CREATE TABLE IF NOT EXISTS photo_originals (
+      contact_id TEXT PRIMARY KEY REFERENCES contacts(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL,
+      image TEXT NOT NULL,
+      crop_json TEXT NOT NULL,
+      photo_key TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS photo_originals_user ON photo_originals(user_id)`,
+  ],
 ];
 
 let ready: Promise<void> | null = null;

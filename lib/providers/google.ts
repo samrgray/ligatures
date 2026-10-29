@@ -660,23 +660,22 @@ export const google: Provider = {
       toHttpError(e);
     }
     // Keep the photo itself: once the contact is deleted, Google’s link to it may stop working.
-    let photo: string | null = null;
-    const url = raw.photos?.find((p) => !p.default)?.url;
-    if (url?.startsWith('data:')) photo = url.split(',')[1] ?? null;
-    else if (url) {
-      try {
-        const res = await fetch(/googleusercontent\.com/.test(url) ? url.replace(/=s\d+(-c)?$/, '') + '=s512' : url);
-        if (res.ok) {
-          const bytes = new Uint8Array(await res.arrayBuffer());
-          let bin = '';
-          for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-          photo = btoa(bin);
-        }
-      } catch (e) {
-        console.warn('archive photo fetch failed', e);
-      }
-    }
+    const photo = (await this.photo(raw, 512).catch((e) => (console.warn('archive photo fetch failed', e), null)))?.base64 ?? null;
     return { raw, photo };
+  },
+
+  async photo(raw, px) {
+    const url = (raw as GooglePerson).photos?.find((p) => !p.default)?.url;
+    if (!url) return null;
+    const data = url.match(/^data:([\w/+.-]+);base64,(.*)$/);
+    if (data) return { type: data[1], base64: data[2] };
+    // Google photo URLs take a size; it never upscales past what it has.
+    const res = await fetch(/googleusercontent\.com/.test(url) ? url.replace(/=s\d+(-c)?$/, '') + `=s${px}` : url);
+    if (!res.ok) return null;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return { type: res.headers.get('content-type')?.split(';')[0] || 'image/jpeg', base64: btoa(bin) };
   },
 
   async restore(ctx, raw, photo, linkId, groupIds) {
