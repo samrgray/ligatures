@@ -9,6 +9,18 @@ struct ContactsListView: View {
     @Environment(Store.self) private var store
     @Environment(\.openURL) private var openURL
     @AppStorage("sortByFirst") private var sortByFirst = false
+    /// How big photos are in the list and table (and so how tall rows are). Pinch to change it.
+    @AppStorage("photoSize") private var photoSize = 36.0
+    @State private var pinchBase: Double?
+
+    private var pinch: some Gesture {
+        MagnifyGesture()
+            .onChanged { v in
+                if pinchBase == nil { pinchBase = photoSize }
+                photoSize = min(110, max(28, (pinchBase ?? photoSize) * v.magnification))
+            }
+            .onEnded { _ in pinchBase = nil }
+    }
     @Namespace private var cardZoom
     /// Lists you’ve chosen to show with their sublists’ people (off by default), as “account|list” lines.
     @AppStorage("withSublists") private var withSublists = ""
@@ -205,15 +217,18 @@ struct ContactsListView: View {
                         if tabs.count > 1 { tabStrip }
                         if showTable {
                             ContactsTable(items: visible, filter: filter) { open($0) }
+                                .simultaneousGesture(pinch)
                                 .environment(\.cardZoomNamespace, cardZoom)
                                 .id(filter)
                         } else {
                             page(filter)
+                                .simultaneousGesture(pinch)
                         }
                     }
                 }
             }
             .background(PaperBackground())
+            .environment(\.photoSize, CGFloat(photoSize))
             .environment(\.editMode, $editMode)
             .navigationTitle(selecting ? (selection.isEmpty ? "Select People" : "\(selectedIDs.count) Selected") : title)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
@@ -782,17 +797,18 @@ struct ContactsListView: View {
 /// People shown together: overlapping photos and “Alex & Jamie Smith”.
 struct TogetherRowView: View {
     let members: [ContactRow]
+    @Environment(\.photoSize) private var size
 
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
                 ForEach(Array(members.prefix(2).enumerated()), id: \.element.id) { i, m in
-                    Avatar(url: m.photoUrl, initials: m.initials, size: 26)
-                        .overlay(Circle().stroke(Color(.systemBackground), lineWidth: 2))
-                        .offset(x: i == 0 ? -6 : 6, y: i == 0 ? -6 : 6)
+                    Avatar(url: m.photoUrl, initials: m.initials, size: size * 0.72)
+                        .overlay(Circle().stroke(Theme.card, lineWidth: 2))
+                        .offset(x: (i == 0 ? -1 : 1) * size / 6, y: (i == 0 ? -1 : 1) * size / 6)
                 }
             }
-            .frame(width: 36, height: 36)
+            .frame(width: size, height: size)
             Text(Together.name(members))
                 .fontWeight(.semibold)
                 .lineLimit(1)
@@ -802,7 +818,6 @@ struct TogetherRowView: View {
     }
 }
 
-/// Marks a contact that’s only in Ligature.
 /// A row you tap to open: no styling of its own, just a light press.
 struct RowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -810,6 +825,7 @@ struct RowButtonStyle: ButtonStyle {
     }
 }
 
+/// Marks a contact that’s only in Ligature.
 struct DraftTag: View {
     var body: some View {
         Text("Draft")
@@ -826,10 +842,11 @@ struct DraftTag: View {
 struct ContactRowView: View {
     let contact: ContactRow
     let sortByFirst: Bool
+    @Environment(\.photoSize) private var size
 
     var body: some View {
         HStack(spacing: 12) {
-            Avatar(url: contact.photoUrl, initials: contact.initials, size: 36)
+            Avatar(url: contact.photoUrl, initials: contact.initials, size: size)
                 .overlay {
                     if contact.isDraft {
                         Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
@@ -913,5 +930,14 @@ private struct HoldToDrag: UIGestureRecognizerRepresentable {
         default:
             break
         }
+    }
+}
+
+/// How big photos are in the list and table; pinch to change it.
+private struct PhotoSizeKey: EnvironmentKey { static let defaultValue: CGFloat = 36 }
+extension EnvironmentValues {
+    var photoSize: CGFloat {
+        get { self[PhotoSizeKey.self] }
+        set { self[PhotoSizeKey.self] = newValue }
     }
 }

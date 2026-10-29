@@ -34,7 +34,10 @@ struct ContactsTable: View {
     @State private var pickedDate = Date()
     @State private var listsFor: ContactRow?
 
-    private static let rowHeight: CGFloat = 44
+    @Environment(\.photoSize) private var photoSize
+    /// Rows grow with the photos (pinch the table); text wraps onto the lines that fit.
+    private var rowHeight: CGFloat { max(44, photoSize * 0.85 + 14) }
+    private var textLines: Int { max(1, Int((rowHeight - 12) / 19)) }
 
     // MARK: Setup, shared with the web
 
@@ -193,7 +196,7 @@ struct ContactsTable: View {
         HStack(spacing: 0) {
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
                 cell(c, col.def)
-                    .frame(width: col.width, height: Self.rowHeight, alignment: .leading)
+                    .frame(width: col.width, height: rowHeight, alignment: .leading)
                     .background(Theme.card)
                     .overlay(alignment: .trailing) { if i == 0 { Rectangle().fill(Color(.separator)).frame(width: 0.5) } }
                     .offset(x: i == 0 ? scrollX : 0)
@@ -209,13 +212,13 @@ struct ContactsTable: View {
         case .name:
             Button { open(c.id) } label: {
                 HStack(spacing: 8) {
-                    Avatar(url: c.photoUrl, initials: c.initials, size: 28)
+                    Avatar(url: c.photoUrl, initials: c.initials, size: max(28, photoSize * 0.85))
                         .overlay {
                             if c.isDraft {
                                 Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
                             }
                         }
-                    Text(def.value(c)).fontWeight(.medium).italic(c.isDraft).lineLimit(1)
+                    Text(def.value(c)).fontWeight(.medium).italic(c.isDraft).lineLimit(textLines)
                     if c.isDraft { DraftTag() }
                     Spacer(minLength: 0)
                 }
@@ -239,7 +242,7 @@ struct ContactsTable: View {
     private func textCell(_ v: String, numeric: Bool) -> some View {
         Text(v)
             .font(numeric ? .subheadline.monospacedDigit() : .subheadline)
-            .lineLimit(1)
+            .lineLimit(textLines)
             .padding(.horizontal, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .contentShape(Rectangle())
