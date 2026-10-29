@@ -151,6 +151,8 @@ struct ContactsTable: View {
                     header(cols)
                 }
             }
+            // No stretching past the edges, and one direction at a time.
+            .background(ScrollTuner(bounces: false, directionalLock: true))
         }
         .onScrollGeometryChange(for: CGFloat.self) { g in g.contentOffset.x + g.contentInsets.leading } action: { _, x in
             scrollX = max(0, x)
@@ -360,4 +362,46 @@ private struct ZoomSource: ViewModifier {
 
 extension View {
     func matchedTransitionSourceIfAvailable(id: String) -> some View { modifier(ZoomSource(id: id)) }
+}
+
+/// Reaches the UIKit scroll view behind a SwiftUI one, for what SwiftUI doesn’t offer:
+/// turning off the stretch at the edges and locking a drag to one direction.
+struct ScrollTuner: UIViewRepresentable {
+    var bounces: Bool
+    var directionalLock: Bool
+
+    func makeUIView(context: Context) -> TunerView { TunerView(bounces: bounces, directionalLock: directionalLock) }
+    func updateUIView(_ view: TunerView, context: Context) { view.apply() }
+
+    final class TunerView: UIView {
+        let bounces: Bool
+        let directionalLock: Bool
+
+        init(bounces: Bool, directionalLock: Bool) {
+            self.bounces = bounces
+            self.directionalLock = directionalLock
+            super.init(frame: .zero)
+            isUserInteractionEnabled = false
+        }
+
+        required init?(coder: NSCoder) { fatalError() }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            apply()
+        }
+
+        func apply() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                var v: UIView? = self.superview
+                while let view = v, !(view is UIScrollView) { v = view.superview }
+                guard let scroll = v as? UIScrollView else { return }
+                scroll.bounces = self.bounces
+                scroll.alwaysBounceVertical = false
+                scroll.alwaysBounceHorizontal = false
+                scroll.isDirectionalLockEnabled = self.directionalLock
+            }
+        }
+    }
 }
