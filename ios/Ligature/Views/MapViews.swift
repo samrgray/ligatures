@@ -612,35 +612,40 @@ struct PinSheet: View {
     }
 }
 
-/// A faint map behind a contact’s photo and name, with their place centred vertically and three
-/// quarters of the way across. Only to look at: touches go through to the card.
+/// A faint map behind the top of a contact’s card, with their place three quarters of the way
+/// across and level with `focusY` (their photo and name). Only to look at: touches go through.
 struct HeaderMap: View {
     let point: MapPoint
+    var focusY: CGFloat?
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         GeometryReader { g in
-            // A map half as wide again, from the left edge: its centre is three quarters across.
+            let fy = focusY ?? g.size.height / 2
+            // A map half as wide again from the left edge, and tall enough to centre on fy: its
+            // centre, where the place is, lands three quarters across and level with fy.
+            let mh = 2 * max(fy, g.size.height - fy)
             HeaderMapView(point: point)
-                .frame(width: g.size.width * 1.5, height: g.size.height)
-                .frame(width: g.size.width, height: g.size.height, alignment: .leading)
+                .frame(width: g.size.width * 1.5, height: mh)
+                .offset(y: fy - mh / 2)
+                .frame(width: g.size.width, height: g.size.height, alignment: .topLeading)
                 .clipped()
                 .overlay {
                     // Shifted toward the paper, more so behind the name, so the map stays in the
                     // background. The dark map is already close to the paper, so less there.
                     let k = scheme == .dark ? 0.6 : 1.0
-                    LinearGradient(stops: [.init(color: Theme.paper.opacity(0.88 * k), location: 0),
-                                           .init(color: Theme.paper.opacity(0.88 * k), location: 0.35),
-                                           .init(color: Theme.paper.opacity(0.55 * k), location: 0.75),
-                                           .init(color: Theme.paper.opacity(0.7 * k), location: 1)],
+                    LinearGradient(stops: [.init(color: Theme.paper.opacity(0.72 * k), location: 0),
+                                           .init(color: Theme.paper.opacity(0.72 * k), location: 0.35),
+                                           .init(color: Theme.paper.opacity(0.35 * k), location: 0.75),
+                                           .init(color: Theme.paper.opacity(0.5 * k), location: 1)],
                                    startPoint: .leading, endPoint: .trailing)
                 }
                 .overlay {
-                    marker.position(x: g.size.width * 0.75, y: g.size.height / 2)
+                    marker.position(x: g.size.width * 0.75, y: fy)
                 }
-                // Fades into the page at the top and bottom.
-                .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.15),
-                                             .init(color: .black, location: 0.8), .init(color: .clear, location: 1)],
+                // Fades into the page below.
+                .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.7),
+                                             .init(color: .clear, location: 1)],
                                      startPoint: .top, endPoint: .bottom))
         }
         .allowsHitTesting(false)

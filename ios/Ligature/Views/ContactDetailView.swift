@@ -30,6 +30,8 @@ struct ContactDetailView: View {
     @State private var pastOpen = false
     /// Which of their addresses the header’s map shows.
     @State private var placeKey: String?
+    /// Where the photo and name sit in the card, for the map behind them.
+    @State private var heroFrame: CGRect = .zero
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -60,6 +62,16 @@ struct ContactDetailView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 60)
+                // Where they live (or work), faintly behind the top of the card down to their name,
+                // with the place level with their photo and name.
+                .background(alignment: .top) {
+                    if let place = headerPlace, heroFrame.maxY > 0 {
+                        HeaderMap(point: place.point, focusY: heroFrame.midY - 13) // above the room left for the switcher
+                            .frame(height: heroFrame.maxY)
+                            .id(place.id)
+                    }
+                }
+                .coordinateSpace(.named("detail"))
                 // In a card you can pull down, the card moves instead of its contents: undo the
                 // scroll view’s stretch at the top.
                 .offset(y: onPull == nil ? 0 : -pull)
@@ -240,7 +252,7 @@ struct ContactDetailView: View {
         let phones = unique(card?.phones ?? (row.map { $0.phone.isEmpty ? [] : [Labeled(value: $0.phone, label: "")] } ?? []))
         let emails = unique(card?.emails ?? (row.map { $0.email.isEmpty ? [] : [Labeled(value: $0.email, label: "")] } ?? []))
         let places = self.places
-        let place = places.first { $0.id == placeKey } ?? places.first
+        let place = headerPlace
         return Group {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 10) {
@@ -259,15 +271,9 @@ struct ContactDetailView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, place == nil ? 0 : 22)
-                .background {
-                    // Where they live (or work), faintly behind them, out to the card’s edges.
-                    if let place {
-                        HeaderMap(point: place.point)
-                            .padding(.horizontal, -16)
-                            .id(place.id)
-                    }
-                }
+                .padding(.bottom, place == nil ? 0 : 26)
+                // The map behind (drawn by the card) reaches down to here.
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("detail")) } action: { heroFrame = $0 }
                 .overlay(alignment: .bottomTrailing) {
                     if places.count > 1 {
                         placeSwitcher(places, current: place?.id)
@@ -306,6 +312,12 @@ struct ContactDetailView: View {
         let id: String
         let title: String
         let point: MapPoint
+    }
+
+    /// The place the map behind the header shows.
+    private var headerPlace: Place? {
+        let places = self.places
+        return places.first { $0.id == placeKey } ?? places.first
     }
 
     /// Their places on the map, one per address that could be found.
