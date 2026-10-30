@@ -134,7 +134,8 @@ final class LigatureUITests: XCTestCase {
         let row = app.cells.containing(NSPredicate(format: "label CONTAINS %@", "Ava Chen")).firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         row.tap()
-        let photo = app.buttons["Enlarge photo"]
+        // The cards beside the open one are there too, so take the first photo.
+        let photo = app.buttons["Enlarge photo"].firstMatch
         XCTAssertTrue(photo.waitForExistence(timeout: 3), "no contact card")
         sleep(1)
         // The map sits right of the photo.
