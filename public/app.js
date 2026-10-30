@@ -1066,7 +1066,7 @@ function renderGrid() {
     body = `<tbody><tr class="empty-row"><td colspan="${cols.length + 2}">${msg}</td></tr></tbody>`;
   } else {
     body = `<tbody>${visibleEntries()
-      .map((members, i) => members.map((c, j) => gridRow(c, j, members, i, cols)).join(''))
+      .map((members) => members.map((c, j) => gridRow(c, j, members, cols)).join(''))
       .join('')}</tbody>`;
   }
   const colgroup = `<colgroup><col class="c-check">${cols.map((c) => `<col data-col="${h(c.id)}">`).join('')}<col class="c-fill"></colgroup>`;
@@ -1078,7 +1078,7 @@ function renderGrid() {
 }
 
 /** One person’s row. People shown together share the checkbox and name cells of the first row. */
-function gridRow(c, j, members, i, cols) {
+function gridRow(c, j, members, cols) {
   const together = members.length > 1;
   const open = S.drawer && c.id === S.selectedId;
   const ids = members.map((m) => m.id);
@@ -1114,7 +1114,7 @@ function gridRow(c, j, members, i, cols) {
       return `<td class="${col.nums ? 'nums' : ''}"${title}>${inner}</td>`;
     })
     .join('');
-  const cls = [i % 2 ? 'alt' : '', open ? 'open' : '', c.draft ? 'is-draft' : '', S.selected.has(c.id) ? 'checked' : '', together ? 'grp' : '', together && j === members.length - 1 ? 'grp-last' : '']
+  const cls = [open ? 'open' : '', c.draft ? 'is-draft' : '', S.selected.has(c.id) ? 'checked' : '', together ? 'grp' : '', together && j === members.length - 1 ? 'grp-last' : '']
     .filter(Boolean)
     .join(' ');
   const label = together ? togetherName(members) : c.displayName || 'contact';

@@ -24,7 +24,6 @@
   --button-border: #e2dad0;
   --shadow: 0 1px 2px rgb(60 40 20 / 0.06), 0 18px 50px rgb(60 40 20 / 0.16);
   --card-shadow: 0 1px 2px rgb(60 40 20 / 0.05), 0 8px 30px rgb(60 40 20 / 0.08);
-  --stripe: #fdfaf6;
   --hover: #f8f3ec;
   --row-line: #efe9e1;
   --drawer-shadow: -24px 0 60px rgb(60 40 20 / 0.12);
@@ -59,7 +58,6 @@
     --button-border: #3d3832;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 18px 50px rgb(0 0 0 / 0.5);
     --card-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 30px rgb(0 0 0 / 0.35);
-    --stripe: #23211e;
     --hover: #292622;
     --row-line: #2e2a26;
     --drawer-shadow: -24px 0 60px rgb(0 0 0 / 0.45);
@@ -94,7 +92,6 @@
   --button-border: #3d3832;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 18px 50px rgb(0 0 0 / 0.5);
   --card-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 30px rgb(0 0 0 / 0.35);
-  --stripe: #23211e;
   --hover: #292622;
   --row-line: #2e2a26;
   --drawer-shadow: -24px 0 60px rgb(0 0 0 / 0.45);
@@ -265,7 +262,6 @@ body.resizing, body.resizing * { cursor: col-resize !important; user-select: non
 .photo-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .grid td a { color: var(--accent); }
 .grid td a:hover { text-decoration: underline; }
-.grid tbody tr.alt td { background: var(--stripe); }
 .grid tbody tr:hover td { background: var(--hover); }
 .grid tbody tr.checked td { background: color-mix(in srgb, var(--accent) 11%, var(--bg)); }
 .grid tbody tr.open td { background: var(--accent); color: var(--accent-text); border-bottom-color: var(--accent); }
