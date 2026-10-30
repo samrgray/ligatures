@@ -22,6 +22,11 @@ targets:
     platform: iOS
     sources:
       - path: Ligature
+      # The app icon, made as an Icon Composer file so iOS shows it flat: no glass, shine or
+      # shadow added on top.
+      - path: AppIcon.icon
+        type: file
+        buildPhase: resources
     dependencies:
       - package: MapLibre
     settings:
