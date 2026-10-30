@@ -2176,6 +2176,65 @@ async function drawHeroMap(d) {
   }
 }
 
+/** The address a place is for, written out: from their card when it can be matched, else as looked up. */
+function placeAddress(place, card) {
+  const n = Number(place.key.split('-').pop()) || 1;
+  const a = (card?.addresses ?? []).filter((x) => (x.label.trim().toLowerCase() || 'other') === (place.point.label || 'other'))[n - 1];
+  return a?.value || place.point.text || '';
+}
+
+let PM = null; // the full-screen map of one contact’s places
+
+/** Their places on a full map you can move around, with your pins, and the address below. */
+async function openPlaceMap() {
+  const d = S.detail;
+  if (!d) return;
+  const places = await contactPlaces(d.id);
+  if (!places.length) return;
+  let dlg = $('#place-dlg');
+  if (!dlg) {
+    dlg = document.createElement('dialog');
+    dlg.id = 'place-dlg';
+    dlg.className = 'place-dlg';
+    dlg.setAttribute('aria-label', 'Map');
+    dlg.addEventListener('close', () => {
+      PM?.remove();
+      PM = null;
+    });
+    document.body.append(dlg);
+  }
+  dlg.innerHTML = `<div class="place-canvas" id="place-canvas"></div>
+    <button type="button" class="icon-btn place-close" data-action="close-place" aria-label="Close map" title="Close (Esc)">${ICON.x}</button>
+    <div class="place-card" id="place-card"></div>`;
+  dlg.showModal();
+  renderPlaceCard(places, d);
+  const card = $('#place-card');
+  const person = S.contacts.find((c) => c.id === d.id) ?? d.card;
+  const place = places.find((p) => p.key === S.heroPlace?.key) ?? places[0];
+  try {
+    const [{ placeMap }, { pins }] = await Promise.all([import('./map.js'), api('/pins').catch(() => ({ pins: [] }))]);
+    if (!dlg.open) return;
+    PM = await placeMap($('#place-canvas'), { person, point: place.point, pins, dark: isDark(), bottom: card.offsetHeight + 24 });
+  } catch (e) {
+    handleError(e);
+  }
+}
+
+/** The panel along the bottom: which address (a dropdown if there are several) and the address itself. */
+function renderPlaceCard(places, d) {
+  const place = places.find((p) => p.key === S.heroPlace?.key) ?? places[0];
+  $('#place-card').innerHTML = `
+    <div class="place-card-head">${
+      places.length > 1
+        ? `<label class="place-pick"><select data-place-pick aria-label="Address">${places
+            .map((p) => `<option value="${h(p.key)}"${p === place ? ' selected' : ''}>${h(p.title)}</option>`)
+            .join('')}</select>${ICON.down}</label>`
+        : h(place.title)
+    }</div>
+    <div class="place-card-addr">${h(placeAddress(place, d.card)).replace(/\n/g, '<br>')}</div>`;
+  return place;
+}
+
 function renderDetailSoon() {
   clearTimeout(detailTimer);
   detailTimer = setTimeout(() => {
@@ -4257,6 +4316,7 @@ document.addEventListener('click', async (e) => {
   const pick = e.target.closest('.pick-menu');
   if (pick && (copy || e.target.closest('a'))) setTimeout(() => pick.hidePopover(), copy ? 400 : 0);
   if (copy) return copyClick(copy);
+  if (e.target.closest('#hero-map')) return openPlaceMap();
   const lp = e.target.closest('[data-lp-group]');
   if (lp) return togglePickerList(lp.dataset.lpAccount, lp.dataset.lpGroup);
   const ns = e.target.closest('[data-name-sort]');
@@ -4325,6 +4385,8 @@ document.addEventListener('click', async (e) => {
       return clearSelection();
     case 'close-detail':
       return closeDrawer();
+    case 'close-place':
+      return $('#place-dlg')?.close();
     case 'demo-on':
     case 'demo-off':
       setDemo(t.dataset.action === 'demo-on');
@@ -4696,6 +4758,14 @@ document.addEventListener('change', async (e) => {
   const t = e.target;
   if (t.matches('[data-hero-pick]') && S.detail) {
     S.heroPlace = { id: S.detail.id, key: t.value };
+    return drawHeroMap(S.detail);
+  }
+  if (t.matches('[data-place-pick]') && S.detail) {
+    // The full map moves to that address, and the header’s map follows.
+    S.heroPlace = { id: S.detail.id, key: t.value };
+    const places = await contactPlaces(S.detail.id);
+    const place = renderPlaceCard(places, S.detail);
+    PM?.show(place.point);
     return drawHeroMap(S.detail);
   }
   if (C && t.closest('#compose-dlg')) {

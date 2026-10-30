@@ -318,7 +318,7 @@ dialog.columns-dlg { max-height: calc(100dvh - 48px); overflow-y: auto; }
 .hero { position: relative; isolation: isolate; }
 .hero.mapped { padding: 22px 0; }
 .hero-map {
-  position: absolute; inset: 0 -24px; z-index: -1; pointer-events: none; overflow: hidden;
+  position: absolute; inset: 0 -24px; z-index: -1; overflow: hidden; cursor: pointer;
   -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 80%, transparent); mask-image: linear-gradient(transparent, #000 16%, #000 80%, transparent);
 }
 .hero-map-canvas { position: absolute; inset: 0; }
@@ -334,6 +334,13 @@ dialog.columns-dlg { max-height: calc(100dvh - 48px); overflow-y: auto; }
 }
 .hero-dot { position: absolute; left: 75%; top: 50%; z-index: 1; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 2px var(--card); }
 .hero-dot.area { width: 56px; height: 56px; margin: -28px; background: color-mix(in srgb, var(--brand) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 45%, transparent); }
+/* One contact’s places, full screen: tap the map behind their name. */
+dialog.place-dlg { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; border-radius: 0; background: var(--bg); overflow: hidden; }
+.place-canvas { position: absolute; inset: 0; }
+.place-close { position: absolute; top: 16px; left: 16px; z-index: 2; width: 36px; height: 36px; border-radius: 18px; background: var(--card); box-shadow: var(--shadow); }
+.place-card { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 2; width: min(420px, calc(100% - 32px)); padding: 14px 18px 16px; border-radius: 16px; background: var(--grain), var(--glass); backdrop-filter: blur(28px) saturate(1.35); -webkit-backdrop-filter: blur(28px) saturate(1.35); border: 1px solid var(--glass-edge); box-shadow: var(--shadow); }
+.place-card-head { font-size: 13px; font-weight: 600; color: var(--secondary); margin-bottom: 4px; }
+.place-card-addr { font-size: 16px; line-height: 22px; }
 .hero-text { flex: 1; min-width: 0; }
 .hero-line { display: flex; align-items: baseline; gap: 8px; }
 .hero-line > :first-child { min-width: 0; }

@@ -770,3 +770,54 @@ export async function heroMap(host, point, dark) {
     padding: { left: host.clientWidth * 0.5, top: 0, right: 0, bottom: 0 },
   });
 }
+
+// ---------------------------------------------------------------- one contact, full screen
+
+/**
+ * One contact’s place on a full map you can move around: their face, and your pins, but no
+ * one else. `show(point)` moves to another of their places. `bottom` keeps the place clear of
+ * the panel along the bottom.
+ */
+export async function placeMap(container, { person, point, pins, dark, bottom = 0 }) {
+  const ml = await loadLib();
+  const zoom = (p) => (HERO_ZOOM[p.precision] ?? 6.5) + 1.5;
+  const map = new ml.Map({
+    container,
+    style: window.LIGATURE_MAP_STYLE ?? STYLES[dark ? 'dark' : 'light'],
+    center: [point.lng, point.lat],
+    zoom: zoom(point),
+    attributionControl: { compact: true },
+    dragRotate: false,
+    pitchWithRotate: false,
+  });
+  map.touchZoomRotate.disableRotation();
+  map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
+  map.setPadding({ top: 0, left: 0, right: 0, bottom });
+  container.mapInstance = map; // for tests
+
+  const photo = person.photoUrl ? thumb(person.photoUrl) : '';
+  const initials =
+    ((person.givenName?.[0] ?? '') + (person.familyName?.[0] ?? '')).toUpperCase() || (person.displayName?.[0] ?? '?').toUpperCase();
+  const face = document.createElement('div');
+  face.className = `face${photo ? ' photo' : ''}`;
+  face.innerHTML = `<span class="face-img">${
+    photo ? `<img src="${esc(photo)}" alt="" referrerpolicy="no-referrer">` : `<span>${esc(initials)}</span>`
+  }</span><span class="face-name">${esc(person.displayName || 'No name')}</span>`;
+  const marker = new ml.Marker({ element: face, anchor: 'center' }).setLngLat([point.lng, point.lat]).addTo(map);
+
+  for (const p of pins) {
+    const el = document.createElement('div');
+    el.className = 'map-pin';
+    el.innerHTML = `<svg width="22" height="28" viewBox="0 0 22 28" aria-hidden="true"><path d="M11 27s9-9.1 9-15.5A9 9 0 0 0 2 11.5C2 17.9 11 27 11 27z"/><circle cx="11" cy="11.5" r="3.5"/></svg><span class="map-pin-label">${esc(p.label)}</span>`;
+    el.setAttribute('aria-label', `Pin: ${p.label}`);
+    new ml.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.lng, p.lat]).addTo(map);
+  }
+
+  const show = (p, animate = true) => {
+    face.classList.toggle('exact', p.precision === 'address');
+    marker.setLngLat([p.lng, p.lat]);
+    map[animate ? 'easeTo' : 'jumpTo']({ center: [p.lng, p.lat], zoom: zoom(p) });
+  };
+  show(point, false);
+  return { show, remove: () => map.remove() };
+}
