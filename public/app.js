@@ -2157,7 +2157,8 @@ async function drawHeroMap(d) {
   const hero = host.closest('.hero');
   hero.classList.add('mapped');
   host.hidden = false;
-  host.innerHTML = `<span class="hero-dot${place.point.precision === 'address' ? '' : ' area'}"></span>`;
+  // A dot only for a street address; for an area, the map centred on it says enough.
+  host.innerHTML = place.point.precision === 'address' ? '<span class="hero-dot"></span>' : '';
   // On the title’s line (or the name’s), right-aligned: just the address’s name and a caret.
   const slot = hero.querySelector('.place-slot');
   if (slot) {
