@@ -817,11 +817,15 @@ struct PhotoViewer: View {
                 .accessibilityLabel("Close")
             }
             .contentShape(Rectangle())
-            .onTapGesture { close(down: true, height: height) }
+            // Follows your finger from the first touch; a touch that barely moves is a tap, which closes.
             .gesture(
-                DragGesture()
+                DragGesture(minimumDistance: 0)
                     .onChanged { v in if !closing { drag = v.translation } }
                     .onEnded { v in
+                        if hypot(v.translation.width, v.translation.height) < 6 {
+                            close(down: true, height: height)
+                            return
+                        }
                         let flung = abs(v.predictedEndTranslation.height) > 300 || abs(v.translation.height) > 140
                         if flung {
                             close(down: v.predictedEndTranslation.height >= 0, height: height)
