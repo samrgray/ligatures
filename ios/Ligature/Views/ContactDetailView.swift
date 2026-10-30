@@ -20,6 +20,8 @@ struct ContactDetailView: View {
     @State private var editing = false
     @State private var pickingLists = false
     @State private var showPhoto = false
+    /// The photo zooms out of its place on the card when you open it, and back when you tap to close.
+    @Namespace private var photoZoom
     @State private var editingRelationship: RelationshipEditTarget?
 
     private var row: ContactRow? { store.row(id) }
@@ -123,6 +125,7 @@ struct ContactDetailView: View {
         }
         .fullScreenCover(isPresented: $showPhoto) {
             PhotoViewer(url: detail?.card.photoUrl ?? row?.photoUrl ?? "")
+                .navigationTransition(.zoom(sourceID: "photo", in: photoZoom))
         }
         .fullScreenCover(isPresented: $showPlaceMap) {
             if let row, !places.isEmpty {
@@ -269,6 +272,7 @@ struct ContactDetailView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Button { if !photo.isEmpty { showPhoto = true } } label: {
                         Avatar(url: photo, initials: card?.initials ?? row?.initials ?? "?", size: 104)
+                            .matchedTransitionSource(id: "photo", in: photoZoom) { $0.clipShape(Circle()) }
                     }
                     .buttonStyle(.plain)
                     .disabled(photo.isEmpty)
@@ -791,7 +795,7 @@ struct FieldEditor: View {
     }()
 }
 
-/// The photo, full screen. Tap, or flick it away, to close.
+/// The photo, full screen. Tap to close (it zooms back into the card), or flick it away.
 struct PhotoViewer: View {
     let url: String
     @Environment(\.dismiss) private var dismiss
@@ -816,7 +820,7 @@ struct PhotoViewer: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .scaleEffect(1 - progress * 0.2)
                 .offset(drag)
-                Button { close(down: true, height: height) } label: {
+                Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.white)
@@ -834,7 +838,7 @@ struct PhotoViewer: View {
                     .onChanged { v in if !closing { drag = v.translation } }
                     .onEnded { v in
                         if hypot(v.translation.width, v.translation.height) < 6 {
-                            close(down: true, height: height)
+                            dismiss()
                             return
                         }
                         let flung = abs(v.predictedEndTranslation.height) > 300 || abs(v.translation.height) > 140
@@ -847,6 +851,8 @@ struct PhotoViewer: View {
             )
         }
         .presentationBackground(.clear)
+        // The flick above closes it; the zoom’s own pull-to-close would fight it.
+        .interactiveDismissDisabled()
     }
 
     /// Sends the photo off the screen the way it was going, then closes without the cover’s own slide.
