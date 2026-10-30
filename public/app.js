@@ -1296,7 +1296,8 @@ let dragCol = null;
 
 /** A copy button for an email address or phone number. */
 function copyBtn(value, what, cls = 'copy-btn') {
-  return `<button type="button" class="${cls}" data-copy="${h(value)}" aria-label="Copy ${what} ${h(value)}" title="Copy ${what}">${ICON.copy}</button>`;
+  // On a pill (“Call”, “Email”) the value isn’t shown, so “Copied” names it.
+  return `<button type="button" class="${cls}" data-copy="${h(value)}"${cls === 'pill-copy' ? ' data-copy-say' : ''} aria-label="Copy ${what} ${h(value)}" title="Copy ${what}">${ICON.copy}</button>`;
 }
 
 let copiedTimer;
@@ -1304,7 +1305,7 @@ let copiedTimer;
  * “Copied”, in a small bubble just above the button. A popover, so it shows over open dialogs
  * (the full-screen map) too.
  */
-function copiedTip(btn) {
+function copiedTip(btn, text = 'Copied') {
   let tip = $('#copied-tip');
   if (!tip) {
     tip = document.createElement('div');
@@ -1312,14 +1313,14 @@ function copiedTip(btn) {
     tip.className = 'copied-tip';
     tip.setAttribute('popover', 'manual');
     tip.setAttribute('role', 'status');
-    tip.textContent = 'Copied';
     document.body.append(tip);
   }
+  tip.textContent = text;
   if (tip.matches(':popover-open')) tip.hidePopover();
   tip.classList.remove('gone');
   tip.showPopover();
   const r = btn.getBoundingClientRect();
-  tip.style.left = `${Math.round(r.left + r.width / 2 - tip.offsetWidth / 2)}px`;
+  tip.style.left = `${Math.round(Math.max(8, Math.min(innerWidth - tip.offsetWidth - 8, r.left + r.width / 2 - tip.offsetWidth / 2)))}px`;
   tip.style.top = `${Math.round(r.top - tip.offsetHeight - 8)}px`;
   clearTimeout(copiedTimer);
   copiedTimer = setTimeout(() => {
@@ -1331,7 +1332,7 @@ function copiedTip(btn) {
 async function copyClick(btn) {
   const value = btn.dataset.copy;
   if (!(await copyText(value))) return toast('Couldn’t copy. Select the text and copy it.', 3000);
-  copiedTip(btn);
+  copiedTip(btn, 'copySay' in btn.dataset ? `Copied ${value}` : 'Copied');
   btn.innerHTML = ICON.check;
   btn.classList.add('copied');
   setTimeout(() => {
