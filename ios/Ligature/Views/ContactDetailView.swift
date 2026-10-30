@@ -780,32 +780,69 @@ struct FieldEditor: View {
     }()
 }
 
-/// The photo, full screen. Tap anywhere to close.
+/// The photo, full screen. Tap, or flick it away, to close.
 struct PhotoViewer: View {
     let url: String
     @Environment(\.dismiss) private var dismiss
+    /// How far the photo has been dragged; flick it down (or up) to close.
+    @State private var drag: CGSize = .zero
+    @State private var closing = false
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Color.black.ignoresSafeArea()
-            AsyncImage(url: Photo.url(url, px: 1200)) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFit()
-                } else {
-                    ProgressView().tint(.white)
+        GeometryReader { geo in
+            let height = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
+            let progress = min(1, abs(drag.height) / 400)
+            ZStack(alignment: .topTrailing) {
+                // The card shows through as the photo is pulled away.
+                Color.black.opacity(1 - progress * 0.9).ignoresSafeArea()
+                AsyncImage(url: Photo.url(url, px: 1200)) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFit()
+                    } else {
+                        ProgressView().tint(.white)
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .scaleEffect(1 - progress * 0.2)
+                .offset(drag)
+                Button { close(down: true, height: height) } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(.white.opacity(0.18)))
+                }
+                .padding()
+                .opacity(1 - progress)
+                .accessibilityLabel("Close")
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Button { dismiss() } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(.white.opacity(0.18)))
-            }
-            .padding()
-            .accessibilityLabel("Close")
+            .contentShape(Rectangle())
+            .onTapGesture { close(down: true, height: height) }
+            .gesture(
+                DragGesture()
+                    .onChanged { v in if !closing { drag = v.translation } }
+                    .onEnded { v in
+                        let flung = abs(v.predictedEndTranslation.height) > 300 || abs(v.translation.height) > 140
+                        if flung {
+                            close(down: v.predictedEndTranslation.height >= 0, height: height)
+                        } else {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { drag = .zero }
+                        }
+                    }
+            )
         }
-        .onTapGesture { dismiss() }
+        .presentationBackground(.clear)
+    }
+
+    /// Sends the photo off the screen the way it was going, then closes without the cover’s own slide.
+    private func close(down: Bool, height: CGFloat) {
+        guard !closing else { return }
+        closing = true
+        withAnimation(.easeOut(duration: 0.2)) { drag = CGSize(width: drag.width, height: down ? height : -height) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            var t = Transaction()
+            t.disablesAnimations = true
+            withTransaction(t) { dismiss() }
+        }
     }
 }
