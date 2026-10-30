@@ -434,7 +434,7 @@ struct ContactsListView: View {
         .overlay(alignment: .trailing) {
             if showIndex {
                 let letters = list.map { AlphaIndex.letter($0.lead.sortKey(byFirst: sortByFirst)) }
-                AlphabetScrubber { l in
+                AlphabetScrubber(available: Set(letters)) { l in
                     if let i = AlphaIndex.target(letters, pick: l) { proxy.scrollTo(list[i].id, anchor: .top) }
                 }
                 .padding(.vertical, 12)

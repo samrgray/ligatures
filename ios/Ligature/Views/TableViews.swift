@@ -181,7 +181,7 @@ struct ContactsTable: View {
         .overlay(alignment: .trailing) {
             // A–Z down the side while sorted by name, as in Contacts.
             if sort.id == "name", rows.count >= 12 {
-                AlphabetScrubber { l in jump(to: l) }
+                AlphabetScrubber(available: Set(rows.compactMap { c in allColumns.first?.sortKey.map { AlphaIndex.letter($0(c)) } })) { l in jump(to: l) }
                     .padding(.top, 36)
                     .padding(.bottom, 12)
             }
