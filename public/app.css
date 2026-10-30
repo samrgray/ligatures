@@ -405,7 +405,7 @@ textarea.input.addr-street { min-height: 0; height: auto; resize: none; }
 .signin { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px; display: flex; flex-direction: column; gap: 16px; }
 .signin h1 { margin: 0; font-size: 22px; }
 /* The wordmark, drawn in the logo color (white in dark mode). */
-.logo { display: block; aspect-ratio: 346 / 97; background: var(--logo); -webkit-mask: url(/logo.svg) no-repeat center / contain; mask: url(/logo.svg) no-repeat center / contain; }
+.logo { display: block; aspect-ratio: 255 / 64; background: var(--logo); -webkit-mask: url(/logo.svg) no-repeat center / contain; mask: url(/logo.svg) no-repeat center / contain; }
 .brand .logo { width: 92px; margin: 4px 0; }
 .signin .logo { width: 150px; margin: 0 0 4px; }
 .signin p { margin: 0; color: var(--secondary); }
