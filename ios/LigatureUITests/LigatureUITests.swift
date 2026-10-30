@@ -146,7 +146,8 @@ final class LigatureUITests: XCTestCase {
         sleep(2)
         shot("ui-place-map")
         app.buttons["Address: Home"].tap()
-        app.buttons["Work"].tap()
+        // The menu’s Work, not the pinned Work list tab behind the map.
+        app.collectionViews.buttons["Work"].firstMatch.tap()
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Morrison")).firstMatch.waitForExistence(timeout: 3),
                       "switching to Work didn’t show the work address")
         app.buttons["Close"].tap()
@@ -172,7 +173,9 @@ final class LigatureUITests: XCTestCase {
         app.buttons["Table"].tap()
         app.buttons["Layout"].tap()
         app.buttons["Columns…"].tap()
+        // New fields come last among the hidden columns, below the half-height sheet’s fold.
         let add = app.buttons["Favorite coffee"]
+        for _ in 0..<5 where !add.exists { app.swipeUp() }
         XCTAssertTrue(add.waitForExistence(timeout: 3), "the new field isn’t offered as a column")
         add.tap()
         shot("ui-columns")
