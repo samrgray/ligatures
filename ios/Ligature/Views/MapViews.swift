@@ -652,14 +652,11 @@ struct HeaderMap: View {
         .accessibilityHidden(true)
     }
 
-    /// A dot for a street address; a soft circle when only the area is known.
+    /// A dot for a street address; nothing when only the area is known (the map centred on it says enough).
     @ViewBuilder private var marker: some View {
         if point.precision == "address" {
             Circle().fill(Theme.brand).frame(width: 10, height: 10)
                 .overlay(Circle().strokeBorder(Theme.card, lineWidth: 2).padding(-2))
-        } else {
-            Circle().fill(Theme.brand.opacity(0.12)).frame(width: 56, height: 56)
-                .overlay(Circle().strokeBorder(Theme.brand.opacity(0.45), lineWidth: 1))
         }
     }
 }
