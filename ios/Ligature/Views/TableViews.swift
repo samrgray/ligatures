@@ -27,6 +27,8 @@ struct ContactsTable: View {
     @Binding var selection: Set<String>
     /// Holding a photo starts selecting, with that person ticked.
     var startSelecting: (String) -> Void = { _ in }
+    /// Choosing this view’s columns (from the layout menu).
+    var showColumns: Binding<Bool> = .constant(false)
     let open: (String) -> Void
 
     @Environment(Store.self) private var store
@@ -189,6 +191,14 @@ struct ContactsTable: View {
         }
         .sheet(item: $picking) { ref in datePicker(ref) }
         .sheet(item: $listsFor) { c in ListPickerView(ids: [c.id], accountId: c.accountId) }
+        .sheet(isPresented: showColumns) {
+            ColumnsSheet(choices: allColumns.map { ColumnsSheet.Choice(id: $0.id, label: $0.label) },
+                         shown: columns.map { ColumnPref(id: $0.def.id, w: prefs.columns?.first { p in p.id == $0.def.id }?.w) }) { cols in
+                var p = prefs
+                p.columns = cols
+                Task { await store.saveViewPrefs(key, p) }
+            }
+        }
         .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
     }
 
@@ -492,5 +502,71 @@ struct ScrollTuner: UIViewRepresentable {
                 self.found(scroll)
             }
         }
+    }
+}
+
+/// Which columns the table shows for this view, and in what order. Name always comes first.
+/// Saved as you go, shared with the web.
+struct ColumnsSheet: View {
+    struct Choice: Identifiable {
+        let id: String
+        let label: String
+    }
+
+    let choices: [Choice]
+    @State var shown: [ColumnPref]
+    let save: ([ColumnPref]) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    private func label(_ id: String) -> String { choices.first { $0.id == id }?.label ?? id }
+    private var hidden: [Choice] { choices.filter { c in !shown.contains { $0.id == c.id } } }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(shown, id: \.id) { c in
+                        Text(label(c.id))
+                            .moveDisabled(c.id == "name")
+                            .deleteDisabled(c.id == "name")
+                    }
+                    .onMove { from, to in
+                        shown.move(fromOffsets: from, toOffset: to)
+                        // Name stays first.
+                        if let i = shown.firstIndex(where: { $0.id == "name" }), i != 0 { shown.insert(shown.remove(at: i), at: 0) }
+                        save(shown)
+                    }
+                    .onDelete { at in
+                        shown.remove(atOffsets: at)
+                        save(shown)
+                    }
+                } header: {
+                    Text("Shown")
+                } footer: {
+                    Text("For this view only. Drag to reorder.")
+                }
+                if !hidden.isEmpty {
+                    Section("Hidden") {
+                        ForEach(hidden) { c in
+                            Button {
+                                shown.append(ColumnPref(id: c.id))
+                                save(shown)
+                            } label: {
+                                Label {
+                                    Text(c.label).foregroundStyle(Theme.ink)
+                                } icon: {
+                                    Image(systemName: "plus.circle.fill").foregroundStyle(.green)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .environment(\.editMode, .constant(.active))
+            .navigationTitle("Columns")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.bold() } }
+        }
+        .presentationDetents([.medium, .large])
     }
 }

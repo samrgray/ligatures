@@ -153,6 +153,33 @@ final class LigatureUITests: XCTestCase {
         XCTAssertTrue(photo.waitForExistence(timeout: 3), "closing the map didn’t go back to the card")
     }
 
+    func testAddAFieldAndAColumn() {
+        XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5))
+        app.buttons["Layout"].tap()
+        app.buttons["Your Fields…"].tap()
+        XCTAssertTrue(app.buttons["New Field"].waitForExistence(timeout: 3), "no Your Fields screen")
+        app.buttons["New Field"].tap()
+        let name = app.textFields["Name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 3))
+        name.tap()
+        name.typeText("Favorite coffee")
+        app.buttons["Add"].tap()
+        XCTAssertTrue(app.staticTexts["Favorite coffee"].waitForExistence(timeout: 3), "the new field isn’t listed")
+        shot("ui-fields")
+        app.buttons["Done"].tap()
+
+        app.buttons["Layout"].tap()
+        app.buttons["Table"].tap()
+        app.buttons["Layout"].tap()
+        app.buttons["Columns…"].tap()
+        let add = app.buttons["Favorite coffee"]
+        XCTAssertTrue(add.waitForExistence(timeout: 3), "the new field isn’t offered as a column")
+        add.tap()
+        shot("ui-columns")
+        app.buttons["Done"].tap()
+        XCTAssertTrue(app.buttons["Favorite coffee"].waitForExistence(timeout: 3), "the column isn’t in the table")
+    }
+
     func testTogetherRowOpensBoth() {
         app.terminate()
         app.launchArguments = ["-demo", "-nopins"]

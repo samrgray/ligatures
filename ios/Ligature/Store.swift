@@ -382,6 +382,87 @@ final class Store {
         }
     }
 
+    // MARK: - Your fields: defined here, kept only in Ligature
+
+    /// A new field, on every contact or (with `list`) only on people in that list.
+    func createField(label: String, type: String, list: ListRef?) async -> Bool {
+        let label = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !label.isEmpty else { return false }
+        if demo {
+            fields.append(FieldDef(id: UUID().uuidString, label: label, type: type, accountId: list?.accountId, listId: list?.id,
+                                   listName: list.flatMap { listName($0.id, accountId: $0.accountId) }))
+            return true
+        }
+        do {
+            var body: [String: Any] = ["label": label, "type": type]
+            if let list { body["list"] = ["accountId": list.accountId, "listId": list.id] }
+            let f: FieldDef = try await api.post("/fields", body)
+            fields.append(f)
+            saveCache()
+            return true
+        } catch {
+            handle(error)
+            return false
+        }
+    }
+
+    /// Rename a field, change its type, or move it to a list (or to every contact). Values stay.
+    func updateField(_ f: FieldDef, label: String, type: String, list: ListRef?) async -> Bool {
+        let label = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !label.isEmpty else { return false }
+        let oldList = f.listId.map { ListRef(accountId: f.accountId ?? "", id: $0) }
+        var body: [String: Any] = [:]
+        if label != f.label { body["label"] = label }
+        if f.key == nil, type != f.type { body["type"] = type }
+        if f.key == nil, list != oldList { body["list"] = list.map { ["accountId": $0.accountId, "listId": $0.id] as Any } ?? NSNull() }
+        guard !body.isEmpty else { return true }
+        if !demo {
+            do {
+                let _: Empty = try await api.patch("/fields/\(f.id)", body)
+            } catch {
+                handle(error)
+                return false
+            }
+        }
+        let l = f.key == nil ? list : oldList
+        let updated = FieldDef(id: f.id, label: label, type: f.key == nil ? type : f.type, key: f.key, accountId: l?.accountId, listId: l?.id,
+                               listName: l.flatMap { listName($0.id, accountId: $0.accountId) ?? (l == oldList ? f.listName : nil) })
+        if let i = fields.firstIndex(where: { $0.id == f.id }) { fields[i] = updated }
+        saveCache()
+        return true
+    }
+
+    /// Delete a field and its values on every contact.
+    func deleteField(_ f: FieldDef) async {
+        if !demo {
+            do {
+                let _: Empty = try await api.delete("/fields/\(f.id)")
+            } catch {
+                return handle(error)
+            }
+        }
+        fields.removeAll { $0.id == f.id }
+        for i in contacts.indices { contacts[i].fields[f.id] = nil }
+        for k in details.keys { details[k]?.fields[f.id] = nil }
+        saveCache()
+    }
+
+    /// Put the fields in this order (as on contact cards and in Columns).
+    func orderFields(_ ids: [String]) async {
+        let old = fields.map(\.id)
+        let byId = Dictionary(fields.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        fields = ids.compactMap { byId[$0] } + fields.filter { !ids.contains($0.id) }
+        saveCache()
+        if demo { return }
+        for (i, id) in fields.map(\.id).enumerated() where old.firstIndex(of: id) != i {
+            do {
+                let _: Empty = try await api.patch("/fields/\(id)", ["position": i])
+            } catch {
+                return handle(error)
+            }
+        }
+    }
+
     // MARK: - Messaging
 
     /// Names, every phone and email, and your fields, for filling in a message.

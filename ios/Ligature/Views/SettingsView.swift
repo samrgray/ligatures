@@ -6,6 +6,7 @@ struct SettingsView: View {
     @AppStorage("sortByFirst") private var sortByFirst = false
     @AppStorage("appearance") private var appearance = Appearance.auto.rawValue
     @State private var confirmSignOut = false
+    @State private var showFields = false
 
     var body: some View {
         NavigationStack {
@@ -48,6 +49,7 @@ struct SettingsView: View {
                 }
                 Section("Contacts") {
                     Toggle("Sort by first name", isOn: $sortByFirst)
+                    Button("Your Fields…") { showFields = true }
                 }
                 Section {
                     Picker("Open Places In", selection: Binding(get: { store.mapsApp }, set: { app in Task { await store.setMapsApp(app) } })) {
@@ -87,6 +89,7 @@ struct SettingsView: View {
                 Text("Your contacts stay in Google. This iPhone forgets them until you sign in again.")
             }
         }
+        .sheet(isPresented: $showFields) { FieldsView() }
         .storeAlert()
     }
 

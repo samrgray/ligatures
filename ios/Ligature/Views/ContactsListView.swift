@@ -108,6 +108,8 @@ struct ContactsListView: View {
     @State private var addingPin = false
     @State private var openPin: Pin?
     @State private var showArchive = false
+    @State private var showColumns = false
+    @State private var showFields = false
 
     private struct MapSpot: Identifiable {
         let id = UUID()
@@ -224,7 +226,7 @@ struct ContactsListView: View {
                         if tabs.count > 1 { tabStrip }
                         if showTable {
                             ContactsTable(items: visible, filter: filter, selecting: selecting, selection: $selection,
-                                          startSelecting: startSelecting) { open($0) }
+                                          startSelecting: startSelecting, showColumns: $showColumns) { open($0) }
                                 .simultaneousGesture(pinch)
                                 .environment(\.cardZoomNamespace, cardZoom)
                                 .id(filter)
@@ -289,6 +291,12 @@ struct ContactsListView: View {
                                 Label("Table", systemImage: "tablecells").tag("table")
                                 Label("Map", systemImage: "map").tag("map")
                             }
+                            Section {
+                                if showTable {
+                                    Button { showColumns = true } label: { Label("Columns…", systemImage: "rectangle.split.3x1") }
+                                }
+                                Button { showFields = true } label: { Label("Your Fields…", systemImage: "list.bullet.rectangle") }
+                            }
                         } label: {
                             Image(systemName: showMap ? "map" : showTable ? "tablecells" : "list.bullet")
                         }
@@ -328,6 +336,7 @@ struct ContactsListView: View {
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLists) { ManageListsView() }
         .sheet(isPresented: $showArchive) { ArchivedView() }
+        .sheet(isPresented: $showFields) { FieldsView() }
         .sheet(item: $compose) { t in
             ComposerView(ids: t.ids) { endSelecting() }
         }
