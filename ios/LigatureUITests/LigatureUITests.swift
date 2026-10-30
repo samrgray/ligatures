@@ -130,6 +130,28 @@ final class LigatureUITests: XCTestCase {
         XCTAssertFalse(app.buttons["Edit"].exists, "Select mode opened the contact instead")
     }
 
+    func testTappingTheHeaderMapOpensTheFullMap() {
+        let row = app.cells.containing(NSPredicate(format: "label CONTAINS %@", "Ava Chen")).firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+        let photo = app.buttons["Enlarge photo"]
+        XCTAssertTrue(photo.waitForExistence(timeout: 3), "no contact card")
+        sleep(1)
+        // The map sits right of the photo.
+        app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: app.frame.width * 0.8, dy: photo.frame.midY)).tap()
+        XCTAssertTrue(app.buttons["Close"].waitForExistence(timeout: 3), "tapping the map didn’t open it")
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Quarry Bend")).firstMatch.exists, "no home address")
+        sleep(2)
+        shot("ui-place-map")
+        app.buttons["Address: Home"].tap()
+        app.buttons["Work"].tap()
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Morrison")).firstMatch.waitForExistence(timeout: 3),
+                      "switching to Work didn’t show the work address")
+        app.buttons["Close"].tap()
+        XCTAssertTrue(photo.waitForExistence(timeout: 3), "closing the map didn’t go back to the card")
+    }
+
     func testTogetherRowOpensBoth() {
         app.terminate()
         app.launchArguments = ["-demo", "-nopins"]

@@ -613,7 +613,8 @@ struct PinSheet: View {
 }
 
 /// A faint map behind the top of a contact’s card, with their place three quarters of the way
-/// across and level with `focusY` (their photo and name). Only to look at: touches go through.
+/// across and level with `focusY` (their photo). The map itself doesn’t move; tapping it is up to
+/// whoever shows it.
 struct HeaderMap: View {
     let point: MapPoint
     var focusY: CGFloat?
@@ -648,7 +649,6 @@ struct HeaderMap: View {
                                              .init(color: .clear, location: 1)],
                                      startPoint: .top, endPoint: .bottom))
         }
-        .allowsHitTesting(false)
         .accessibilityHidden(true)
     }
 
@@ -688,5 +688,83 @@ private struct HeaderMapView: UIViewRepresentable {
         default: 6.5
         }
         map.setCenter(CLLocationCoordinate2D(latitude: point.lat, longitude: point.lng), zoomLevel: zoom, animated: false)
+    }
+}
+
+/// One of a contact’s places: an address that could be found on the map.
+struct ContactPlace: Identifiable {
+    let id: String
+    /// “Home”, “Work”, “Home 2”…
+    let title: String
+    let point: MapPoint
+    /// Written out, as on their card.
+    let address: String
+}
+
+/// A contact’s places on a full-screen map you can move around: their face, your pins, and no
+/// one else, with the address written out below and a menu to switch between their addresses.
+struct ContactPlaceMap: View {
+    let contact: ContactRow
+    let places: [ContactPlace]
+    @Binding var current: String?
+    @Environment(Store.self) private var store
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        let place = places.first { $0.id == current } ?? places[0]
+        PeopleMapView(people: [contact], points: [place.point], selected: [], pins: store.pins, frameKey: place.id, onTap: { _ in })
+            .ignoresSafeArea()
+            .overlay(alignment: .topLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.ink)
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(Theme.card))
+                        .shadow(color: Theme.shadow.opacity(0.15), radius: 6, y: 2)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+                .padding(.leading, 16)
+                .padding(.top, 8)
+            }
+            .safeAreaInset(edge: .bottom) { panel(place) }
+            .task { await store.loadPins() }
+    }
+
+    private func panel(_ place: ContactPlace) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if places.count > 1 {
+                Menu {
+                    Picker("Address", selection: Binding(get: { place.id }, set: { current = $0 })) {
+                        ForEach(places) { p in Text(p.title).tag(p.id) }
+                    }
+                } label: {
+                    HStack(spacing: 3) {
+                        Text(place.title)
+                        Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                }
+                .tint(.secondary)
+                .accessibilityLabel("Address: \(place.title)")
+            } else {
+                Text(place.title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            Text(place.address.isEmpty ? "No address written out" : place.address)
+                .font(.body)
+                .foregroundStyle(Theme.ink)
+                .textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.card))
+        .shadow(color: Theme.shadow.opacity(0.15), radius: 10, y: 3)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 }

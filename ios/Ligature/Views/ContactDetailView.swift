@@ -34,6 +34,7 @@ struct ContactDetailView: View {
     @State private var heroFrame: CGRect = .zero
     /// The middle of their photo: the place on the map is level with it.
     @State private var photoMidY: CGFloat = 0
+    @State private var showPlaceMap = false
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -71,6 +72,9 @@ struct ContactDetailView: View {
                         HeaderMap(point: place.point, focusY: photoMidY)
                             .frame(height: heroFrame.maxY)
                             .id(place.id)
+                            // Tap it for the full map.
+                            .contentShape(Rectangle())
+                            .onTapGesture { showPlaceMap = true }
                     }
                 }
                 .coordinateSpace(.named("detail"))
@@ -119,6 +123,11 @@ struct ContactDetailView: View {
         }
         .fullScreenCover(isPresented: $showPhoto) {
             PhotoViewer(url: detail?.card.photoUrl ?? row?.photoUrl ?? "")
+        }
+        .fullScreenCover(isPresented: $showPlaceMap) {
+            if let row, !places.isEmpty {
+                ContactPlaceMap(contact: row, places: places, current: $placeKey)
+            }
         }
         .onAppear {
             guard store.demo else { return }
@@ -320,34 +329,36 @@ struct ContactDetailView: View {
         }
     }
 
-    private struct Place: Identifiable {
-        let id: String
-        let title: String
-        let point: MapPoint
-    }
-
     /// The place the map behind the header shows.
-    private var headerPlace: Place? {
+    private var headerPlace: ContactPlace? {
         let places = self.places
         return places.first { $0.id == placeKey } ?? places.first
     }
 
     /// Their places on the map, one per address that could be found.
-    private var places: [Place] {
+    private var places: [ContactPlace] {
         let points = store.mapPoints.filter { $0.id == id }
+        let addresses = detail?.card.addresses ?? []
         var seen: [String: Int] = [:]
         return points.map { p in
             let n = (seen[p.type] ?? 0) + 1
             seen[p.type] = n
             let title = p.type.capitalized + (n > 1 ? " \(n)" : "")
-            return Place(id: "\(p.type)-\(n)", title: title, point: p)
+            // Written out from their card when it can be matched (the nth address with this label),
+            // else as it was looked up.
+            let same = addresses.filter { a in
+                let l = a.label.trimmingCharacters(in: .whitespaces).lowercased()
+                return (l.isEmpty ? "other" : l) == p.type
+            }
+            let written = n <= same.count ? same[n - 1].value : p.text
+            return ContactPlace(id: "\(p.type)-\(n)", title: title, point: p, address: written)
         }
         // Home first, as on the card.
         .sorted { ($0.point.type == "home" ? 0 : 1) < ($1.point.type == "home" ? 0 : 1) }
     }
 
     /// Which address the map shows: just its name and a caret, like their title, opening a menu.
-    private func placePicker(_ places: [Place], current: String?) -> some View {
+    private func placePicker(_ places: [ContactPlace], current: String?) -> some View {
         Menu {
             Picker("Address", selection: Binding(get: { current ?? "" }, set: { k in withAnimation(.easeInOut(duration: 0.25)) { placeKey = k } })) {
                 ForEach(places) { p in Text(p.title).tag(p.id) }
