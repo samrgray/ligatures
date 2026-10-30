@@ -20,7 +20,7 @@ struct ContactDetailView: View {
     @State private var editing = false
     @State private var pickingLists = false
     @State private var showPhoto = false
-    /// The photo zooms out of its place on the card when you open it, and back when you tap to close.
+    /// The photo zooms out of its place on the card when you open it, and back when you close it with the button.
     @Namespace private var photoZoom
     @State private var editingRelationship: RelationshipEditTarget?
 
@@ -795,7 +795,7 @@ struct FieldEditor: View {
     }()
 }
 
-/// The photo, full screen. Tap to close (it zooms back into the card), or flick it away.
+/// The photo, full screen. Flick it away to close, or use the close button (it zooms back into the card).
 struct PhotoViewer: View {
     let url: String
     @Environment(\.dismiss) private var dismiss
@@ -832,15 +832,11 @@ struct PhotoViewer: View {
                 .accessibilityLabel("Close")
             }
             .contentShape(Rectangle())
-            // Follows your finger from the first touch; a touch that barely moves is a tap, which closes.
+            // Follows your finger from the first touch.
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { v in if !closing { drag = v.translation } }
                     .onEnded { v in
-                        if hypot(v.translation.width, v.translation.height) < 6 {
-                            dismiss()
-                            return
-                        }
                         let flung = abs(v.predictedEndTranslation.height) > 300 || abs(v.translation.height) > 140
                         if flung {
                             close(down: v.predictedEndTranslation.height >= 0, height: height)
