@@ -706,6 +706,9 @@ struct ContactPlaceMap: View {
     @Binding var current: String?
     @Environment(Store.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    /// The place whose address was just copied, for a moment’s tick.
+    @State private var copied: String?
 
     var body: some View {
         let place = places.first { $0.id == current } ?? places[0]
@@ -751,10 +754,35 @@ struct ContactPlaceMap: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
-            Text(place.address.isEmpty ? "No address written out" : place.address)
-                .font(.body)
-                .foregroundStyle(Theme.ink)
-                .textSelection(.enabled)
+            HStack(alignment: .top, spacing: 10) {
+                Text(place.address.isEmpty ? "No address written out" : place.address)
+                    .font(.body)
+                    .foregroundStyle(Theme.ink)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if !place.address.isEmpty {
+                    Button {
+                        copyToClipboard(place.address)
+                        copied = place.id
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                        Task {
+                            try? await Task.sleep(for: .seconds(1.5))
+                            if copied == place.id { copied = nil }
+                        }
+                    } label: {
+                        Image(systemName: copied == place.id ? "checkmark" : "doc.on.doc")
+                    }
+                    .buttonStyle(RoundIconStyle())
+                    .accessibilityLabel(copied == place.id ? "Copied" : "Copy address")
+                }
+                Button {
+                    if let u = store.mapsApp.url(for: place) { openURL(u) }
+                } label: {
+                    Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                }
+                .buttonStyle(RoundIconStyle())
+                .accessibilityLabel("Show in \(store.mapsApp.title)")
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 18)
@@ -763,5 +791,30 @@ struct ContactPlaceMap: View {
         .shadow(color: Theme.shadow.opacity(0.15), radius: 10, y: 3)
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
+    }
+}
+
+/// The maps app places open in: shows the place there (not directions to it).
+enum MapsApp: String, CaseIterable, Identifiable {
+    case apple, google
+    var id: String { rawValue }
+    var title: String { self == .apple ? "Apple Maps" : "Google Maps" }
+
+    func url(for place: ContactPlace) -> URL? {
+        let p = place.point
+        let written = place.address.split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) }.joined(separator: ", ")
+        let query = written.isEmpty ? "\(p.lat),\(p.lng)" : written
+        var c: URLComponents?
+        switch self {
+        case .apple:
+            // The address as the pin’s name, at the point Ligature found.
+            c = URLComponents(string: "https://maps.apple.com/")
+            c?.queryItems = [URLQueryItem(name: "q", value: query), URLQueryItem(name: "ll", value: "\(p.lat),\(p.lng)")]
+        case .google:
+            // Opens the Google Maps app when it’s installed, else the website.
+            c = URLComponents(string: "https://www.google.com/maps/search/")
+            c?.queryItems = [URLQueryItem(name: "api", value: "1"), URLQueryItem(name: "query", value: query)]
+        }
+        return c?.url
     }
 }

@@ -49,6 +49,15 @@ struct SettingsView: View {
                 Section("Contacts") {
                     Toggle("Sort by first name", isOn: $sortByFirst)
                 }
+                Section {
+                    Picker("Open Places In", selection: Binding(get: { store.mapsApp }, set: { app in Task { await store.setMapsApp(app) } })) {
+                        ForEach(MapsApp.allCases) { a in Text(a.title).tag(a) }
+                    }
+                } header: {
+                    Text("Maps")
+                } footer: {
+                    Text("Where the directions button on a contact’s map takes you. Also used on the web.")
+                }
                 if !store.demo {
                     Section {
                         Button("Demo Mode") { switchDemo(true) }

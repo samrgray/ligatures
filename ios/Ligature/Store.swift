@@ -36,6 +36,11 @@ final class Store {
     /// Your order for all lists (pinned ones are ordered by `pinned`).
     var listOrder: [ListRef] = []
     var syncing = false
+    /// Where places open: Apple or Google Maps. Kept on this iPhone too, so it’s known before the
+    /// account loads.
+    var mapsApp: MapsApp = MapsApp(rawValue: UserDefaults.standard.string(forKey: "mapsApp") ?? "") ?? .apple {
+        didSet { UserDefaults.standard.set(mapsApp.rawValue, forKey: "mapsApp") }
+    }
     var lastSynced: Date?
 
     var showAlert = false
@@ -211,6 +216,7 @@ final class Store {
             pinned = s.user?.prefs?.pinnedLists ?? []
             listOrder = s.user?.prefs?.listOrder ?? []
             listParents = s.user?.prefs?.listParents ?? []
+            if let m = s.user?.prefs?.mapsApp.flatMap(MapsApp.init(rawValue:)) { mapsApp = m }
             listStyles = s.user?.prefs?.listStyles ?? []
             viewPrefs = s.user?.prefs?.views ?? [:]
             legacyView = ViewPrefs(columns: s.user?.prefs?.columns, sort: s.user?.prefs?.sort, nameSort: s.user?.prefs?.nameSort)
@@ -552,6 +558,17 @@ final class Store {
                 return d
             }
             let _: Empty = try await api.patch("/prefs", ["set": ["listStyles": enc]])
+        } catch {
+            handle(error)
+        }
+    }
+
+    /// Which app opens places (directions on the full map). Shared with the web.
+    func setMapsApp(_ app: MapsApp) async {
+        mapsApp = app
+        if demo { return }
+        do {
+            let _: Empty = try await api.patch("/prefs", ["set": ["mapsApp": app.rawValue]])
         } catch {
             handle(error)
         }

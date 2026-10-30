@@ -28,6 +28,8 @@ struct Prefs: Codable, Hashable {
     var columns: [ColumnPref]?
     var sort: SortPref?
     var nameSort: String?
+    /// Where places open: "apple" or "google".
+    var mapsApp: String?
 }
 
 struct ViewPrefs: Codable, Hashable {

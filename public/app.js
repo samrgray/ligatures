@@ -146,6 +146,7 @@ const ICON = {
   menu: '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/></svg>',
   columns: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="2.5" width="12" height="11" rx="2"/><path d="M6.5 2.5v11M10 2.5v11"/></svg>',
   up: '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 6.5 3-3 3 3"/></svg>',
+  directions: '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.3 2.4a1 1 0 0 1 1.4 0l7 7a1 1 0 0 1 0 1.4l-7 7a1 1 0 0 1-1.4 0l-7-7a1 1 0 0 1 0-1.4z"/><path d="M7.5 12.5v-2a1.5 1.5 0 0 1 1.5-1.5h4"/><path d="m11 6.8 2.2 2.2-2.2 2.2"/></svg>',
   down: '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 3.5 3 3 3-3"/></svg>',
   grip: '<svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="1.2"/><circle cx="7" cy="3" r="1.2"/><circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="3" cy="11" r="1.2"/><circle cx="7" cy="11" r="1.2"/></svg>',
   check: '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2.5 6.2 2.3 2.3 4.7-5"/></svg>',
@@ -2224,6 +2225,8 @@ async function openPlaceMap() {
 /** The panel along the bottom: which address (a dropdown if there are several) and the address itself. */
 function renderPlaceCard(places, d) {
   const place = places.find((p) => p.key === S.heroPlace?.key) ?? places[0];
+  const addr = placeAddress(place, d.card);
+  const app = mapsApp();
   $('#place-card').innerHTML = `
     <div class="place-card-head">${
       places.length > 1
@@ -2232,8 +2235,24 @@ function renderPlaceCard(places, d) {
             .join('')}</select>${ICON.down}</label>`
         : h(place.title)
     }</div>
-    <div class="place-card-addr">${h(placeAddress(place, d.card)).replace(/\n/g, '<br>')}</div>`;
+    <div class="place-card-row">
+      <div class="place-card-addr">${h(addr || 'No address written out').replace(/\n/g, '<br>')}</div>
+      ${addr ? `<button type="button" class="place-btn" data-copy="${h(addr)}" aria-label="Copy address" title="Copy address">${ICON.copy}</button>` : ''}
+      <a class="place-btn" href="${h(mapsUrl(place.point, addr))}" target="_blank" rel="noopener noreferrer" aria-label="Show in ${h(app.title)}" title="Show in ${h(app.title)}">${ICON.directions}</a>
+    </div>`;
   return place;
+}
+
+/** Where places open, set on the iPhone (Settings → Maps) and shared through your account. */
+function mapsApp() {
+  return S.session?.user?.prefs?.mapsApp === 'google' ? { id: 'google', title: 'Google Maps' } : { id: 'apple', title: 'Apple Maps' };
+}
+
+/** The place in your maps app: shown there, not directions to it. */
+function mapsUrl(point, written) {
+  const query = written ? written.split('\n').map((l) => l.trim()).filter(Boolean).join(', ') : `${point.lat},${point.lng}`;
+  if (mapsApp().id === 'google') return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  return `https://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${point.lat},${point.lng}`;
 }
 
 function renderDetailSoon() {
