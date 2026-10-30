@@ -163,7 +163,7 @@ async function boot() {
   try {
     S.session = await api('/session');
   } catch (e) {
-    $('#root').innerHTML = `<div class="center"><div class="signin"><h1>Ligature</h1><p class="error">${h(e.message)}</p></div></div>`;
+    $('#root').innerHTML = `<div class="center"><div class="signin"><h1>Ligatures</h1><p class="error">${h(e.message)}</p></div></div>`;
     return;
   }
   if (!S.session.user) return renderSignIn(authError);
@@ -174,7 +174,7 @@ async function boot() {
   renderShell();
   await loadContacts();
   if (authError) toast(authError, 8000);
-  else if (gmail === 'connected') toast('Gmail connected. Ligature can now send email for you.', 5000);
+  else if (gmail === 'connected') toast('Gmail connected. Ligatures can now send email for you.', 5000);
   if (gmail || authError) await resumeComposer();
   checkIfStale(CHECK_AFTER_AWAY);
 }
@@ -184,13 +184,13 @@ function renderSignIn(error) {
   $('#root').innerHTML = `
     <main class="center">
       <div class="signin">
-        <h1 class="logo" role="img" aria-label="Ligature"></h1>
+        <h1 class="logo" role="img" aria-label="Ligatures"></h1>
         <p>A personal CRM on top of Google Contacts. Your own fields stay here and never sync back to Google, iPhone or Mac.</p>
         ${error ? `<p class="error" role="alert">${h(error)}</p>` : ''}
         ${
           configured
             ? `<a class="btn primary" href="/api/auth/google/start">Sign in with Google</a>
-               <p>Ligature asks for access to your contacts only.</p>
+               <p>Ligatures asks for access to your contacts only.</p>
                <p><button type="button" class="link" data-action="demo-on">Try the demo</button> with made-up contacts.</p>`
             : `<p class="error">Google sign-in isn’t set up on this server yet.</p>
                <ol>
@@ -213,7 +213,7 @@ function renderShell() {
         <div class="main-bar">
           <button type="button" class="icon-btn sidebar-btn" id="sidebar-btn" data-action="toggle-sidebar" aria-controls="sidebar">${ICON.sidebar}</button>
           <div class="title-block"><h1 id="view-title">All Contacts</h1><span class="count" id="list-count"></span>
-            <label class="sub-toggle" id="drafts-toggle" hidden title="Show drafts (only in Ligature, not in Google Contacts)"><input type="checkbox" data-drafts-toggle> Drafts</label>
+            <label class="sub-toggle" id="drafts-toggle" hidden title="Show drafts (only in Ligatures, not in Google Contacts)"><input type="checkbox" data-drafts-toggle> Drafts</label>
             <label class="sub-toggle" id="sub-toggle" hidden title="Also show people in this list’s sublists"><input type="checkbox" data-sub-toggle> Include sublists</label></div>
           <label class="photo-zoom" title="Photo size">
             <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="6" r="3" fill="currentColor"/><path d="M2.5 15a5.5 5.5 0 0 1 11 0" fill="currentColor"/></svg>
@@ -549,7 +549,7 @@ function renderSidebar() {
   );
 
   el.innerHTML = `
-    <div class="brand"><h1 class="logo" role="img" aria-label="Ligature"></h1></div>
+    <div class="brand"><h1 class="logo" role="img" aria-label="Ligatures"></h1></div>
 
     <nav class="nav" aria-label="Accounts">
       <div class="nav-h">Accounts</div>
@@ -609,7 +609,7 @@ function renderSidebar() {
       <span class="dot" aria-hidden="true"></span>
       <span class="tip-wrap">
         <button type="button" class="tip-btn sync-when" aria-describedby="sync-tip">${S.syncing ? 'Syncing…' : `Synced ${ago(lastSync)}`}</button>
-        <span class="tip" role="tooltip" id="sync-tip">Synced with Google${lastSync ? ` ${h(syncStamp(lastSync))}` : ''}. Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligature.</span>
+        <span class="tip" role="tooltip" id="sync-tip">Synced with Google${lastSync ? ` ${h(syncStamp(lastSync))}` : ''}. Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligatures.</span>
       </span>
       ${S.syncing ? '' : '<button class="link sync-now" data-action="sync">Sync Now</button>'}
     </div>`
@@ -622,8 +622,8 @@ function renderSidebar() {
       ${
         DEMO
           ? ''
-          : `<a class="link" href="/api/backup" download title="Downloads everything Ligature keeps for you, as one file">Download Backup</a>
-      <button class="link" data-action="demo-on" title="Show made-up contacts instead of yours, to try things or show Ligature to someone">Demo Mode</button>
+          : `<a class="link" href="/api/backup" download title="Downloads everything Ligatures keeps for you, as one file">Download Backup</a>
+      <button class="link" data-action="demo-on" title="Show made-up contacts instead of yours, to try things or show Ligatures to someone">Demo Mode</button>
       <button class="link" data-action="logout">Sign Out</button>`
       }
       ${themeButton()}
@@ -1095,7 +1095,7 @@ function gridRow(c, j, members, cols) {
         const name = together ? togetherName(members) : v;
         const avs = together ? `<span class="av-stack">${members.slice(0, 3).map(av).join('')}</span>` : av(c);
         return `<td class="c-name"${span} data-ids="${h(ids.join(' '))}"${together ? ` title="${h(name)}"` : ''}><button type="button" class="cell-open" data-open="${h(c.id)}" draggable="${inArchive() ? 'false' : 'true'}">${avs}<span class="cell-name">${h(name)}</span>${
-          members.some((m) => m.draft) ? '<span class="draft-tag" title="Only in Ligature, not in Google Contacts">Draft</span>' : ''
+          members.some((m) => m.draft) ? '<span class="draft-tag" title="Only in Ligatures, not in Google Contacts">Draft</span>' : ''
         }</button></td>`;
       }
       const tip = together ? `${c.displayName || 'No name'}: ${v}` : v;
@@ -2354,7 +2354,7 @@ function renderDetail() {
             }.</div>`
           : `${togetherSwitcher(d.id)}${
               d.draft
-                ? `<div class="banner draft-banner"><span><strong>Draft.</strong> Only in Ligature: not in Google Contacts, so not on your iPhone or Mac.</span><button type="button" class="btn primary" data-action="promote-contact">Add to Google</button></div>`
+                ? `<div class="banner draft-banner"><span><strong>Draft.</strong> Only in Ligatures: not in Google Contacts, so not on your iPhone or Mac.</span><button type="button" class="btn primary" data-action="promote-contact">Add to Google</button></div>`
                 : ''
             }`
       }
@@ -2391,7 +2391,7 @@ function renderDetail() {
       <section class="own" aria-labelledby="own-h">
         <div class="own-h">
           <h2 id="own-h">Your fields</h2>
-          <p>Only in Ligature. Never synced to Google, iPhone or Mac.</p>
+          <p>Only in Ligatures. Never synced to Google, iPhone or Mac.</p>
         </div>
         ${
           fields.length
@@ -2505,7 +2505,7 @@ function relationshipsSection(id) {
   return `<section class="own rels" aria-labelledby="rels-h">
       <div class="own-h">
         <h2 id="rels-h">Relationships</h2>
-        <p>Only in Ligature.</p>
+        <p>Only in Ligatures.</p>
       </div>
       ${rows.length ? `<dl class="props">${rows.join('')}</dl>` : ''}
       <div><button type="button" class="link" data-action="add-rel">${ICON.plus} Add relationship</button></div>
@@ -2807,7 +2807,7 @@ function renderEditor(el) {
         <h2 class="drawer-title">${isNew ? 'New Contact' : 'Edit Contact'}</h2>
         <span class="grow"></span>
         <button type="button" class="btn" data-action="cancel-edit">Cancel</button>
-        ${isNew ? '<button type="button" class="btn" data-action="save-draft" title="Keep it only in Ligature for now">Save as Draft</button>' : ''}
+        ${isNew ? '<button type="button" class="btn" data-action="save-draft" title="Keep it only in Ligatures for now">Save as Draft</button>' : ''}
         <button type="submit" class="btn primary" id="save-btn">${isNew ? 'Create' : 'Save'}</button>
       </div>
       <div class="detail-body"><div class="sheet form">
@@ -2817,9 +2817,9 @@ function renderEditor(el) {
                 draft.groups.length ? `, in “${h(accountById(draft.accountId)?.groups.find((g) => g.id === draft.groups[0])?.name ?? 'this list')}”` : ''
               }. It reaches your iPhone and Mac through Google.`
             : S.detail?.draft
-              ? 'A draft: changes stay in Ligature until you add it to Google.'
+              ? 'A draft: changes stay in Ligatures until you add it to Google.'
               : 'Changes save to Google and reach your iPhone and Mac.'
-        }${isNew ? ' Or save it as a draft, kept only in Ligature until you add it to Google.' : ''}</div>
+        }${isNew ? ' Or save it as a draft, kept only in Ligatures until you add it to Google.' : ''}</div>
         ${
           isNew && accounts.length > 1
             ? `<label class="f">Account<select class="input" data-draft="accountId">${accounts
@@ -3159,7 +3159,7 @@ async function saveEditor() {
       S.selectedId = d.id;
       await loadContacts();
       markOpen();
-      const what = asDraft ? 'Draft saved. It’s only in Ligature' : 'Contact created in Google';
+      const what = asDraft ? 'Draft saved. It’s only in Ligatures' : 'Contact created in Google';
       toast(photoError ? `${what}, but the photo didn’t save: ${photoError}` : `${what}.`, photoError ? 7000 : 4000);
     } else {
       const edit = editsFromDraft();
@@ -3214,7 +3214,7 @@ async function makeDraft() {
     S.detail = next;
     await loadContacts();
     renderDetail();
-    toast(`${name} is now a draft, only in Ligature.`, 4000);
+    toast(`${name} is now a draft, only in Ligatures.`, 4000);
   } catch (e) {
     handleError(e);
   }
@@ -3309,7 +3309,7 @@ async function archiveAction(action, ids, etags = {}) {
   if (action === 'forget') {
     const ok = await confirmDialog({
       title: one ? `Delete “${name(ids[0])}” forever?` : `Delete ${ids.length} archived contacts forever?`,
-      body: `${one ? 'Their' : 'Their'} details, your fields and relationships are removed from Ligature. This can’t be undone.`,
+      body: `${one ? 'Their' : 'Their'} details, your fields and relationships are removed from Ligatures. This can’t be undone.`,
       action: 'Delete Forever',
     });
     if (!ok) return;
@@ -3383,7 +3383,7 @@ function renderFieldsDialog() {
   dlg.innerHTML = `
     <form method="dialog" class="dlg" id="fields-form">
       <h2 id="fields-title">Your fields</h2>
-      <p>Extra fields on every contact, or only on people in one list. They’re stored only in Ligature and never sync to Google, iPhone or Mac.</p>
+      <p>Extra fields on every contact, or only on people in one list. They’re stored only in Ligatures and never sync to Google, iPhone or Mac.</p>
       ${fields
         .map(
           (f) => `<div class="field-row">
@@ -3816,7 +3816,7 @@ function viewReview() {
        }
        ${
          acct && !acct.canEmail
-           ? `<p class="note">To send, Ligature needs your permission to send email from this Gmail account. Google asks once. Ligature can send email only; it can’t read your mail.</p>`
+           ? `<p class="note">To send, Ligatures needs your permission to send email from this Gmail account. Google asks once. Ligatures can send email only; it can’t read your mail.</p>`
            : ''
        }</div>`
     : '';

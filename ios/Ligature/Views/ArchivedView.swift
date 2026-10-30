@@ -45,7 +45,7 @@ struct ArchivedView: View {
                     if let c = forget { Task { await store.archive(.forget, ids: [c.id]) } }
                 }
             } message: {
-                Text("Their details, your fields and relationships are removed from Ligature. This can’t be undone.")
+                Text("Their details, your fields and relationships are removed from Ligatures. This can’t be undone.")
             }
             .storeAlert()
         }

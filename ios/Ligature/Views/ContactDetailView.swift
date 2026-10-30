@@ -109,7 +109,7 @@ struct ContactDetailView: View {
                 }
             }
         } message: {
-            Text("Their details, your fields and relationships are removed from Ligature. This can’t be undone.")
+            Text("Their details, your fields and relationships are removed from Ligatures. This can’t be undone.")
         }
         .task(id: id) { await store.loadDetail(id) }
         .sheet(isPresented: $editing) {
@@ -228,7 +228,7 @@ struct ContactDetailView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 6) {
                     DraftTag()
-                    Text("Only in Ligature").font(.app(.subheadline, .medium))
+                    Text("Only in Ligatures").font(.app(.subheadline, .medium))
                 }
                 Text("Not in Google Contacts, so not on your iPhone or Mac.")
                     .font(.app(.subheadline))
@@ -501,9 +501,9 @@ struct ContactDetailView: View {
     @ViewBuilder
     private var yourFields: some View {
         let own = currentFields.filter { $0.listId == nil }
-        CardSection(title: "Your fields", note: "Only in Ligature. Never synced to Google, iPhone or Mac.") {
+        CardSection(title: "Your fields", note: "Only in Ligatures. Never synced to Google, iPhone or Mac.") {
             if store.fields.isEmpty {
-                Text("No fields yet. Add them in Ligature on the web.").foregroundStyle(.secondary).cardRow(first: true)
+                Text("No fields yet. Add them in Ligatures on the web.").foregroundStyle(.secondary).cardRow(first: true)
             }
             ForEach(Array(own.enumerated()), id: \.element.id) { i, f in
                 FieldEditor(contactId: id, field: f, stored: stored(f)).cardRow(first: i == 0)

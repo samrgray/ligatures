@@ -61,7 +61,7 @@ final class API {
         do {
             (data, response) = try await URLSession.shared.data(for: req)
         } catch {
-            throw APIError(status: 0, message: "Couldn’t reach Ligature. Check your connection.", code: "offline", contact: nil)
+            throw APIError(status: 0, message: "Couldn’t reach Ligatures. Check your connection.", code: "offline", contact: nil)
         }
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard (200..<300).contains(status) else {

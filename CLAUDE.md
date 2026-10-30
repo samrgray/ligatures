@@ -1,6 +1,6 @@
-# Ligature
+# Ligatures
 
-A personal CRM on top of Google Contacts. Contacts sync two ways with Google; extra fields (“your fields”), lists, relationships, pins, drafts and other Ligature-only data live in Ligature and never sync back to Google, iPhone or Mac.
+A personal CRM on top of Google Contacts. Contacts sync two ways with Google; extra fields (“your fields”), lists, relationships, pins, drafts and other Ligatures-only data live in Ligatures and never sync back to Google, iPhone or Mac.
 
 Two apps share one backend:
 
@@ -8,6 +8,8 @@ Two apps share one backend:
 - **iOS app**: native SwiftUI, built on GitHub’s Macs and shipped to TestFlight. Intended to replace the iOS Contacts app.
 
 Repo: `samrgray/ligature` (public, so no secrets in code or history).
+
+The app is called **Ligatures** in everything people see. Internal names stay `ligature` on purpose: the bundle ID `com.samrgray.ligature`, the `ligature://auth` sign-in link, the Cloudflare project (`ligature-50o.pages.dev`), the D1 database, browser storage keys, and the Swift target and folder names. Renaming those would break sign-in or make App Store Connect treat it as a new app.
 
 ## Layout
 
@@ -26,17 +28,17 @@ scripts/            mock-google.mjs (fake OAuth + People API), make-test-contact
 ## Architecture rules
 
 - **Google People API**, server-side OAuth (authorization code flow, PKCE, refresh tokens), contacts scope only.
-- Each contact’s Ligature data is keyed to Google’s contact ID, and Ligature’s own ID is also stamped into the contact’s `clientData` so links survive merges.
+- Each contact’s Ligatures data is keyed to Google’s contact ID, and Ligatures’s own ID is also stamped into the contact’s `clientData` so links survive merges.
 - **Send the etag on every write.** Never overwrite a newer change in Google. There is deliberately no read-only switch: two-way sync is the point of the app.
 - **Providers:** Google is one provider among future ones (CardDAV, iCloud). Don’t write Google-specific logic outside `lib/providers/`.
 - **Every record belongs to a user.** The app must keep working self-hosted (`ALLOW_SIGNUPS` in `wrangler.toml`).
 - **Schema** lives in `lib/schema.ts` (`CREATE TABLE IF NOT EXISTS …` plus migrations). The JSON backup (`functions/api/backup.ts`) picks up new tables automatically; keep it that way.
-- **Drafts** are contacts kept only in Ligature until promoted to Google. They mirror all fields.
+- **Drafts** are contacts kept only in Ligatures until promoted to Google. They mirror all fields.
 - **List-specific fields** only apply to people in that list, and show as columns only while viewing that list.
 
 ## Data safety
 
-The connected Google account now holds **real people and real Ligature-only data**. Don’t lose either.
+The connected Google account now holds **real people and real Ligatures-only data**. Don’t lose either.
 
 - Test against the mock server (`npm run dev:mock`, see `.dev.vars.example`) or iOS demo data, never against the live account.
 - Any schema change must migrate existing rows, not drop or recreate tables.
@@ -74,7 +76,7 @@ Several sessions may work on this repo at once. Each should:
 - Read-only mode.
 - Manual “last talked” / “last message” tracking.
 - Gmail / iMessage / Calendar interaction history (for now).
-- Syncing Ligature lists to Apple Contacts.
+- Syncing Ligatures lists to Apple Contacts.
 - Swiping between contact cards in the iOS list (replaced by the table layout).
 
 ## Ideas, not yet decided

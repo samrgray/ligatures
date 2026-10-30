@@ -201,10 +201,10 @@ struct ComposerView: View {
         switch (channel, group) {
         case (.text, false): return "Each person gets their own text, with their name and fields filled in. Messages opens for each one; tap Send."
         case (.text, true): return "One group conversation in Messages."
-        case (.email, false): return "Each person gets their own email from your Gmail, sent by Ligature."
+        case (.email, false): return "Each person gets their own email from your Gmail, sent by Ligatures."
         case (.email, true): return "One email to everyone, from your Gmail."
         case (.whatsapp, _): return "WhatsApp opens for each person with the message filled in; tap Send there."
-        case (.signal, _): return "Signal can’t take a message from another app: Ligature copies it, opens the chat, and you paste."
+        case (.signal, _): return "Signal can’t take a message from another app: Ligatures copies it, opens the chat, and you paste."
         }
     }
 
@@ -252,7 +252,7 @@ struct ComposerView: View {
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
                 if channel == .email, sender?.canEmail != true {
-                    Text("Ligature needs your permission to send email from your Gmail. Google asks once; Ligature can send but can’t read your mail.")
+                    Text("Ligatures needs your permission to send email from your Gmail. Google asks once; Ligatures can send but can’t read your mail.")
                         .font(.app(.footnote))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -379,7 +379,7 @@ struct ComposerView: View {
                 results[i] = .failed(e.message)
                 if e.code == "gmail_scope" {
                     await store.reloadSession()
-                    error = "Ligature lost permission to send from this Gmail. Go back, connect Gmail, and send the rest."
+                    error = "Ligatures lost permission to send from this Gmail. Go back, connect Gmail, and send the rest."
                     break
                 }
                 if e.code == "rate_limited" || e.code == "offline" || e.code == "signed_out" || e.status >= 500 { break }

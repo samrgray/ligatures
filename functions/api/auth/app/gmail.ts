@@ -16,7 +16,7 @@ export const onRequestPost: PagesFunction<Env, string, Data> = async ({ request,
     .prepare(`SELECT 1 FROM accounts WHERE id = ?1 AND user_id = ?2 AND provider = 'google'`)
     .bind(String(accountId ?? ''), user.id)
     .first();
-  if (!owned) throw new HttpError(404, 'That account isn’t connected to Ligature.');
+  if (!owned) throw new HttpError(404, 'That account isn’t connected to Ligatures.');
 
   const state = randomToken(24);
   const verifier = randomToken(48);

@@ -121,10 +121,10 @@ export async function exchangeCode(env: Env, code: string, redirectUri: string, 
   });
   const scopes = (t.scope ?? '').split(/\s+/);
   if (!scopes.includes(GOOGLE_SCOPE)) {
-    throw new HttpError(403, 'Ligature needs access to your contacts. Sign in again and leave that box checked.', 'scope');
+    throw new HttpError(403, 'Ligatures needs access to your contacts. Sign in again and leave that box checked.', 'scope');
   }
   if (!t.refresh_token) {
-    throw new HttpError(502, 'Google didn’t return a refresh token. Remove Ligature at myaccount.google.com/permissions and sign in again.');
+    throw new HttpError(502, 'Google didn’t return a refresh token. Remove Ligatures at myaccount.google.com/permissions and sign in again.');
   }
   return {
     scopes,
@@ -239,7 +239,7 @@ export async function sendGmail(ctx: ProviderCtx, raw: string): Promise<{ id: st
   } catch (e) {
     if (e instanceof GoogleApiError) {
       if (e.status === 403 && /insufficient|scope/i.test(e.message + e.reason)) {
-        throw new HttpError(403, 'Ligature doesn’t have permission to send email from this account yet. Connect Gmail and try again.', 'gmail_scope');
+        throw new HttpError(403, 'Ligatures doesn’t have permission to send email from this account yet. Connect Gmail and try again.', 'gmail_scope');
       }
       if (e.status === 429) throw new HttpError(429, 'Gmail is limiting how fast you can send. Wait a few minutes and retry the rest.', 'rate_limited');
       if (e.status === 400) throw new HttpError(400, `Gmail couldn’t send it: ${e.message}`);

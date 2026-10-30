@@ -129,7 +129,7 @@ function geocoder(env: Env) {
   return {
     base: (env.GEOCODER_URL || 'https://nominatim.openstreetmap.org').replace(/\/$/, ''),
     headers: {
-      'user-agent': `Ligature/1.0 (personal contacts app; ${env.GEOCODER_CONTACT || 'https://github.com/samrgray/ligature'})`,
+      'user-agent': `Ligatures/1.0 (personal contacts app; ${env.GEOCODER_CONTACT || 'https://github.com/samrgray/ligature'})`,
       'accept-language': 'en',
     },
   };

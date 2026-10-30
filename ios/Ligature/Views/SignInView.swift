@@ -18,7 +18,7 @@ struct SignInView: View {
                 .frame(width: 84, height: 84)
                 .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.accentColor))
                 .padding(.bottom, 20)
-            Text("Ligature")
+            Text("Ligatures")
                 .font(.app(.largeTitle, .bold))
             Text("Your Google contacts, with notes of your own.")
                 .font(.app(.body))
@@ -63,7 +63,7 @@ struct SignInView: View {
                         .autocorrectionDisabled()
                         .padding(10)
                         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.secondarySystemBackground)))
-                    Text("The Ligature server to sign in to. Change it if you host your own.")
+                    Text("The Ligatures server to sign in to. Change it if you host your own.")
                         .font(.app(.caption))
                         .foregroundStyle(.secondary)
                 }

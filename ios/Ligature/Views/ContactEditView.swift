@@ -78,7 +78,7 @@ struct ContactEditView: View {
                     Section {
                         Toggle("Save as Draft", isOn: $asDraft)
                     } footer: {
-                        Text("A draft stays only in Ligature, not in Google Contacts, until you add it to Google from its card.")
+                        Text("A draft stays only in Ligatures, not in Google Contacts, until you add it to Google from its card.")
                     }
                 }
                 if let d = original, d.draft != true {
@@ -86,7 +86,7 @@ struct ContactEditView: View {
                         Button("Make Draft") { confirmMakeDraft = true }
                             .frame(maxWidth: .infinity)
                     } footer: {
-                        Text("Takes them out of Google Contacts (and your iPhone and Mac), keeping everything in Ligature as a draft. Add them back to Google anytime.")
+                        Text("Takes them out of Google Contacts (and your iPhone and Mac), keeping everything in Ligatures as a draft. Add them back to Google anytime.")
                     }
                 }
                 if let d = original {
@@ -104,7 +104,7 @@ struct ContactEditView: View {
                         }
                         .frame(maxWidth: .infinity)
                     } footer: {
-                        Text("Takes them out of Google Contacts, keeping everything (fields, photo, lists) in Ligature. Restore them anytime from Archived.")
+                        Text("Takes them out of Google Contacts, keeping everything (fields, photo, lists) in Ligatures. Restore them anytime from Archived.")
                     }
                     Section {
                         Button("Delete Contact", role: .destructive) { confirmDelete = true }
@@ -143,7 +143,7 @@ struct ContactEditView: View {
                     }
                 }
             } message: {
-                Text("They’re deleted from Google Contacts, your iPhone and your Mac. Everything stays in Ligature as a draft. Unsaved edits are discarded.")
+                Text("They’re deleted from Google Contacts, your iPhone and your Mac. Everything stays in Ligatures as a draft. Unsaved edits are discarded.")
             }
             .confirmationDialog("Delete this contact?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Delete Contact", role: .destructive) { Task { await delete() } }

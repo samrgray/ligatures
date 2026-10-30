@@ -997,7 +997,7 @@ struct DraftTag: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
             .overlay(Capsule().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
-            .accessibilityLabel("Draft, only in Ligature")
+            .accessibilityLabel("Draft, only in Ligatures")
             .accessibilityIdentifier("draft-tag")
     }
 }

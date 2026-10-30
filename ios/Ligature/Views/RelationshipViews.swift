@@ -126,7 +126,7 @@ struct RelationshipsSection: View {
 
     var body: some View {
         let rels = store.relationships(of: id)
-        CardSection(title: "Relationships", note: "Only in Ligature.") {
+        CardSection(title: "Relationships", note: "Only in Ligatures.") {
             ForEach(Array(rels.enumerated()), id: \.element.id) { i, r in
                 let other = r.other(than: id)
                 let person = store.contacts.first { $0.id == other }

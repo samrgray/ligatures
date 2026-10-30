@@ -22,7 +22,7 @@ export const onRequestGet: PagesFunction<Env, string, Data> = async ({ request, 
     if (!data.user) return redirect('/');
     accountId = url.searchParams.get('account') ?? '';
     const owned = await env.DB.prepare('SELECT 1 FROM accounts WHERE id = ?1 AND user_id = ?2').bind(accountId, data.user.id).first();
-    if (!owned) return redirect(`/?auth_error=${encodeURIComponent('That account isn’t connected to Ligature.')}`);
+    if (!owned) return redirect(`/?auth_error=${encodeURIComponent('That account isn’t connected to Ligatures.')}`);
     purpose = 'gmail';
   } else if (url.searchParams.get('link') === '1' && data.user) {
     purpose = 'link';

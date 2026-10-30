@@ -38,7 +38,7 @@ struct SettingsView: View {
                     } header: {
                         Text("Google")
                     } footer: {
-                        Text("Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligature.")
+                        Text("Edits go to Google Contacts and reach your iPhone and Mac. Your own fields stay in Ligatures.")
                     }
                 }
                 Section("Appearance") {
@@ -69,7 +69,7 @@ struct SettingsView: View {
                     Section {
                         Button("Demo Mode") { switchDemo(true) }
                     } footer: {
-                        Text("Shows made-up contacts instead of yours, to try things or show Ligature to someone. Nothing reaches Google.")
+                        Text("Shows made-up contacts instead of yours, to try things or show Ligatures to someone. Nothing reaches Google.")
                     }
                 }
                 Section {
@@ -77,13 +77,13 @@ struct SettingsView: View {
                         Button("Sign Out", role: .destructive) { confirmSignOut = true }
                     }
                 } footer: {
-                    Text("Ligature \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""))")
+                    Text("Ligatures \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""))")
                 }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-            .confirmationDialog("Sign out of Ligature?", isPresented: $confirmSignOut, titleVisibility: .visible) {
+            .confirmationDialog("Sign out of Ligatures?", isPresented: $confirmSignOut, titleVisibility: .visible) {
                 Button("Sign Out", role: .destructive) {
                     Task {
                         dismiss()

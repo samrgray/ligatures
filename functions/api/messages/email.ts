@@ -30,7 +30,7 @@ export const onRequestPost: PagesFunction<Env, string, Data> = async ({ request,
     .first<AccountRow>();
   if (!account) throw new HttpError(400, 'Choose the Google account to send from.');
   if (account.provider !== 'google' || !canSendEmail(account)) {
-    throw new HttpError(403, 'Ligature doesn’t have permission to send email from this account yet. Connect Gmail and try again.', 'gmail_scope');
+    throw new HttpError(403, 'Ligatures doesn’t have permission to send email from this account yet. Connect Gmail and try again.', 'gmail_scope');
   }
 
   const mode = b.mode === 'group' ? 'group' : 'individual';

@@ -62,7 +62,7 @@ struct FieldsView: View {
                 Section {
                     Button { editing = FieldTarget(field: nil) } label: { Label("New Field", systemImage: "plus") }
                 } footer: {
-                    Text("Your fields are kept only in Ligature. They never sync to Google, your iPhone or your Mac.")
+                    Text("Your fields are kept only in Ligatures. They never sync to Google, your iPhone or your Mac.")
                 }
             }
             .navigationTitle("Your Fields")

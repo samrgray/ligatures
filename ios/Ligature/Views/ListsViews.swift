@@ -119,7 +119,7 @@ struct ManageListsView: View {
                 } header: {
                     Text(store.pinnedLists.isEmpty ? "" : "Lists")
                 } footer: {
-                    Text("Press and hold a list to drag it, put it inside another list, or give it a color and emoji (nesting, colors and emoji are only in Ligature). Favorites, Family, Friends and Coworkers are built into Google: you can add people to them, but not rename or delete them.")
+                    Text("Press and hold a list to drag it, put it inside another list, or give it a color and emoji (nesting, colors and emoji are only in Ligatures). Favorites, Family, Friends and Coworkers are built into Google: you can add people to them, but not rename or delete them.")
                 }
             }
             .navigationTitle("Lists")

@@ -53,7 +53,7 @@ export const onRequestGet: PagesFunction<Env, string, Data> = async ({ env, data
   }
 
   const backup = {
-    app: 'Ligature',
+    app: 'Ligatures',
     version: 2,
     exportedAt: new Date().toISOString(),
     user: { id: user.id, name: user.display_name, prefs: parse(user.prefs) },

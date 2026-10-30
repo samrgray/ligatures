@@ -42,10 +42,10 @@ export const onRequestGet: PagesFunction<Env, string, Data> = async ({ request, 
 
     if (purpose === 'gmail') {
       if (!existing || existing.id !== state.account_id || existing.user_id !== state.user_id) {
-        return fail('That was a different Google account from the one connected to Ligature. Try again and choose the same account.');
+        return fail('That was a different Google account from the one connected to Ligatures. Try again and choose the same account.');
       }
       if (!scopes.includes(GMAIL_SEND_SCOPE)) {
-        return fail('Ligature needs permission to send email. Try again and leave “Send email on your behalf” checked.');
+        return fail('Ligatures needs permission to send email. Try again and leave “Send email on your behalf” checked.');
       }
       await db.prepare('UPDATE accounts SET credentials_enc = ?2, scopes = ?3 WHERE id = ?1').bind(existing.id, sealed, granted).run();
       return redirect(toApp ? `${APP_CALLBACK}?gmail=connected` : '/?gmail=connected');
@@ -54,14 +54,14 @@ export const onRequestGet: PagesFunction<Env, string, Data> = async ({ request, 
     let userId: string;
     if (purpose === 'link') {
       // Adding an account to someone already signed in.
-      if (existing && existing.user_id !== state.user_id) return fail('That Google account belongs to another Ligature user.');
+      if (existing && existing.user_id !== state.user_id) return fail('That Google account belongs to another Ligatures user.');
       userId = state.user_id!;
     } else if (existing) {
       userId = existing.user_id;
     } else {
       const mode = (env.ALLOW_SIGNUPS || 'first').toLowerCase();
       const anyUser = await db.prepare('SELECT 1 FROM users LIMIT 1').first();
-      if (anyUser && mode !== 'open') return fail('This Ligature server isn’t taking new sign-ups.');
+      if (anyUser && mode !== 'open') return fail('This Ligatures server isn’t taking new sign-ups.');
       userId = await createUser(db, null);
     }
 
