@@ -135,13 +135,13 @@ struct RelationshipsSection: View {
                         HStack(spacing: 10) {
                             Avatar(url: person?.photoUrl ?? "", initials: person?.initials ?? "?", size: 32)
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(r.label(for: id)).font(.caption).foregroundStyle(.secondary)
+                                Text(r.label(for: id)).font(.app(.caption)).foregroundStyle(.secondary)
                                 Text(person?.displayName ?? "No Name")
                             }
                             Spacer()
                             if r.combined {
                                 Text("Together")
-                                    .font(.caption.weight(.medium))
+                                    .font(.app(.caption, .medium))
                                     .foregroundStyle(.secondary)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 3)
@@ -156,7 +156,7 @@ struct RelationshipsSection: View {
                         Button(role: .destructive) { Task { await store.removeRelationship(r) } } label: { Label("Remove", systemImage: "trash") }
                     } label: {
                         Image(systemName: "ellipsis")
-                            .font(.footnote.weight(.semibold))
+                            .font(.app(.footnote, .semibold))
                             .foregroundStyle(.secondary)
                             .frame(width: 30, height: 30)
                             .contentShape(Rectangle())
@@ -166,7 +166,7 @@ struct RelationshipsSection: View {
                 .cardRow(first: i == 0)
             }
             Button { editing = RelationshipEditTarget(me: id, existing: nil) } label: {
-                Label("Add Relationship", systemImage: "plus").font(.body.weight(.medium))
+                Label("Add Relationship", systemImage: "plus").font(.app(.body, .medium))
             }
             .buttonStyle(.plain)
             .foregroundStyle(Color.accentColor)
@@ -308,7 +308,7 @@ struct PersonPicker: View {
                     Avatar(url: c.photoUrl, initials: c.initials, size: 28)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(c.displayName.isEmpty ? "No Name" : c.displayName).foregroundStyle(Color.primary)
-                        if !c.organization.isEmpty { Text(c.organization).font(.subheadline).foregroundStyle(.secondary) }
+                        if !c.organization.isEmpty { Text(c.organization).font(.app(.subheadline)).foregroundStyle(.secondary) }
                     }
                 }
             }

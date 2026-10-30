@@ -129,10 +129,10 @@ struct ComposerView: View {
         Form {
             Section("To") {
                 Text(people.count == 1 ? (people[0].displayName) : "\(people.count) people")
-                    .font(.headline)
+                    .font(.app(.headline))
                 if people.count > 1 {
                     Text(people.prefix(8).map { $0.displayName.isEmpty ? "No name" : $0.displayName }.joined(separator: ", ") + (people.count > 8 ? ", and \(people.count - 8) more" : ""))
-                        .font(.footnote)
+                        .font(.app(.footnote))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -230,7 +230,7 @@ struct ComposerView: View {
                     Button(included.count < reachable.count ? "Include All" : "Untick All") {
                         skipped = included.count < reachable.count ? [] : Set(reachable.map(\.id))
                     }
-                    .font(.footnote)
+                    .font(.app(.footnote))
                     .textCase(nil)
                 }
             } footer: {
@@ -253,7 +253,7 @@ struct ComposerView: View {
             VStack(spacing: 8) {
                 if channel == .email, sender?.canEmail != true {
                     Text("Ligature needs your permission to send email from your Gmail. Google asks once; Ligature can send but can’t read your mail.")
-                        .font(.footnote)
+                        .font(.app(.footnote))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                     Button { Task { await connectGmail() } } label: { Text("Connect Gmail").frame(maxWidth: .infinity) }
@@ -265,7 +265,7 @@ struct ComposerView: View {
                         .controlSize(.large)
                         .disabled(included.isEmpty || (channel == .email && group && included.count > 100))
                     if channel == .email && group && included.count > 100 {
-                        Text("Gmail takes at most 100 people on one email.").font(.footnote).foregroundStyle(.red)
+                        Text("Gmail takes at most 100 people on one email.").font(.app(.footnote)).foregroundStyle(.red)
                     }
                 }
             }
@@ -291,7 +291,7 @@ struct ComposerView: View {
                 if on { skipped.insert(p.id) } else { skipped.remove(p.id) }
             } label: {
                 Image(systemName: on ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
+                    .font(.app(.title3))
                     .foregroundStyle(on ? Color.accentColor : Color(.tertiaryLabel))
             }
             .buttonStyle(.borderless)
@@ -309,21 +309,21 @@ struct ComposerView: View {
                     } label: {
                         HStack(spacing: 2) {
                             Text(address(p))
-                            Image(systemName: "chevron.up.chevron.down").font(.caption2)
+                            Image(systemName: "chevron.up.chevron.down").font(.app(.caption2))
                         }
-                        .font(.subheadline)
+                        .font(.app(.subheadline))
                     }
                 } else {
-                    Text(address(p)).font(.subheadline).foregroundStyle(.secondary)
+                    Text(address(p)).font(.app(.subheadline)).foregroundStyle(.secondary)
                 }
                 if !group {
                     let s = channel == .email ? Template.render(subject, for: p, fields: store.fields) : nil
                     let b = Template.render(message, for: p, fields: store.fields)
                     let blanks = Array(Set((s?.blanks ?? []) + b.blanks))
-                    if let s { Text(s.text).font(.footnote.weight(.semibold)).lineLimit(1) }
-                    Text(b.text).font(.footnote).foregroundStyle(.secondary).lineLimit(4)
+                    if let s { Text(s.text).font(.app(.footnote, .semibold)).lineLimit(1) }
+                    Text(b.text).font(.app(.footnote)).foregroundStyle(.secondary).lineLimit(4)
                     if !blanks.isEmpty {
-                        Text("Blank: \(blanks.joined(separator: ", "))").font(.caption).foregroundStyle(.orange)
+                        Text("Blank: \(blanks.joined(separator: ", "))").font(.app(.caption)).foregroundStyle(.orange)
                     }
                 }
             }
@@ -466,7 +466,7 @@ struct ComposerView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     ProgressView(value: Double(sent), total: Double(max(items.count, 1)))
                     Text(sending ? "Sending \(min(index + 1, items.count)) of \(items.count)…" : "Sent \(sent) of \(items.count).")
-                        .font(.subheadline)
+                        .font(.app(.subheadline))
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 6)
@@ -476,7 +476,7 @@ struct ComposerView: View {
                     ForEach(Array(failed.enumerated()), id: \.offset) { _, f in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(f.0.title)
-                            Text(f.1).font(.footnote).foregroundStyle(.secondary)
+                            Text(f.1).font(.app(.footnote)).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -497,8 +497,8 @@ struct ComposerView: View {
         VStack(spacing: 16) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(it.title).font(.title2.weight(.semibold))
-                    Text(it.addresses.joined(separator: ", ")).font(.subheadline).foregroundStyle(.secondary)
+                    Text(it.title).font(.app(.title2, .semibold))
+                    Text(it.addresses.joined(separator: ", ")).font(.app(.subheadline)).foregroundStyle(.secondary)
                     Text(it.body)
                         .padding(14)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -549,7 +549,7 @@ struct ComposerView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(people > 0 ? Color.green : Color.secondary)
             Text(people > 0 ? "Messaged \(people) \(people == 1 ? "person" : "people") by \(channel.label.lowercased())." : "Nothing was sent.")
-                .font(.title3.weight(.semibold))
+                .font(.app(.title3, .semibold))
                 .multilineTextAlignment(.center)
             if failed > 0 { Text("\(failed) didn’t send.").foregroundStyle(.secondary) }
             if skippedCount > 0 { Text("\(skippedCount) skipped.").foregroundStyle(.secondary) }

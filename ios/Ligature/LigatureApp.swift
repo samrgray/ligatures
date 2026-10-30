@@ -7,11 +7,15 @@ struct LigatureApp: App {
     init() {
         // Contact photos come back often; keep them around between launches.
         URLCache.shared = URLCache(memoryCapacity: 32 << 20, diskCapacity: 256 << 20)
+        // Commissioner everywhere, including the bars and controls UIKit draws.
+        AppFont.register()
+        AppFont.styleUIKit()
     }
 
     var body: some Scene {
         WindowGroup {
             RootView()
+                .font(.app(.body))
                 .environment(store)
                 .task { await store.boot() }
         }

@@ -9,7 +9,7 @@ struct CardLabel: View {
     let text: String
     var body: some View {
         Text(text.uppercased())
-            .font(.caption.weight(.semibold))
+            .font(.app(.caption, .semibold))
             .tracking(0.9)
             .foregroundStyle(.secondary)
     }
@@ -28,7 +28,7 @@ struct CardSection<Content: View>: View {
             VStack(alignment: .leading, spacing: 0) { content() }
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let note {
-                Text(note).font(.footnote).foregroundStyle(.secondary)
+                Text(note).font(.app(.footnote)).foregroundStyle(.secondary)
             }
         }
         .padding(.top, 24)
@@ -60,7 +60,7 @@ struct TactileButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         let pressed = configuration.isPressed
         configuration.label
-            .font(.subheadline.weight(.semibold))
+            .font(.app(.subheadline, .semibold))
             .foregroundStyle(kind == .primary ? Theme.card : kind == .danger ? Color.red : Theme.ink)
             .padding(.horizontal, compact ? 12 : 16)
             .frame(minHeight: compact ? 34 : 44)

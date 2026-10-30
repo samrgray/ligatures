@@ -236,7 +236,7 @@ final class FaceView: MLNAnnotationView {
         addSubview(disc)
         initials.frame = disc.bounds
         initials.textAlignment = .center
-        initials.font = .systemFont(ofSize: 12, weight: .bold)
+        initials.font = AppFont.ui(12, .bold)
         disc.addSubview(initials)
         photo.frame = disc.bounds
         photo.contentMode = .scaleAspectFill
@@ -313,7 +313,7 @@ final class PinView: MLNAnnotationView {
         dot.layer.borderWidth = 3
         dot.layer.borderColor = UIColor.white.cgColor
         addSubview(dot)
-        label.font = .systemFont(ofSize: 12, weight: .semibold)
+        label.font = AppFont.ui(12, .semibold)
         label.textColor = .label
         label.backgroundColor = .systemBackground
         label.layer.cornerRadius = 5
@@ -432,7 +432,7 @@ struct MapPeopleSheet: View {
                 HStack(spacing: 12) {
                     Button { toggle([c.id], !on) } label: {
                         Image(systemName: on ? "checkmark.circle.fill" : "circle")
-                            .font(.title3)
+                            .font(.app(.title3))
                             .foregroundStyle(on ? Color.accentColor : Color(.tertiaryLabel))
                     }
                     .buttonStyle(.borderless)
@@ -442,10 +442,10 @@ struct MapPeopleSheet: View {
                             Avatar(url: c.photoUrl, initials: c.initials, size: 32)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(c.displayName.isEmpty ? "No Name" : c.displayName).foregroundStyle(Color.primary)
-                                Text(where_.joined(separator: "\n")).font(.subheadline).foregroundStyle(.secondary)
+                                Text(where_.joined(separator: "\n")).font(.app(.subheadline)).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color(.tertiaryLabel))
+                            Image(systemName: "chevron.right").font(.app(.footnote, .semibold)).foregroundStyle(Color(.tertiaryLabel))
                         }
                         .contentShape(Rectangle())
                     }
@@ -518,7 +518,7 @@ struct AddPinSheet: View {
                                 } label: {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(r.name).foregroundStyle(Color.primary)
-                                        Text(r.address).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                                        Text(r.address).font(.app(.subheadline)).foregroundStyle(.secondary).lineLimit(2)
                                     }
                                 }
                             }
@@ -742,21 +742,21 @@ struct ContactPlaceMap: View {
                 } label: {
                     HStack(spacing: 3) {
                         Text(place.title)
-                        Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
+                        Image(systemName: "chevron.down").font(.app(.caption2, .semibold))
                     }
-                    .font(.subheadline.weight(.semibold))
+                    .font(.app(.subheadline, .semibold))
                     .foregroundStyle(.secondary)
                 }
                 .tint(.secondary)
                 .accessibilityLabel("Address: \(place.title)")
             } else {
                 Text(place.title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.app(.subheadline, .semibold))
                     .foregroundStyle(.secondary)
             }
             HStack(alignment: .top, spacing: 10) {
                 Text(place.address.isEmpty ? "No address written out" : place.address)
-                    .font(.body)
+                    .font(.app(.body))
                     .foregroundStyle(Theme.ink)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)

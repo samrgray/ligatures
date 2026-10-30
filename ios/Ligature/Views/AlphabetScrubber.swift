@@ -42,7 +42,7 @@ struct AlphabetScrubber: View {
             VStack(spacing: 0) {
                 ForEach(letters, id: \.self) { l in
                     Text(l)
-                        .font(.system(size: min(11, step * 0.72), weight: .semibold))
+                        .font(.app(size: min(11, step * 0.72), weight: .semibold))
                         .foregroundStyle(Color.accentColor)
                         .frame(width: 18, height: step)
                 }

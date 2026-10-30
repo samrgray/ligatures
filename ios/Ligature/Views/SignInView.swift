@@ -19,9 +19,9 @@ struct SignInView: View {
                 .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.accentColor))
                 .padding(.bottom, 20)
             Text("Ligature")
-                .font(.largeTitle.bold())
+                .font(.app(.largeTitle, .bold))
             Text("Your Google contacts, with notes of your own.")
-                .font(.body)
+                .font(.app(.body))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.top, 6)
@@ -29,7 +29,7 @@ struct SignInView: View {
 
             if let error {
                 Text(error)
-                    .font(.footnote)
+                    .font(.app(.footnote))
                     .foregroundStyle(.red)
                     .multilineTextAlignment(.center)
                     .padding(.bottom, 12)
@@ -52,7 +52,7 @@ struct SignInView: View {
                 Button("Try the Demo") { Task { await store.setDemo(true) } }
                 Button(showServer ? "Hide Server" : "Server…") { showServer.toggle() }
             }
-            .font(.footnote)
+            .font(.app(.footnote))
             .padding(.top, 14)
             if showServer {
                 VStack(alignment: .leading, spacing: 6) {
@@ -64,7 +64,7 @@ struct SignInView: View {
                         .padding(10)
                         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.secondarySystemBackground)))
                     Text("The Ligature server to sign in to. Change it if you host your own.")
-                        .font(.caption)
+                        .font(.app(.caption))
                         .foregroundStyle(.secondary)
                 }
                 .padding(.top, 8)

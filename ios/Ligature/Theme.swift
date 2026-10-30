@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import CoreText
 
 /// Ligature’s look: warm paper with a little grain, soft cards on top, glass where things float.
 /// The same palette as the web.
@@ -76,5 +77,74 @@ extension View {
             .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(Theme.line.opacity(0.7), lineWidth: 0.5))
             .shadow(color: Theme.shadow.opacity(0.06), radius: 1, y: 1)
             .shadow(color: Theme.shadow.opacity(0.08), radius: 12, y: 6)
+    }
+}
+
+/// Commissioner, bundled in Fonts/ (SIL Open Font License, Fonts/OFL.txt), in place of the
+/// system font everywhere text is drawn. Sizes follow the system text styles and Dynamic Type.
+enum AppFont {
+    static func register() {
+        for face in ["Regular", "Medium", "SemiBold", "Bold"] {
+            guard let url = Bundle.main.url(forResource: "Commissioner-\(face)", withExtension: "ttf") else { continue }
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
+    }
+
+    /// The face for a weight: Regular, Medium, SemiBold or Bold.
+    static func name(_ weight: Font.Weight) -> String {
+        switch weight {
+        case .medium: "Commissioner-Medium"
+        case .semibold: "Commissioner-SemiBold"
+        case .bold, .heavy, .black: "Commissioner-Bold"
+        default: "Commissioner-Regular"
+        }
+    }
+
+    /// The system’s size for each text style, at the default Dynamic Type setting.
+    static func size(_ style: Font.TextStyle) -> CGFloat {
+        switch style {
+        case .largeTitle: 34
+        case .title: 28
+        case .title2: 22
+        case .title3: 20
+        case .headline, .body: 17
+        case .callout: 16
+        case .subheadline: 15
+        case .footnote: 13
+        case .caption: 12
+        case .caption2: 11
+        default: 17
+        }
+    }
+
+    /// For UIKit: navigation titles, bar buttons, segmented controls, map labels.
+    static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular, scaledFor style: UIFont.TextStyle? = nil) -> UIFont {
+        let font = UIFont(name: name(weight), size: size) ?? .systemFont(ofSize: size)
+        return style.map { UIFontMetrics(forTextStyle: $0).scaledFont(for: font) } ?? font
+    }
+
+    /// The bars and controls SwiftUI draws with UIKit.
+    static func styleUIKit() {
+        let nav = UINavigationBar.appearance()
+        nav.titleTextAttributes = [.font: ui(17, .semibold, scaledFor: .headline)]
+        nav.largeTitleTextAttributes = [.font: ui(34, .bold, scaledFor: .largeTitle)]
+        for state in [UIControl.State.normal, .highlighted, .disabled] {
+            UIBarButtonItem.appearance().setTitleTextAttributes([.font: ui(17, scaledFor: .body)], for: state)
+        }
+        UISegmentedControl.appearance().setTitleTextAttributes([.font: ui(13, .medium, scaledFor: .footnote)], for: .normal)
+        UISegmentedControl.appearance().setTitleTextAttributes([.font: ui(13, .semibold, scaledFor: .footnote)], for: .selected)
+        UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self]).font = ui(17, scaledFor: .body)
+    }
+}
+
+extension Font {
+    /// Commissioner at a text style’s size (scaling with Dynamic Type); headlines are semibold.
+    static func app(_ style: Font.TextStyle, _ weight: Font.Weight? = nil) -> Font {
+        .custom(AppFont.name(weight ?? (style == .headline ? .semibold : .regular)), size: AppFont.size(style), relativeTo: style)
+    }
+
+    /// Commissioner at a fixed size, for text that has to fit a shape (initials, badges, the index).
+    static func app(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        .custom(AppFont.name(weight), fixedSize: size)
     }
 }

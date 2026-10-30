@@ -434,7 +434,7 @@ struct ContactsListView: View {
                         }
                         Spacer(minLength: 0)
                         Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
+                            .font(.app(.footnote, .semibold))
                             .foregroundStyle(.tertiary)
                     }
                     .padding(.trailing, showIndex ? 12 : 0)
@@ -463,7 +463,7 @@ struct ContactsListView: View {
             }
             if !items.isEmpty {
                 Text("\(items.count) \(items.count == 1 ? "Contact" : "Contacts")")
-                    .font(.footnote)
+                    .font(.app(.footnote))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                     .listRowSeparator(.hidden)
@@ -548,7 +548,7 @@ struct ContactsListView: View {
         let text = color == nil ? (on ? Theme.card : Color.primary) : (on ? ListColor.onSolid(color) : ListColor.ink(color))
         let edge = on ? Color.clear : (color == nil ? Theme.line : ListColor.edge(color))
         return Text(tabName(t))
-            .font(.subheadline.weight(.medium))
+            .font(.app(.subheadline, .medium))
             .lineLimit(1)
             .padding(.horizontal, 14)
             .frame(height: 32)
@@ -701,7 +701,7 @@ struct ContactsListView: View {
             }
         } label: {
             Image(systemName: "plus")
-                .font(.subheadline.weight(.semibold))
+                .font(.app(.subheadline, .semibold))
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(Theme.card))
                 .overlay(Circle().strokeBorder(Theme.line, lineWidth: 0.5))
@@ -851,7 +851,7 @@ struct ContactsListView: View {
         }
         .overlay(alignment: .bottomLeading) {
             Text(mapStatus(people: people, shown: shown))
-                .font(.caption)
+                .font(.app(.caption))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
@@ -862,7 +862,7 @@ struct ContactsListView: View {
         .overlay(alignment: .topTrailing) {
             Button { addingPin = true } label: {
                 Image(systemName: "mappin.and.ellipse")
-                    .font(.body.weight(.semibold))
+                    .font(.app(.body, .semibold))
                     .frame(width: 40, height: 40)
                     .background(Circle().fill(Color(.systemBackground)))
                     .shadow(color: .black.opacity(0.15), radius: 3, y: 1)
@@ -881,7 +881,7 @@ struct ContactsListView: View {
     private func typeChip(_ title: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.subheadline.weight(.medium))
+                .font(.app(.subheadline, .medium))
                 .padding(.horizontal, 12)
                 .frame(height: 30)
                 .background(Capsule().fill(on ? Color.accentColor : Color(.systemBackground)))
@@ -992,7 +992,7 @@ struct RowButtonStyle: ButtonStyle {
 struct DraftTag: View {
     var body: some View {
         Text("Draft")
-            .font(.caption2.weight(.medium))
+            .font(.app(.caption2, .medium))
             .foregroundStyle(Theme.brand)
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
@@ -1024,7 +1024,7 @@ struct ContactRowView: View {
                 }
                 if !contact.organization.isEmpty, !contact.givenName.isEmpty || !contact.familyName.isEmpty {
                     Text(contact.organization)
-                        .font(.subheadline)
+                        .font(.app(.subheadline))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }

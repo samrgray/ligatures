@@ -57,7 +57,7 @@ struct ContactEditView: View {
                 if original == nil, let list, let name = store.listName(list.id, accountId: list.accountId) {
                     Section {
                         Label("Adds them to \(name)", systemImage: "list.bullet")
-                            .font(.subheadline)
+                            .font(.app(.subheadline))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -205,7 +205,7 @@ struct ContactEditView: View {
                     }
                 }
                 .buttonStyle(.borderless)
-                .font(.subheadline)
+                .font(.app(.subheadline))
             }
             .frame(maxWidth: .infinity)
             .listRowBackground(Color.clear)
@@ -245,7 +245,7 @@ struct ContactEditView: View {
                     } label: {
                         HStack(spacing: 2) {
                             Text(item.label.isEmpty ? labels[0] : item.label)
-                            Image(systemName: "chevron.up.chevron.down").font(.caption2)
+                            Image(systemName: "chevron.up.chevron.down").font(.app(.caption2))
                         }
                         .frame(width: 92, alignment: .leading)
                     }
@@ -282,7 +282,7 @@ struct ContactEditView: View {
                     } label: {
                         HStack(spacing: 2) {
                             Text(a.label.isEmpty ? "home" : a.label)
-                            Image(systemName: "chevron.up.chevron.down").font(.caption2)
+                            Image(systemName: "chevron.up.chevron.down").font(.app(.caption2))
                         }
                         .frame(width: 92, alignment: .leading)
                     }

@@ -64,7 +64,7 @@ struct ListBadge: View {
             if let e = style.emoji { Text(e).font(.system(size: large ? 12 : 10)) }
             Text(name).lineLimit(1)
         }
-        .font(.system(size: large ? 14 : 12, weight: .medium))
+        .font(.app(size: large ? 14 : 12, weight: .medium))
         .foregroundStyle(ListColor.ink(style.color))
         .padding(.horizontal, large ? 10 : 7)
         .frame(height: large ? 26 : 20)

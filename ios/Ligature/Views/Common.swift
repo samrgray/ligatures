@@ -11,7 +11,7 @@ struct Avatar: View {
         ZStack {
             Circle().fill(LinearGradient(colors: [Color(red: 0.75, green: 0.69, blue: 0.62), Color(red: 0.59, green: 0.53, blue: 0.47)], startPoint: .top, endPoint: .bottom))
             Text(initials)
-                .font(.system(size: size * 0.4, weight: .semibold, design: .rounded))
+                .font(.app(size: size * 0.4, weight: .semibold))
                 .foregroundStyle(.white)
             if let image = shown {
                 Image(uiImage: image).resizable().scaledToFill()

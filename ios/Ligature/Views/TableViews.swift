@@ -220,11 +220,11 @@ struct ContactsTable: View {
                     HStack(spacing: 3) {
                         Text(col.def.label).lineLimit(1)
                         if sort.id == col.def.id {
-                            Image(systemName: sort.dir == "desc" ? "chevron.down" : "chevron.up").font(.caption2.weight(.bold))
+                            Image(systemName: sort.dir == "desc" ? "chevron.down" : "chevron.up").font(.app(.caption2, .bold))
                         }
                         Spacer(minLength: 0)
                     }
-                    .font(.caption.weight(.semibold))
+                    .font(.app(.caption, .semibold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
                     .frame(width: width(i, col.width), height: 30, alignment: .leading)
@@ -245,7 +245,7 @@ struct ContactsTable: View {
                 HStack(spacing: 0) {
                     if selecting {
                         Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
-                            .font(.title2)
+                            .font(.app(.title2))
                             .foregroundStyle(ticked ? Color.accentColor : Color.secondary)
                             .frame(width: checkWidth, alignment: .trailing)
                             .transition(.move(edge: .leading).combined(with: .opacity))
@@ -329,7 +329,7 @@ struct ContactsTable: View {
 
     private func textCell(_ v: String, numeric: Bool) -> some View {
         Text(v)
-            .font(numeric ? .subheadline.monospacedDigit() : .subheadline)
+            .font(numeric ? .app(.subheadline).monospacedDigit() : .app(.subheadline))
             .lineLimit(textLines)
             .padding(.horizontal, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -343,7 +343,7 @@ struct ContactsTable: View {
         let ref = CellRef(contactId: c.id, fieldId: f.id)
         if editing == ref {
             TextField(f.label, text: $text, axis: f.type == "longtext" ? .vertical : .horizontal)
-                .font(.subheadline)
+                .font(.app(.subheadline))
                 .lineLimit(1...3)
                 .keyboardType(f.type == "url" ? .URL : .default)
                 .textInputAutocapitalization(f.type == "url" || f.key == "signal_username" ? .never : .sentences)

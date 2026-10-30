@@ -165,7 +165,7 @@ struct ManageListsView: View {
         HStack(spacing: 8) {
             ListBadge(name: g.name, style: store.style(ListRef(accountId: accountId, id: g.id)), large: true)
             if store.accounts.count > 1, let a = store.accounts.first(where: { $0.id == accountId }) {
-                Text(a.label ?? a.providerName).font(.footnote).foregroundStyle(.secondary)
+                Text(a.label ?? a.providerName).font(.app(.footnote)).foregroundStyle(.secondary)
             }
             Spacer()
             Text("\(count)").foregroundStyle(.secondary).monospacedDigit()

@@ -53,7 +53,7 @@ struct ContactDetailView: View {
                     if let archived {
                         CardSection {
                             Text("Archived \(Date(timeIntervalSince1970: archived.at / 1000).formatted(date: .abbreviated, time: .omitted)). \(detail?.draft == true ? "Restore brings it back as a draft." : "Not in Google Contacts; everything is kept here. Restore puts them back in Google\(archived.groups.contains { $0 != "contactGroups/myContacts" } ? ", on the same lists" : "").")")
-                                .font(.subheadline)
+                                .font(.app(.subheadline))
                                 .foregroundStyle(.secondary)
                                 .cardRow(first: true)
                         }
@@ -154,7 +154,7 @@ struct ContactDetailView: View {
                         let on = (chosen ?? id) == m.id
                         Button { onChoose?(m.id) } label: {
                             Text(m.givenName.isEmpty ? m.displayName : m.givenName)
-                                .font(.subheadline.weight(.semibold))
+                                .font(.app(.subheadline, .semibold))
                                 .padding(.horizontal, 12)
                                 .frame(height: 30)
                                 .background(Capsule().fill(on ? Theme.card : Color.clear))
@@ -228,10 +228,10 @@ struct ContactDetailView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 6) {
                     DraftTag()
-                    Text("Only in Ligature").font(.subheadline.weight(.medium))
+                    Text("Only in Ligature").font(.app(.subheadline, .medium))
                 }
                 Text("Not in Google Contacts, so not on your iPhone or Mac.")
-                    .font(.subheadline)
+                    .font(.app(.subheadline))
                     .foregroundStyle(.secondary)
                 Button {
                     promoting = true
@@ -283,7 +283,7 @@ struct ContactDetailView: View {
                     let picker = places.count > 1 ? placePicker(places, current: place?.id) : nil
                     HStack(alignment: .firstTextBaseline) {
                         Text(name.isEmpty ? "No Name" : name)
-                            .font(.title.weight(.semibold))
+                            .font(.app(.title, .semibold))
                         if subtitle.isEmpty, let picker {
                             Spacer(minLength: 8)
                             picker
@@ -292,7 +292,7 @@ struct ContactDetailView: View {
                     if !subtitle.isEmpty {
                         HStack(alignment: .firstTextBaseline) {
                             Text(subtitle)
-                                .font(.subheadline)
+                                .font(.app(.subheadline))
                                 .foregroundStyle(.secondary)
                             if let picker {
                                 Spacer(minLength: 8)
@@ -370,9 +370,9 @@ struct ContactDetailView: View {
         } label: {
             HStack(spacing: 3) {
                 Text(places.first { $0.id == current }?.title ?? "")
-                Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
+                Image(systemName: "chevron.down").font(.app(.caption2, .semibold))
             }
-            .font(.subheadline)
+            .font(.app(.subheadline))
             .foregroundStyle(.secondary)
         }
         .tint(.secondary)
@@ -459,7 +459,7 @@ struct ContactDetailView: View {
             Button { pickingLists = true } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("lists").font(.caption).foregroundStyle(.secondary)
+                        Text("lists").font(.app(.caption)).foregroundStyle(.secondary)
                         if lists.isEmpty {
                             Text("Add to a List").foregroundStyle(Color.accentColor)
                         } else {
@@ -468,7 +468,7 @@ struct ContactDetailView: View {
                         }
                     }
                     Spacer()
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color(.tertiaryLabel))
+                    Image(systemName: "chevron.right").font(.app(.footnote, .semibold)).foregroundStyle(Color(.tertiaryLabel))
                 }
                 .contentShape(Rectangle())
             }
@@ -551,10 +551,10 @@ struct ContactDetailView: View {
             Button { withAnimation(.snappy) { pastOpen.toggle() } } label: {
                 HStack {
                     Image(systemName: "chevron.right")
-                        .font(.footnote.weight(.semibold))
+                        .font(.app(.footnote, .semibold))
                         .rotationEffect(.degrees(pastOpen ? 90 : 0))
                         .foregroundStyle(.secondary)
-                    Text("Past Fields").font(.body.weight(.medium))
+                    Text("Past Fields").font(.app(.body, .medium))
                     Spacer()
                     Text("\(pastFields.count)").foregroundStyle(.secondary)
                 }
@@ -565,14 +565,14 @@ struct ContactDetailView: View {
             if pastOpen {
                 ForEach(pastGroups, id: \.key) { group in
                     HStack(spacing: 6) {
-                        Text(group.name).font(.subheadline.weight(.semibold))
-                        Text(group.deleted ? "Deleted list" : "Not on this list").font(.subheadline).foregroundStyle(.secondary)
+                        Text(group.name).font(.app(.subheadline, .semibold))
+                        Text(group.deleted ? "Deleted list" : "Not on this list").font(.app(.subheadline)).foregroundStyle(.secondary)
                     }
                     .cardRow()
                     ForEach(group.fields) { f in
                         HStack(alignment: .firstTextBaseline) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(f.label).font(.caption).foregroundStyle(.secondary)
+                                Text(f.label).font(.app(.caption)).foregroundStyle(.secondary)
                                 Text(pastValue(f)).textSelection(.enabled)
                             }
                             Spacer()
@@ -640,7 +640,7 @@ struct ActionFace: View {
     var body: some View {
         VStack(spacing: 4) {
             Image(systemName: icon).font(.system(size: 18, weight: .medium))
-            Text(title).font(.caption2.weight(.medium))
+            Text(title).font(.app(.caption2, .medium))
         }
         .foregroundStyle(enabled ? Color.accentColor : Color.secondary)
         .frame(maxWidth: .infinity, minHeight: 60)
@@ -679,7 +679,7 @@ struct ValueRow<Trailing: View, Extra: View>: View {
 extension ValueRow {
     fileprivate var content: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(.app(.caption)).foregroundStyle(.secondary)
             Text(value)
                 .foregroundStyle(tinted && url != nil ? Color.accentColor : Color.primary)
                 .multilineTextAlignment(.leading)
@@ -711,7 +711,7 @@ struct FieldEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             if field.type != "checkbox" {
-                Text(field.label).font(.caption).foregroundStyle(.secondary)
+                Text(field.label).font(.app(.caption)).foregroundStyle(.secondary)
             }
             switch field.type {
             case "checkbox":
@@ -765,7 +765,7 @@ struct FieldEditor: View {
                     Button("Clear") { text = ""; save(); pickingDate = false }
                         .buttonStyle(TactileButtonStyle(compact: true))
                     Spacer()
-                    Text(field.label).font(.headline)
+                    Text(field.label).font(.app(.headline))
                     Spacer()
                     Button("Done") { text = Self.day.string(from: pickedDate); save(); pickingDate = false }
                         .buttonStyle(TactileButtonStyle(kind: .primary, compact: true))

@@ -76,7 +76,7 @@ struct PhotoCropView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .bottomBar) {
                     HStack {
-                        Text("Drag to move, pinch to zoom").font(.footnote).foregroundStyle(.secondary)
+                        Text("Drag to move, pinch to zoom").font(.app(.footnote)).foregroundStyle(.secondary)
                         Spacer()
                         Button("Reset") { place(Photo.centredCrop(size)) }
                     }
