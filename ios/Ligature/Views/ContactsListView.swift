@@ -342,7 +342,7 @@ struct ContactsListView: View {
                 ContactEditView(mode: .new)
             }
         }
-        .sheet(isPresented: $showSettings) { SettingsView() }
+        .sheet(isPresented: $showSettings, onDismiss: { store.applyFont() }) { SettingsView() }
         .sheet(isPresented: $showLists) { ManageListsView() }
         .confirmationDialog(tabMenu?.list.name ?? "", isPresented: Binding(get: { tabMenu != nil }, set: { if !$0 { tabMenu = nil } }),
                             titleVisibility: .visible, presenting: tabMenu) { e in

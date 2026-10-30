@@ -38,7 +38,7 @@ struct RootView: View {
                 SignInView()
             case .ready:
                 // A fresh start when switching to or from the demo, so nothing points at the other’s contacts.
-                ContactsListView().id(store.demo)
+                ContactsListView().id("\(store.demo)|\(store.appliedFont)")
             }
         }
         .preferredColorScheme(Appearance(rawValue: appearance)?.scheme)

@@ -48,6 +48,11 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                 }
                 Section("Contacts") {
+                    NavigationLink {
+                        FontPicker()
+                    } label: {
+                        LabeledContent("Font", value: store.font)
+                    }
                     Toggle("Sort by first name", isOn: $sortByFirst)
                     Button("Your Fields…") { showFields = true }
                 }
@@ -96,5 +101,42 @@ struct SettingsView: View {
     private func switchDemo(_ on: Bool) {
         dismiss()
         Task { await store.setDemo(on) }
+    }
+}
+
+/// Choose the font for all text, each shown in itself. The app redraws in it when Settings closes.
+struct FontPicker: View {
+    @Environment(Store.self) private var store
+
+    var body: some View {
+        List {
+            Section {
+                ForEach(AppFont.families, id: \.self) { f in
+                    Button {
+                        Task { await store.setFont(f) }
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(f).font(.custom(AppFont.name(.semibold, family: f), size: 17, relativeTo: .body))
+                                Text("Ava Chen · (503) 555-0117")
+                                    .font(.custom(AppFont.name(.regular, family: f), size: 15, relativeTo: .subheadline))
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if store.font == f {
+                                Image(systemName: "checkmark").foregroundStyle(Color.accentColor).fontWeight(.semibold)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .foregroundStyle(Theme.ink)
+                    .accessibilityAddTraits(store.font == f ? [.isButton, .isSelected] : .isButton)
+                }
+            } footer: {
+                Text("Also used on the web.")
+            }
+        }
+        .navigationTitle("Font")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

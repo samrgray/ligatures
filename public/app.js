@@ -167,6 +167,7 @@ async function boot() {
     return;
   }
   if (!S.session.user) return renderSignIn(authError);
+  applyFont(currentFont());
   const gmail = params.get('gmail');
   if (gmail) history.replaceState(null, '', '/');
   loadPrefs();
@@ -617,6 +618,7 @@ function renderSidebar() {
     <div class="sidebar-foot">
       <button class="link" data-action="fields">Your Fields…</button>
       <button class="link" data-action="shortcuts" title="Keyboard shortcuts (?)">Shortcuts</button>
+      <button class="link" data-action="font">Font…</button>
       ${
         DEMO
           ? ''
@@ -4382,6 +4384,8 @@ document.addEventListener('click', async (e) => {
       return openRelDialog();
     case 'shortcuts':
       return openShortcuts();
+    case 'font':
+      return openFontPicker();
     case 'save-draft':
       if (!draft) return;
       draft.asDraft = true;
@@ -4905,6 +4909,67 @@ const SHORTCUTS = [
     [['Esc'], 'Close'],
   ]],
 ];
+
+// ---------------------------------------------------------------- font
+
+/** The fonts you can choose; the same list as on the iPhone. Files in fonts/. */
+const FONTS = ['Commissioner', 'DM Sans', 'Funnel Sans', 'Geist', 'Golos Text', 'Hanken Grotesk', 'Inclusive Sans', 'Libre Franklin', 'Miranda Sans', 'Public Sans', 'Schibsted Grotesk', 'Strichpunkt Sans', 'Zalando Sans'];
+const FONT_KEY = 'ligature-font';
+
+function currentFont() {
+  const f = S.session?.user?.prefs?.font;
+  return FONTS.includes(f) ? f : 'Commissioner';
+}
+
+/** Use a font everywhere, and remember it here so the next visit starts in it. */
+function applyFont(font) {
+  document.documentElement.style.setProperty('--font', `'${font}'`);
+  try {
+    localStorage.setItem(FONT_KEY, font);
+  } catch {
+    /* per-browser convenience only */
+  }
+}
+
+/** Pick a font: each shown in itself. Saved to your account, so the iPhone follows. */
+function openFontPicker() {
+  let dlg = $('#font-dlg');
+  if (!dlg) {
+    dlg = document.createElement('dialog');
+    dlg.id = 'font-dlg';
+    dlg.setAttribute('aria-labelledby', 'font-title');
+    document.body.append(dlg);
+    dlg.addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-font]');
+      if (!b) return;
+      const font = b.dataset.font;
+      applyFont(font);
+      if (S.session?.user) S.session.user.prefs = { ...(S.session.user.prefs ?? {}), font };
+      for (const x of dlg.querySelectorAll('[data-font]')) {
+        x.setAttribute('aria-checked', String(x === b));
+        x.querySelector('.menu-check').innerHTML = x === b ? ICON.check : '';
+      }
+      try {
+        await api('/prefs', { method: 'PATCH', body: { set: { font } } });
+      } catch (err) {
+        handleError(err);
+      }
+    });
+  }
+  const now = currentFont();
+  dlg.innerHTML = `<form method="dialog" class="dlg">
+      <h2 id="font-title">Font</h2>
+      <div class="font-list" role="radiogroup" aria-labelledby="font-title">${FONTS.map(
+        (f) => `<button type="button" class="font-opt" role="radio" data-font="${h(f)}" aria-checked="${f === now}">
+            <span class="font-name">${h(f)}</span><span class="font-sample">Ava Chen · (503) 555-0117</span><span class="menu-check">${f === now ? ICON.check : ''}</span>
+          </button>`,
+      ).join('')}</div>
+      <div class="dlg-foot"><button class="btn primary" value="close">Done</button></div>
+    </form>`;
+  // Set from here: the security policy doesn’t allow style attributes in the markup.
+  for (const b of dlg.querySelectorAll('[data-font]')) b.style.fontFamily = `'${b.dataset.font}'`;
+  dlg.showModal();
+}
 
 function openShortcuts() {
   const dlg = $('#keys-dlg');

@@ -38,6 +38,15 @@ final class Store {
     var syncing = false
     /// Where places open: Apple or Google Maps. Kept on this iPhone too, so it’s known before the
     /// account loads.
+    /// The font for all text, shared with the web. `appliedFont` is the one the screens are drawn
+    /// in: it catches up when Settings closes, so changing it there doesn’t yank Settings away.
+    var font = AppFont.family {
+        didSet {
+            UserDefaults.standard.set(font, forKey: "font")
+            AppFont.family = font
+        }
+    }
+    private(set) var appliedFont = AppFont.family
     var mapsApp: MapsApp = MapsApp(rawValue: UserDefaults.standard.string(forKey: "mapsApp") ?? "") ?? .apple {
         didSet { UserDefaults.standard.set(mapsApp.rawValue, forKey: "mapsApp") }
     }
@@ -217,6 +226,10 @@ final class Store {
             listOrder = s.user?.prefs?.listOrder ?? []
             listParents = s.user?.prefs?.listParents ?? []
             if let m = s.user?.prefs?.mapsApp.flatMap(MapsApp.init(rawValue:)) { mapsApp = m }
+            if let f = s.user?.prefs?.font, AppFont.families.contains(f), f != font {
+                font = f
+                applyFont()
+            }
             listStyles = s.user?.prefs?.listStyles ?? []
             viewPrefs = s.user?.prefs?.views ?? [:]
             legacyView = ViewPrefs(columns: s.user?.prefs?.columns, sort: s.user?.prefs?.sort, nameSort: s.user?.prefs?.nameSort)
@@ -642,6 +655,24 @@ final class Store {
         } catch {
             handle(error)
         }
+    }
+
+    /// Choose the font for all text. Shared with the web.
+    func setFont(_ f: String) async {
+        font = f
+        if demo { return }
+        do {
+            let _: Empty = try await api.patch("/prefs", ["set": ["font": f]])
+        } catch {
+            handle(error)
+        }
+    }
+
+    /// Redraw everything in the chosen font (after Settings closes).
+    func applyFont() {
+        guard appliedFont != font else { return }
+        AppFont.styleUIKit()
+        appliedFont = font
     }
 
     /// Which app opens places (directions on the full map). Shared with the web.

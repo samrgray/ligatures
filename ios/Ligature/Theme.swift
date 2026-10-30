@@ -80,24 +80,33 @@ extension View {
     }
 }
 
-/// Commissioner, bundled in Fonts/ (SIL Open Font License, Fonts/OFL.txt), in place of the
-/// system font everywhere text is drawn. Sizes follow the system text styles and Dynamic Type.
+/// The font for all text: one of the fonts bundled in Fonts/ (SIL Open Font License,
+/// Fonts/OFL.txt), chosen in Settings and shared with the web. Sizes follow the system text
+/// styles and Dynamic Type.
 enum AppFont {
+    /// The fonts you can choose; the same list as on the web.
+    static let families = ["Commissioner", "DM Sans", "Funnel Sans", "Geist", "Golos Text", "Hanken Grotesk", "Inclusive Sans",
+                           "Libre Franklin", "Miranda Sans", "Public Sans", "Schibsted Grotesk", "Strichpunkt Sans", "Zalando Sans"]
+
+    /// The font in use. Set through the store, which saves it.
+    static var family = families.contains(UserDefaults.standard.string(forKey: "font") ?? "")
+        ? UserDefaults.standard.string(forKey: "font")! : "Commissioner"
+
     static func register() {
-        for face in ["Regular", "Medium", "SemiBold", "Bold"] {
-            guard let url = Bundle.main.url(forResource: "Commissioner-\(face)", withExtension: "ttf") else { continue }
+        for url in Bundle.main.urls(forResourcesWithExtension: "ttf", subdirectory: nil) ?? [] {
             CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
         }
     }
 
-    /// The face for a weight: Regular, Medium, SemiBold or Bold.
-    static func name(_ weight: Font.Weight) -> String {
-        switch weight {
-        case .medium: "Commissioner-Medium"
-        case .semibold: "Commissioner-SemiBold"
-        case .bold, .heavy, .black: "Commissioner-Bold"
-        default: "Commissioner-Regular"
+    /// A face’s PostScript name: “GolosText-SemiBold”.
+    static func name(_ weight: Font.Weight, family: String = family) -> String {
+        let face = switch weight {
+        case .medium: "Medium"
+        case .semibold: "SemiBold"
+        case .bold, .heavy, .black: "Bold"
+        default: "Regular"
         }
+        return family.replacingOccurrences(of: " ", with: "") + "-" + face
     }
 
     /// The system’s size for each text style, at the default Dynamic Type setting.
@@ -138,12 +147,12 @@ enum AppFont {
 }
 
 extension Font {
-    /// Commissioner at a text style’s size (scaling with Dynamic Type); headlines are semibold.
+    /// The chosen font at a text style’s size (scaling with Dynamic Type); headlines are semibold.
     static func app(_ style: Font.TextStyle, _ weight: Font.Weight? = nil) -> Font {
         .custom(AppFont.name(weight ?? (style == .headline ? .semibold : .regular)), size: AppFont.size(style), relativeTo: style)
     }
 
-    /// Commissioner at a fixed size, for text that has to fit a shape (initials, badges, the index).
+    /// The chosen font at a fixed size, for text that has to fit a shape (initials, badges, the index).
     static func app(size: CGFloat, weight: Font.Weight = .regular) -> Font {
         .custom(AppFont.name(weight), fixedSize: size)
     }

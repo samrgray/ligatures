@@ -1,4 +1,16 @@
 Copyright 2019 The Commissioner Project Authors (https://github.com/kosbarts/Commissioner)
+Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
+Copyright 2024 The Funnel Project Authors (https://github.com/Dicotype/Funnel)
+Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font.git)
+Copyright 2019 The Golos Text Project Authors (https://github.com/googlefonts/golos-text)
+Copyright 2021 The Hanken Grotesk Project Authors (https://github.com/marcologous/hanken-grotesk)
+Copyright 2022 The Inclusive Sans Project Authors (https://github.com/LivKing/Inclusive-Sans)
+Copyright 2020 The Libre Franklin Project Authors (https://github.com/googlefonts/Libre-Franklin)
+Copyright 2025 The Miranda Sans Project Authors (https://github.com/maxthunberg/miranda-sans/)
+Copyright 2015 The Public Sans Project Authors (https://github.com/uswds/public-sans)
+Copyright 2023 The Schibsted-Grotesk Project Authors (https://github.com/schibsted/schibsted-grotesk)
+Copyright 2026 The Strichpunkt Sans Project Authors (https://github.com/solmatas/Strichpunkt_Sans)
+Copyright 2025 The Zalando Sans Project Authors (https://github.com/zalando/sans), with Reserved Font Name “Zalando”
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

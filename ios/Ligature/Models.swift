@@ -30,6 +30,8 @@ struct Prefs: Codable, Hashable {
     var nameSort: String?
     /// Where places open: "apple" or "google".
     var mapsApp: String?
+    /// The font for all text (one of AppFont.families).
+    var font: String?
 }
 
 struct ViewPrefs: Codable, Hashable {
