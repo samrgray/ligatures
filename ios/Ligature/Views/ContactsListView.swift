@@ -353,10 +353,14 @@ struct ContactsListView: View {
     /// One list of contacts: everyone, or one list.
     private func page(_ f: ListFilter) -> some View {
         let items = visible(for: f)
+        let list = entries(items)
+        // A–Z down the side, as in Contacts; not while searching or for a short list.
+        let showIndex = query.isEmpty && list.count >= 12
+        return ScrollViewReader { proxy in
         // Rows are only selectable in Select mode; otherwise iOS treats a tap as selecting the
         // row instead of opening the contact.
-        return List(selection: selecting ? $selection : nil) {
-            ForEach(entries(items)) { e in
+        List(selection: selecting ? $selection : nil) {
+            ForEach(list) { e in
                 let c = e.lead
                 // While selecting, the tap goes to the row’s tick instead.
                 Button { open(e.id) } label: {
@@ -371,6 +375,7 @@ struct ContactsListView: View {
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.tertiary)
                     }
+                    .padding(.trailing, showIndex ? 12 : 0)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(RowButtonStyle())
@@ -416,6 +421,16 @@ struct ContactsListView: View {
                                            description: Text(f == .all ? "Pull down to sync with Google." : "Add people from their contact card."))
                 }
             }
+        }
+        .overlay(alignment: .trailing) {
+            if showIndex {
+                let letters = list.map { AlphaIndex.letter($0.lead.sortKey(byFirst: sortByFirst)) }
+                AlphabetScrubber { l in
+                    if let i = AlphaIndex.target(letters, pick: l) { proxy.scrollTo(list[i].id, anchor: .top) }
+                }
+                .padding(.vertical, 12)
+            }
+        }
         }
     }
 

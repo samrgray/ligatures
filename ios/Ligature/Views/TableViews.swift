@@ -37,6 +37,10 @@ struct ContactsTable: View {
     @State private var picking: CellRef?
     @State private var pickedDate = Date()
     @State private var listsFor: ContactRow?
+    @State private var scrollBox = ScrollBox()
+
+    /// The table’s UIKit scroll view, once found.
+    final class ScrollBox { weak var view: UIScrollView? }
 
     @Environment(\.photoSize) private var photoSize
     /// Rows grow with the photos (pinch the table); text wraps onto the lines that fit.
@@ -148,6 +152,17 @@ struct ContactsTable: View {
 
     // MARK: Body
 
+    /// Rows have a fixed height, so a letter’s row is found by count and scrolled to directly,
+    /// leaving the sideways scroll where it is.
+    private func jump(to l: String) {
+        guard let scroll = scrollBox.view, let nameKey = allColumns.first?.sortKey else { return }
+        let r = rows
+        guard let i = AlphaIndex.target(r.map { AlphaIndex.letter(nameKey($0)) }, pick: l, descending: sort.dir == "desc") else { return }
+        let maxY = max(-scroll.adjustedContentInset.top, scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
+        let y = min(maxY, max(-scroll.adjustedContentInset.top, CGFloat(i) * rowHeight - scroll.adjustedContentInset.top))
+        scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x, y: y), animated: false)
+    }
+
     var body: some View {
         let cols = columns
         ScrollView([.horizontal, .vertical]) {
@@ -159,7 +174,15 @@ struct ContactsTable: View {
                 }
             }
             // No stretching past the edges, and one direction at a time.
-            .background(ScrollTuner(bounces: false, directionalLock: true))
+            .background(ScrollTuner(bounces: false, directionalLock: true) { scrollBox.view = $0 })
+        }
+        .overlay(alignment: .trailing) {
+            // A–Z down the side while sorted by name, as in Contacts.
+            if sort.id == "name", rows.count >= 12 {
+                AlphabetScrubber { l in jump(to: l) }
+                    .padding(.top, 36)
+                    .padding(.bottom, 12)
+            }
         }
         .onScrollGeometryChange(for: CGFloat.self) { g in g.contentOffset.x + g.contentInsets.leading } action: { _, x in
             scrollX = max(0, x)
@@ -427,13 +450,20 @@ extension View {
 struct ScrollTuner: UIViewRepresentable {
     var bounces: Bool
     var directionalLock: Bool
+    /// Hands over the scroll view, for scrolling it directly.
+    var found: (UIScrollView) -> Void = { _ in }
 
-    func makeUIView(context: Context) -> TunerView { TunerView(bounces: bounces, directionalLock: directionalLock) }
+    func makeUIView(context: Context) -> TunerView {
+        let v = TunerView(bounces: bounces, directionalLock: directionalLock)
+        v.found = found
+        return v
+    }
     func updateUIView(_ view: TunerView, context: Context) { view.apply() }
 
     final class TunerView: UIView {
         let bounces: Bool
         let directionalLock: Bool
+        var found: (UIScrollView) -> Void = { _ in }
 
         init(bounces: Bool, directionalLock: Bool) {
             self.bounces = bounces
@@ -459,6 +489,7 @@ struct ScrollTuner: UIViewRepresentable {
                 scroll.alwaysBounceVertical = false
                 scroll.alwaysBounceHorizontal = false
                 scroll.isDirectionalLockEnabled = self.directionalLock
+                self.found(scroll)
             }
         }
     }
