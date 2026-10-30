@@ -438,6 +438,13 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.3); }
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #1d1d1f; color: #fff; padding: 10px 16px; border-radius: 10px;
   font-size: 13px; max-width: min(520px, calc(100vw - 32px)); box-shadow: var(--shadow); z-index: 10;
 }
+/* “Copied”, just above the copy button. */
+.copied-tip {
+  position: fixed; inset: auto; margin: 0; padding: 4px 9px; border: 0; border-radius: 7px; background: #1d1d1f; color: #fff;
+  font-size: 12px; font-weight: 500; line-height: 16px; box-shadow: var(--shadow); pointer-events: none; transition: opacity 0.2s ease;
+}
+.copied-tip::after { content: ''; position: absolute; left: 50%; bottom: -4px; margin-left: -4px; border: 4px solid transparent; border-bottom: 0; border-top-color: #1d1d1f; }
+.copied-tip.gone { opacity: 0; }
 .spin { animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
