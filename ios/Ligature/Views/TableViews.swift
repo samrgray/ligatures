@@ -193,7 +193,7 @@ struct ContactsTable: View {
         .sheet(item: $listsFor) { c in ListPickerView(ids: [c.id], accountId: c.accountId) }
         .sheet(isPresented: showColumns) {
             ColumnsSheet(choices: allColumns.map { ColumnsSheet.Choice(id: $0.id, label: $0.label) },
-                         shown: columns.map { ColumnPref(id: $0.def.id, w: prefs.columns?.first { p in p.id == $0.def.id }?.w) }) { cols in
+                         shown: columns.map { col in ColumnPref(id: col.def.id, w: prefs.columns?.first { $0.id == col.def.id }?.w) }) { cols in
                 var p = prefs
                 p.columns = cols
                 Task { await store.saveViewPrefs(key, p) }
