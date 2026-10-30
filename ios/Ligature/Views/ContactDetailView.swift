@@ -272,7 +272,7 @@ struct ContactDetailView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Button { if !photo.isEmpty { showPhoto = true } } label: {
                         Avatar(url: photo, initials: card?.initials ?? row?.initials ?? "?", size: 104)
-                            .matchedTransitionSource(id: "photo", in: photoZoom) { $0.clipShape(Circle()) }
+                            .matchedTransitionSource(id: "photo", in: photoZoom) { $0.clipShape(RoundedRectangle(cornerRadius: 52)) }
                     }
                     .buttonStyle(.plain)
                     .disabled(photo.isEmpty)
