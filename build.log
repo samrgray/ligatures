@@ -1,0 +1,855 @@
+Command line invocation:
+    /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild -project Ligature.xcodeproj -scheme Ligature -configuration Debug -destination id=E839A11B-51B4-4AD3-ACF4-A53B95B7C957 -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Resolve Package Graph
+
+Fetching from https://github.com/maplibre/maplibre-gl-native-distribution
+
+Creating working copy of package ‘maplibre-gl-native-distribution’
+
+Checking out 6.31.0 of package ‘maplibre-gl-native-distribution’
+
+
+Resolved source packages:
+  MapLibre Native: https://github.com/maplibre/maplibre-gl-native-distribution @ 6.31.0
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:E839A11B-51B4-4AD3-ACF4-A53B95B7C957, OS:26.5, name:iPhone 17 Pro }
+{ platform:iOS Simulator, arch:x86_64, id:E839A11B-51B4-4AD3-ACF4-A53B95B7C957, OS:26.5, name:iPhone 17 Pro }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'Ligature' in project 'Ligature'
+        ➜ Explicit dependency on target 'MapLibre' in project 'MapLibre Native'
+    Target 'MapLibre' in project 'MapLibre Native' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/ligature/ligature/ios/AppIcon.icon /Users/runner/work/ligature/ligature/ios/Ligature/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: a033e1780e25154876406a6dba89b22e
+Build description path: /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/XCBuildData/a033e1780e25154876406a6dba89b22e.xcbuilddata
+CreateBuildDirectory /Users/runner/work/ligature/ligature/ios/build/Build/Products
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ligature/ligature/ios/build/Build/Products
+
+ClangStatCache /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/runner/work/ligature/ligature/ios/build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448ff45c64a1807a658693f2a61704f17a36.sdkstatcache
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/runner/work/ligature/ligature/ios/build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448ff45c64a1807a658693f2a61704f17a36.sdkstatcache
+
+CreateBuildDirectory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature-a3c0669800d5b0fc7dc9831458728ad4-VFS-iphonesimulator/all-product-headers.yaml
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature-a3c0669800d5b0fc7dc9831458728ad4-VFS-iphonesimulator/all-product-headers.yaml
+
+CreateBuildDirectory /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator
+
+ProcessXCFramework /Users/runner/work/ligature/ligature/ios/build/SourcePackages/artifacts/maplibre-gl-native-distribution/MapLibre/MapLibre.xcframework /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/MapLibre.framework ios simulator
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-process-xcframework --xcframework /Users/runner/work/ligature/ligature/ios/build/SourcePackages/artifacts/maplibre-gl-native-distribution/MapLibre/MapLibre.xcframework --platform ios --environment simulator --target-path /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator
+
+CreateBuildDirectory /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/PackageFrameworks
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/PackageFrameworks
+
+CreateBuildDirectory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+    cd /Users/runner/work/ligature/ligature/ios/Ligature.xcodeproj
+    builtin-create-build-directory /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/empty-Ligature.plist (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/empty-Ligature.plist
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_const_extract_protocols.json (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftFileList (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftConstValuesFileList (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.LinkFileList (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-OutputFileMap.json (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.hmap (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.DependencyStaticMetadataFileList (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.DependencyMetadataFileList (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-project-headers.hmap (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-own-target-headers.hmap (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-generated-files.hmap (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-all-target-headers.hmap (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-all-non-framework-target-headers.hmap (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-DebugDylibPath-normal-arm64.txt (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-DebugDylibInstallName-normal-arm64.txt (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    write-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-DebugDylibInstallName-normal-arm64.txt
+
+MkDir /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Frameworks (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /bin/mkdir -p /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Frameworks
+
+MkDir /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /bin/mkdir -p /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+MkDir /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/thinned (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /bin/mkdir -p /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/thinned
+
+MkDir /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/unthinned (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /bin/mkdir -p /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/unthinned
+
+Ld /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/__preview.dylib normal (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios18.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -F/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -install_name @rpath/Ligature.debug.dylib -Xlinker -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_dependency_info.dat -o /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/__preview.dylib
+
+GenerateAssetSymbols /Users/runner/work/ligature/ligature/ios/AppIcon.icon /Users/runner/work/ligature/ligature/ios/Ligature/Assets.xcassets (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/actool /Users/runner/work/ligature/ligature/ios/AppIcon.icon /Users/runner/work/ligature/ligature/ios/Ligature/Assets.xcassets --compile /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_generated_info.plist --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --minimum-deployment-target 18.0 --platform iphonesimulator --bundle-identifier com.samrgray.ligature --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-zoe.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-zoe.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-zoe.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-zane.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-zane.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-zane.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-wren.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-wren.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-wren.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-uma.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-uma.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-uma.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-sofia.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-sofia.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-sofia.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-rosa.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-rosa.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-rosa.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-paul.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-paul.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-paul.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-olivia.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-olivia.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-olivia.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-noah.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-noah.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-noah.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-nadia.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-nadia.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-nadia.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-marco.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-marco.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-marco.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-lena.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-lena.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-lena.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-jonah.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-jonah.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-jonah.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-imani.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-imani.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-imani.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-eli.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-eli.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-eli.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-ava.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-ava.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-ava.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/demo-aaron.jpg /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-aaron.jpg (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/DemoPhotos/demo-aaron.jpg /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/ZalandoSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/ZalandoSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/ZalandoSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/ZalandoSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/ZalandoSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/StrichpunktSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/StrichpunktSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/StrichpunktSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/StrichpunktSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/StrichpunktSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/SchibstedGrotesk-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/SchibstedGrotesk-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/SchibstedGrotesk-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/SchibstedGrotesk-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/SchibstedGrotesk-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/PublicSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/PublicSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/PublicSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/PublicSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/PublicSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/OFL.txt /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/OFL.txt (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/OFL.txt /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/MirandaSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/MirandaSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/MirandaSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/MirandaSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/MirandaSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/LibreFranklin-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/LibreFranklin-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/LibreFranklin-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/LibreFranklin-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/LibreFranklin-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/InclusiveSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/InclusiveSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/InclusiveSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/InclusiveSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/InclusiveSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/HankenGrotesk-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/HankenGrotesk-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/HankenGrotesk-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/HankenGrotesk-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/HankenGrotesk-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/GolosText-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/GolosText-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/GolosText-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/GolosText-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/GolosText-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Geist-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Geist-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Geist-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Geist-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Geist-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/FunnelSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/FunnelSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/FunnelSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/FunnelSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/FunnelSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/DMSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/DMSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/DMSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/DMSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/DMSans-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Commissioner-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-SemiBold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-SemiBold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Commissioner-Regular.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-Regular.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-Regular.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Commissioner-Medium.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-Medium.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-Medium.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+CpResource /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Commissioner-Bold.ttf /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-Bold.ttf (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/ligature/ligature/ios/Ligature/Fonts/Commissioner-Bold.ttf /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+Copy /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Frameworks/MapLibre.framework /Users/runner/work/ligature/ligature/ios/build/SourcePackages/artifacts/maplibre-gl-native-distribution/MapLibre/MapLibre.xcframework/ios-arm64_x86_64-simulator/MapLibre.framework (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks -remove-static-executable /Users/runner/work/ligature/ligature/ios/build/SourcePackages/artifacts/maplibre-gl-native-distribution/MapLibre/MapLibre.xcframework/ios-arm64_x86_64-simulator/MapLibre.framework /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Frameworks
+
+CompileAssetCatalogVariant thinned /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app /Users/runner/work/ligature/ligature/ios/AppIcon.icon /Users/runner/work/ligature/ligature/ios/Ligature/Assets.xcassets (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/actool /Users/runner/work/ligature/ligature/ios/AppIcon.icon /Users/runner/work/ligature/ligature/ios/Ligature/Assets.xcassets --compile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone18,1 --filter-for-device-os-version 26.5 --development-region en --target-device iphone --minimum-deployment-target 18.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver Ligature normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-SwiftDriver -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Ligature -Onone @/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios18.0-simulator -g -module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/ligature/ligature/ios/build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -F /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/ligature/ligature/ios/build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448ff45c64a1807a658693f2a61704f17a36.sdkstatcache -output-file-map /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-generated-files.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-own-target-headers.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-project-headers.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-Swift.h -working-directory /Users/runner/work/ligature/ligature/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_stddef-AHO9TM0JOSCJ91DOYQ00TH9UW.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_float-D6CZT1WYEI5LV6F07QRAT0T7F.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_AvailabilityInternal-2QPM6LEV34MYLQ7AJICX1YJXJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/SwiftShims-48FVZWX4ZDSL2WPD8XW2H7ZV0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_stdbool-6LGWDQZ5LP2ZU2YL50MKK3WKJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/ptrauth-4K890OKDNQJ915GIZPRS5XTPV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_SwiftConcurrencyShims-B4SEC1TLE4Y5KI7AJV3O8LGQN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/ptrcheck-1S8IU8K1LFSGTHZWXKPQBS9D3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_stdarg-6DNEOWATZV8O62MG5GMEBSRJQ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/DeveloperToolsSupport-79CPK8FZYI3B47C3G8693D9O7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_DarwinFoundation1-BF3JJN4CYMGQK158BZ04D97W0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/ExtensionFoundation-U09BH8IOUDMEGKIUK1PV2Q24.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_DarwinFoundation2-3SG3PBR4F6I4VJVCAQCF1X552.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_limits-3OMCZ82OC5GYW5GE3LFLIPDVY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_stdint-3Q8HXZQRJ9YDUDVUWLM7EX6Z.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/sys_types-6JR1TCEE45V50JEQREKHG3HR0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_tgmath-95ZQUU34EM1B0W1NOKF149ZYZ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_DarwinFoundation3-4ZLJFKB260816H4GV295O8LY9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_intrinsics-5SVQ17OVKVC0Q202L4DYWBZ28.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_stdatomic-CAEA1NE4MQBLOW76QFU7YJ0G3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_Builtin_inttypes-ELSKL39IV5SDH1K6PD2QBSRBG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Darwin-CFODJ9XX51X3XXERYTX6EVH3B.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/simd-AF37SKOHY1GCDVZ8Q63K387F.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/MachO-BSJBVDQGXT6HI896EHDDLGFME.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/ObjectiveC-4YKXQ0J9SXMUBQUAY1UDVBDYB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Spatial-BSI7F8UURERQULECD76GZZ7KX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/os_object-4WDFEJJMTMXHSHNHBF7T1GMQN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/os_workgroup-9UGTSWE1OMZ7J7TRY6SAEMP2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Dispatch-9XPTSUV590O10PI5QYL14O71V.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/dnssd-5FMDPN6WDDTVKGJ6IZ53A8ZP1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreFoundation-4OQ0V1H6R5VBN29W88KD9HMRR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/XPC-6SAE7NRGMMUTMBDLECRDOURDK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreAudioTypes-6V4S58WR5WIQQWOAPFSHNDFO1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreGraphics-5URNYB3JXRRREBJCCKMOVRZWJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Security-2KV3TC2C26E96SABQJI0XWU1B.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreAudio-9XL7WTYR7L00FB5XM6906L9KO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/ImageIO-1HLNUE44662DMDADI80Z2YG6V.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreText-592Q4MOGL7GU2R85VN0ITLHP1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CFNetwork-CQC6X259QYXOPXLU5VE3K7ME6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/os-7SEEV2HRC5E2GO8CDIZJNGNQY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Foundation-DJV5GVHR05X9LR1S45BQAE0OP.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/UIUtilities-BFNR4P6I8BKMUJI5GVG557HZC.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/LocalAuthentication-9L477YO1KKD7YELH3Y3N8QKQB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/IOSurface-2QLEOXIQ9PED9ZQFQA97AE425.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/UniformTypeIdentifiers-3SOZF7ZU1BTE7SOXKC1KXFGNJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreMIDI-AMQ5BSH69QL9WTBGELOZP7D8I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/OpenGLES-D1177GR6QFBH3VWI8T4PSEMKX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/FileProvider-4KBZ0VE5A8W1BU1AU8ZHSLQ5I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/UserNotifications-EQ9PWE2FWXAHWVPJ0079Q528T.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Symbols-6YEDQBIW95SL6R1AUDMN1R36G.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/AudioToolbox-1LTUOJ1Y0FC2F1MN6WSM90KG8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Network-3SJ0G5W06O158U1RL5GNKO4G.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Metal-AGCN7MOTPB1J38T2MHRKLKSPI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Accessibility-D2QXITWSX9172VTSTB1SQL40H.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/AVRouting-BNGUOTRML9OTHORV2ACMAS11L.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreTransferable-ARP3V9RZB40KSH320IK4DCTP9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/DataDetection-EOK9NXKHM1QJS38VIYXH4MLDE.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/_LocationEssentials-702U8388SB3JSC2H9BWXPUNXC.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/OSLog-9H0VR6MZV3BWDW5QKCK2QIK3O.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreData-AYLGVKM2PV8M7G8MLRVHXUGSP.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreLocation-4XE22SBRFKPDWMSF00JL5XYA7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/ModelIO-CTOO513HAWB2QHZM45OSKX0CX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreVideo-6W5GRF8S8539JWDU6KTGAFUR6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/QuartzCore-7GFFPIKKO6ZCVRU2MXVNLICS7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreImage-43XPU28X1M0ENBVEWK8XO0R1E.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/CoreMedia-11U1TYQKHWQ3ATY5KG0ZFU56.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/SwiftUICore-6CV3TY2IRC19C6XYKQO8NVUHI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/UIKit-2ON5ATNLUJAMBUXEN1SGDS0B7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/AVFAudio-ZG33UFY6FHVHON9NU5E92U7D.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/MediaToolbox-AL6HF9CNIE7P4CQN5PB8MYLJI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/AVFoundation-BZFOHDI4Z680X2UX1CB1ZFRR8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Photos-ASLLOM6VHMW1IG1BNYKQTVV53.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/MessageUI-ALTCESGQF5APEMOT4ZL8OO2E5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/SwiftUI-8ACNNEZ0IDJRW5Z11MHPFK88Y.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/MetalKit-8J11CZWHQD6L5TIMU05HXPN42.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/AuthenticationServices-T1NM8Y10E2A3GF9F9XV4CT86.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/PhotosUI-6U2AZWN4R82O62UD381HW7GKL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/MapLibre-EBD8ZLI173D7UM0U9URWQPUUE.pcm
+
+SwiftCompile normal arm64 Compiling\ Demo.swift,\ FieldsViews.swift,\ Keychain.swift,\ LigatureApp.swift,\ ListStyleViews.swift,\ ListsViews.swift,\ MapViews.swift,\ Messaging.swift,\ Models.swift /Users/runner/work/ligature/ligature/ios/Ligature/Demo.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/FieldsViews.swift /Users/runner/work/ligature/ligature/ios/Ligature/Keychain.swift /Users/runner/work/ligature/ligature/ios/Ligature/LigatureApp.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/ListStyleViews.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/ListsViews.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/MapViews.swift /Users/runner/work/ligature/ligature/ios/Ligature/Messaging.swift /Users/runner/work/ligature/ligature/ios/Ligature/Models.swift (in target 'Ligature' from project 'Ligature')
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Demo.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/FieldsViews.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Keychain.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/LigatureApp.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/ListStyleViews.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/ListsViews.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/MapViews.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Messaging.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Models.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ Ligature (in target 'Ligature' from project 'Ligature')
+
+EmitSwiftModule normal arm64 (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 Compiling\ API.swift,\ AlphabetScrubber.swift,\ ArchivedView.swift,\ Auth.swift,\ CardKit.swift,\ Common.swift,\ ComposerView.swift,\ ContactDetailView.swift,\ ContactEditView.swift,\ ContactsListView.swift /Users/runner/work/ligature/ligature/ios/Ligature/API.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/AlphabetScrubber.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/ArchivedView.swift /Users/runner/work/ligature/ligature/ios/Ligature/Auth.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/CardKit.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/Common.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/ComposerView.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/ContactDetailView.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/ContactEditView.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/ContactsListView.swift (in target 'Ligature' from project 'Ligature')
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/API.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/AlphabetScrubber.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/ArchivedView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Auth.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/CardKit.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/Common.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/ComposerView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/ContactDetailView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/ContactEditView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/ContactsListView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+LinkAssetCatalog /Users/runner/work/ligature/ligature/ios/AppIcon.icon /Users/runner/work/ligature/ligature/ios/Ligature/Assets.xcassets (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-linkAssetCatalog --thinned /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app --plist-output /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Assets.car (in target 'Ligature' from project 'Ligature')
+note: Emplaced /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/AppIcon76x76@2x~ipad.png (in target 'Ligature' from project 'Ligature')
+note: Emplaced /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/AppIcon60x60@2x.png (in target 'Ligature' from project 'Ligature')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for Ligature (in target 'Ligature' from project 'Ligature')
+
+SwiftDriver\ Compilation\ Requirements Ligature normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Ligature -Onone @/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios18.0-simulator -g -module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/ligature/ligature/ios/build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -F /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/ligature/ligature/ios/build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448ff45c64a1807a658693f2a61704f17a36.sdkstatcache -output-file-map /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-generated-files.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-own-target-headers.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-project-headers.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-Swift.h -working-directory /Users/runner/work/ligature/ligature/ios -experimental-emit-module-separately -disable-cmo
+
+ProcessInfoPlistFile /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Info.plist /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/empty-Ligature.plist (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-infoPlistUtility /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/empty-Ligature.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/assetcatalog_generated_info.plist -scanforprivacyfile /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Frameworks/MapLibre.framework -o /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Info.plist
+
+SwiftMergeGeneratedHeaders /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/Ligature-Swift.h /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-Swift.h (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-Swift.h -o /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/Ligature-Swift.h
+
+Copy /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftmodule (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftmodule /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftdoc (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftdoc /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.abi.json (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.abi.json /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftsourceinfo (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftsourceinfo /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftCompile normal arm64 Compiling\ PhotoCropView.swift,\ Relations.swift,\ RelationshipViews.swift,\ SettingsView.swift,\ SignInView.swift,\ Store.swift,\ TableViews.swift,\ Theme.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/PhotoCropView.swift /Users/runner/work/ligature/ligature/ios/Ligature/Relations.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/RelationshipViews.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/SettingsView.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/SignInView.swift /Users/runner/work/ligature/ligature/ios/Ligature/Store.swift /Users/runner/work/ligature/ligature/ios/Ligature/Views/TableViews.swift /Users/runner/work/ligature/ligature/ios/Ligature/Theme.swift /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Ligature' from project 'Ligature')
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/PhotoCropView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Relations.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/RelationshipViews.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/SettingsView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/SignInView.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Store.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Views/TableViews.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/Ligature/Theme.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling PhotoCropView.swift, Relations.swift, RelationshipViews.swift, SettingsView.swift, SignInView.swift, Store.swift, TableViews.swift, Theme.swift, GeneratedAssetSymbols.swift (in target 'Ligature' from project 'Ligature')
+
+SwiftDriverJobDiscovery normal arm64 Compiling Demo.swift, FieldsViews.swift, Keychain.swift, LigatureApp.swift, ListStyleViews.swift, ListsViews.swift, MapViews.swift, Messaging.swift, Models.swift (in target 'Ligature' from project 'Ligature')
+
+SwiftDriverJobDiscovery normal arm64 Compiling API.swift, AlphabetScrubber.swift, ArchivedView.swift, Auth.swift, CardKit.swift, Common.swift, ComposerView.swift, ContactDetailView.swift, ContactEditView.swift, ContactsListView.swift (in target 'Ligature' from project 'Ligature')
+
+SwiftDriver\ Compilation Ligature normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-Swift-Compilation -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Ligature -Onone @/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -target arm64-apple-ios18.0-simulator -g -module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/ligature/ligature/ios/build/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -F /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/ligature/ligature/ios/build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-688ef53f1462e2c8f657fdc38a81448ff45c64a1807a658693f2a61704f17a36.sdkstatcache -output-file-map /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/ligature/ligature/ios/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-generated-files.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-own-target-headers.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-project-headers.hmap -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-Swift.h -working-directory /Users/runner/work/ligature/ligature/ios -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature.debug.dylib normal (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios18.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -F/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -filelist /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.LinkFileList -install_name @rpath/Ligature.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.swiftmodule @/Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature-linker-args.resp -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -framework MapLibre -o /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-ExecutorLinkFileList-normal-arm64.txt (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    construct-stub-executor-link-file-list /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature.debug.dylib /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'Ligature' from project 'Ligature')
+
+Ld /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature normal (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios18.0-simulator -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -O0 -L/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -F/Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature-ExecutorLinkFileList-normal-arm64.txt /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature.debug.dylib -o /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature
+
+ExtractAppIntentsMetadata (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.6.109.0.SdHWAT/Metal.xctoolchain --module-name Ligature --sdk-root /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk --xcode-version 17F113 --platform-family iOS --deployment-target 18.0 --bundle-identifier com.samrgray.ligature --output /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app --target-triple arm64-apple-ios18.0-simulator --binary-file /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature --dependency-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature_dependency_info.dat --stringsdata-file /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftFileList --metadata-file-list /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Objects-normal/arm64/Ligature.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-30 19:37:32.049 appintentsmetadataprocessor[2441:10956] Starting appintentsmetadataprocessor export
+2026-10-30 19:37:32.066 appintentsmetadataprocessor[2441:10956] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Ligature.debug.dylib --scan-folder /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Frameworks --scan-folder /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/PlugIns --scan-folder /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/SystemExtensions --scan-folder /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.6.109.0.SdHWAT/Metal.xctoolchain --toolchain /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+AppIntentsSSUTraining (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Info.plist --temp-dir-path /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/ssu --bundle-id com.samrgray.ligature --product-path /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app --extracted-metadata-path /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Metadata.appintents --metadata-file-list /Users/runner/work/ligature/ligature/ios/build/Build/Intermediates.noindex/Ligature.build/Debug-iphonesimulator/Ligature.build/Ligature.DependencyMetadataFileList --source-file /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app/Info.plist --archive-ssu-assets
+2026-10-30 19:37:32.125 appintentsnltrainingprocessor[2442:10958] Parsing options for appintentsnltrainingprocessor
+2026-10-30 19:37:32.126 appintentsnltrainingprocessor[2442:10958] Starting AppIntents SSU YAML Generation
+2026-10-30 19:37:32.131 appintentsnltrainingprocessor[2442:10958] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-RegisterExecutionPolicyException /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+Validate /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    builtin-validationUtility /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app (in target 'Ligature' from project 'Ligature')
+    cd /Users/runner/work/ligature/ligature/ios
+    /usr/bin/touch -c /Users/runner/work/ligature/ligature/ios/build/Build/Products/Debug-iphonesimulator/Ligature.app
+
+** BUILD SUCCEEDED **
+
