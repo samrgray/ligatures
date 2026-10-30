@@ -96,6 +96,7 @@ struct ContactsListView: View {
     @State private var stripOffset: CGFloat = 0
     @State private var stripViewport: CGFloat = 0
     @State private var stripContent: CGFloat = 0
+    @State private var newTabName: String?
     /// List, table or map.
     @AppStorage("layout") private var layout = "list"
     private var showMap: Bool {
@@ -335,6 +336,15 @@ struct ContactsListView: View {
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLists) { ManageListsView() }
+        .alert("New List", isPresented: Binding(get: { newTabName != nil }, set: { if !$0 { newTabName = nil } })) {
+            TextField("Name", text: Binding(get: { newTabName ?? "" }, set: { newTabName = $0 }))
+            Button("Cancel", role: .cancel) {}
+            Button("Create") {
+                // Read it now: closing the alert clears it before the task runs.
+                let name = (newTabName ?? "").trimmingCharacters(in: .whitespaces)
+                Task { await createTab(name) }
+            }
+        }
         .sheet(isPresented: $showArchive) { ArchivedView() }
         .sheet(isPresented: $showFields) { FieldsView() }
         .sheet(item: $compose) { t in
@@ -450,6 +460,7 @@ struct ContactsListView: View {
                     ForEach(tabs, id: \.self) { t in
                         tabChip(t).id(t)
                     }
+                    addTabMenu
                 }
                 .coordinateSpace(name: "tabstrip")
                 .onPreferenceChange(TabFrames.self) { chipFrames = $0 }
@@ -623,6 +634,47 @@ struct ContactsListView: View {
             tabDrag = nil
             if changed { Task { await store.savePinnedOrder() } }
         }
+    }
+
+    /// At the end of the tabs: pin another list as a tab, or make a new one.
+    private var addTabMenu: some View {
+        Menu {
+            ForEach(store.accounts) { a in
+                let lists = store.unpinnedLists.filter { $0.ref.accountId == a.id }
+                Section(store.accounts.count > 1 ? (a.label ?? a.providerName) : "") {
+                    ForEach(lists) { e in
+                        Button { Task { await pinTab(e) } } label: {
+                            Text(String(repeating: "    ", count: store.depth(of: e.ref)) + tabName(.list(accountId: e.ref.accountId, id: e.ref.id)))
+                        }
+                    }
+                }
+            }
+            Section {
+                Button { newTabName = "" } label: { Label("New List", systemImage: "plus") }
+                    .disabled(store.accounts.isEmpty)
+            }
+        } label: {
+            Image(systemName: "plus")
+                .font(.subheadline.weight(.semibold))
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(Theme.card))
+                .overlay(Circle().strokeBorder(Theme.line, lineWidth: 0.5))
+                .shadow(color: Theme.shadow.opacity(0.07), radius: 2, y: 1)
+                .foregroundStyle(Color.primary)
+        }
+        .accessibilityLabel("Add a Tab")
+    }
+
+    /// Pins the list as the last tab and shows it.
+    private func pinTab(_ e: ListEntry) async {
+        await store.setPinned(e.list, accountId: e.ref.accountId, true)
+        withAnimation(.snappy) { filter = .list(accountId: e.ref.accountId, id: e.ref.id) }
+    }
+
+    private func createTab(_ name: String) async {
+        guard !name.isEmpty, let accountId = store.accounts.first?.id,
+              let list = await store.createList(name, accountId: accountId) else { return }
+        await pinTab(ListEntry(ref: ListRef(accountId: accountId, id: list.id), list: list))
     }
 
     private func pinnedRef(_ t: ListFilter) -> ListRef? {
