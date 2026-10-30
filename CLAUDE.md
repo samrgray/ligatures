@@ -7,9 +7,9 @@ Two apps share one backend:
 - **Web app**: Cloudflare Pages + Functions + D1. Every push to `main` auto-deploys.
 - **iOS app**: native SwiftUI, built on GitHub’s Macs and shipped to TestFlight. Intended to replace the iOS Contacts app.
 
-Repo: `samrgray/ligature` (public, so no secrets in code or history).
+Repo: `samrgray/ligatures` (renamed from `samrgray/ligature`; GitHub redirects the old name). Public, so no secrets in code or history.
 
-The app is called **Ligatures** in everything people see. Internal names stay `ligature` on purpose: the bundle ID `com.samrgray.ligature`, the `ligature://auth` sign-in link, the Cloudflare project (`ligature-50o.pages.dev`), the D1 database, browser storage keys, and the Swift target and folder names. Renaming those would break sign-in or make App Store Connect treat it as a new app.
+The app is called **Ligatures** in everything people see. Internal names stay `ligature` on purpose (the repo itself was renamed): the bundle ID `com.samrgray.ligature`, the `ligature://auth` sign-in link, the Cloudflare project (`ligature-50o.pages.dev`), the D1 database, browser storage keys, and the Swift target and folder names. Renaming those would break sign-in or make App Store Connect treat it as a new app.
 
 ## Layout
 
