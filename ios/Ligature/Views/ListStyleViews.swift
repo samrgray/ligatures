@@ -29,6 +29,21 @@ enum ListColor {
     static func edge(_ key: String?) -> Color { key == nil ? mix(key, 0xFFFDFA, 0.22, 0x211F1C, 0.26) : mix(key, 0xFFFDFA, 0.30, 0x211F1C, 0.40) }
     static func ink(_ key: String?) -> Color { key == nil ? mix(key, 0x2A2622, 0.45, 0xF1ECE5, 0.45) : mix(key, 0x2A2622, 0.68, 0xF1ECE5, 0.62) }
 
+    /// The selected tab: the color itself, a touch lighter in dark mode.
+    static func solid(_ key: String?) -> Color { mix(key, 0xFFFDFA, 1, 0xF1ECE5, 0.85) }
+    /// Text on `solid`: light, except on yellow, where dark reads better.
+    static func onSolid(_ key: String?) -> Color { Color(UIColor(hex: key == "yellow" ? 0x2A2622 : 0xFFFDFA)) }
+
+    /// A dot in the color, for menus (which draw images but not shapes).
+    static func dot(_ key: String) -> UIImage {
+        let c = UIColor(hex: hex[key] ?? neutral)
+        let img = UIGraphicsImageRenderer(size: CGSize(width: 12, height: 12)).image { ctx in
+            c.setFill()
+            ctx.cgContext.fillEllipse(in: CGRect(x: 1, y: 1, width: 10, height: 10))
+        }
+        return img.withRenderingMode(.alwaysOriginal)
+    }
+
     private static func blend(_ a: UIColor, _ b: UIColor, _ t: CGFloat) -> UIColor {
         var (r1, g1, b1, a1): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
         var (r2, g2, b2, a2): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
@@ -57,20 +72,6 @@ struct ListBadge: View {
         .overlay(Capsule().strokeBorder(ListColor.edge(style.color), lineWidth: 0.75))
         .shadow(color: Theme.shadow.opacity(0.06), radius: 0.5, y: 0.5)
         .accessibilityElement(children: .combine)
-    }
-}
-
-/// The emoji, or a dot in the list’s color, to put before its name.
-struct ListMark: View {
-    let style: ListStyle
-
-    var body: some View {
-        // The same width either way, so names line up.
-        if let e = style.emoji {
-            Text(e).frame(width: 24).accessibilityHidden(true)
-        } else if let c = style.color {
-            Circle().fill(ListColor.base(c)).frame(width: 9, height: 9).frame(width: 24).accessibilityHidden(true)
-        }
     }
 }
 

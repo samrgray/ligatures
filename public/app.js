@@ -1942,7 +1942,7 @@ function fillListPicker() {
       const n = mine.filter((c) => c.groups.includes(g.id)).length;
       const state = n === 0 ? 'false' : n === mine.length ? 'true' : 'mixed';
       return `<button type="button" role="menuitemcheckbox" aria-checked="${state}" data-lp-account="${h(aid)}" data-lp-group="${h(g.id)}"${LP.busy ? ' disabled' : ''}>
-          <span class="menu-check">${state === 'true' ? ICON.check : state === 'mixed' ? ICON.dash : ''}</span><span class="lp-name">${listMark(aid, g.id)}${h(g.name)}</span></button>`;
+          <span class="menu-check">${state === 'true' ? ICON.check : state === 'mixed' ? ICON.dash : ''}</span><span class="lp-name">${listBadge(aid, g)}</span></button>`;
     });
     const head = accountIds.length > 1 ? `<div class="menu-h">${h(a?.label || a?.providerName || '')}</div>` : '';
     return head + (items.join('') || '<div class="menu-empty">No lists yet.</div>');

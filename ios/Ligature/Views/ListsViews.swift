@@ -21,8 +21,7 @@ struct ListPickerView: View {
                             Task { await toggle(list, allIn: count == people.count) }
                         } label: {
                             HStack(spacing: 8) {
-                                ListMark(style: store.style(ListRef(accountId: accountId, id: list.id)))
-                                Text(list.name).foregroundStyle(Color.primary)
+                                ListBadge(name: list.name, style: store.style(ListRef(accountId: accountId, id: list.id)), large: true)
                                 Spacer()
                                 if busy == list.id {
                                     ProgressView()
@@ -164,8 +163,7 @@ struct ManageListsView: View {
         let count = store.contacts.filter { $0.accountId == accountId && $0.groups.contains(g.id) }.count
         let pinned = store.isPinned(g, accountId: accountId)
         HStack(spacing: 8) {
-            ListMark(style: store.style(ListRef(accountId: accountId, id: g.id)))
-            Text(g.name)
+            ListBadge(name: g.name, style: store.style(ListRef(accountId: accountId, id: g.id)), large: true)
             if store.accounts.count > 1, let a = store.accounts.first(where: { $0.id == accountId }) {
                 Text(a.label ?? a.providerName).font(.footnote).foregroundStyle(.secondary)
             }

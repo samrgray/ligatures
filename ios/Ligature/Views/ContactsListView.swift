@@ -463,16 +463,22 @@ struct ContactsListView: View {
 
     private func chipLabel(_ t: ListFilter) -> some View {
         let on = t == filter
+        // A list with a color is tinted with it, as its labels are; the one you’re on is filled.
+        var color: String?
+        if case let .list(accountId, id) = t { color = store.style(ListRef(accountId: accountId, id: id)).color }
+        let fill = color == nil ? (on ? Theme.ink : Theme.card) : (on ? ListColor.solid(color) : ListColor.fill(color))
+        let text = color == nil ? (on ? Theme.card : Color.primary) : (on ? ListColor.onSolid(color) : ListColor.ink(color))
+        let edge = on ? Color.clear : (color == nil ? Theme.line : ListColor.edge(color))
         return Text(tabName(t))
             .font(.subheadline.weight(.medium))
             .lineLimit(1)
             .padding(.horizontal, 14)
             .frame(height: 32)
-            // Raised chips on the paper; the one you’re on is inked.
-            .background(Capsule().fill(on ? Theme.ink : Theme.card))
-            .overlay(Capsule().strokeBorder(on ? Color.clear : Theme.line, lineWidth: 0.5))
+            // Raised chips on the paper.
+            .background(Capsule().fill(fill))
+            .overlay(Capsule().strokeBorder(edge, lineWidth: color == nil ? 0.5 : 0.75))
             .shadow(color: Theme.shadow.opacity(on ? 0.18 : 0.07), radius: on ? 4 : 2, y: 1)
-            .foregroundStyle(on ? Theme.card : Color.primary)
+            .foregroundStyle(text)
     }
 
     /// One tab. Tap to show it; press, hold and drag a pinned one to move it.
@@ -609,8 +615,16 @@ struct ContactsListView: View {
                     ForEach(store.tree(store.orderedLists.filter { $0.ref.accountId == a.id }), id: \.entry.ref) { item in
                         let g = item.entry.list
                         let indent = String(repeating: "\u{2003}", count: item.depth)
-                        Text(indent + (store.accounts.count > 1 ? "\(g.name) · \(a.label ?? a.providerName)" : g.name))
-                            .tag(ListFilter.list(accountId: a.id, id: g.id))
+                        let style = store.style(item.entry.ref)
+                        let name = indent + (style.emoji.map { "\($0) " } ?? "") + (store.accounts.count > 1 ? "\(g.name) · \(a.label ?? a.providerName)" : g.name)
+                        Group {
+                            if let c = style.color {
+                                Label { Text(name) } icon: { Image(uiImage: ListColor.dot(c)).renderingMode(.original) }
+                            } else {
+                                Text(name)
+                            }
+                        }
+                        .tag(ListFilter.list(accountId: a.id, id: g.id))
                     }
                 }
             }
