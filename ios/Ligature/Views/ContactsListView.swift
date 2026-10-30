@@ -97,6 +97,12 @@ struct ContactsListView: View {
     @State private var stripViewport: CGFloat = 0
     @State private var stripContent: CGFloat = 0
     @State private var newTabName: String?
+    /// A pinned tab’s menu, from holding it and letting go without dragging.
+    @State private var tabMenu: ListEntry?
+    @State private var renamingTab: ListEntry?
+    @State private var renameText = ""
+    @State private var stylingTab: ListEntry?
+    @State private var deletingTab: ListEntry?
     /// List, table or map.
     @AppStorage("layout") private var layout = "list"
     private var showMap: Bool {
@@ -130,6 +136,8 @@ struct ContactsListView: View {
         /// How far the row has auto-scrolled since the drag began.
         var scrolled: CGFloat = 0
         var settling = false
+        /// Moved far enough to count as a drag; a hold and let go opens the tab’s menu instead.
+        var moved = false
 
         var x: CGFloat { startX + translation + scrolled }
         var width: CGFloat { widths[ref] ?? 0 }
@@ -336,6 +344,41 @@ struct ContactsListView: View {
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLists) { ManageListsView() }
+        .confirmationDialog(tabMenu?.list.name ?? "", isPresented: Binding(get: { tabMenu != nil }, set: { if !$0 { tabMenu = nil } }),
+                            titleVisibility: .visible, presenting: tabMenu) { e in
+            if !e.list.system {
+                Button("Rename") { renameText = e.list.name; renamingTab = e }
+            }
+            Button("Color & Emoji") { stylingTab = e }
+            Button("Unpin") { Task { await store.setPinned(e.list, accountId: e.ref.accountId, false) } }
+            Button("Manage Lists…") { showLists = true }
+            if !e.list.system {
+                Button("Delete List", role: .destructive) { deletingTab = e }
+            }
+        }
+        .alert("Rename List", isPresented: Binding(get: { renamingTab != nil }, set: { if !$0 { renamingTab = nil } })) {
+            TextField("Name", text: $renameText)
+            Button("Cancel", role: .cancel) {}
+            Button("Rename") {
+                // Read these now: closing the alert clears them before the task runs.
+                let e = renamingTab
+                let name = renameText.trimmingCharacters(in: .whitespaces)
+                if let e, !name.isEmpty, name != e.list.name {
+                    Task { await store.renameList(e.list, to: name, accountId: e.ref.accountId) }
+                }
+            }
+        }
+        .confirmationDialog("Delete “\(deletingTab?.list.name ?? "")”?",
+                            isPresented: Binding(get: { deletingTab != nil }, set: { if !$0 { deletingTab = nil } }),
+                            titleVisibility: .visible, presenting: deletingTab) { e in
+            Button("Delete List", role: .destructive) {
+                if filter == .list(accountId: e.ref.accountId, id: e.ref.id) { filter = .all }
+                Task { await store.deleteList(e.list, accountId: e.ref.accountId) }
+            }
+        } message: { _ in
+            Text("The people in it stay; they’re just no longer in this list. The label is deleted in Google Contacts too.")
+        }
+        .sheet(item: $stylingTab) { e in ListStyleView(list: e.list, accountId: e.ref.accountId) }
         .alert("New List", isPresented: Binding(get: { newTabName != nil }, set: { if !$0 { newTabName = nil } })) {
             TextField("Name", text: Binding(get: { newTabName ?? "" }, set: { newTabName = $0 }))
             Button("Cancel", role: .cancel) {}
@@ -562,6 +605,7 @@ struct ContactsListView: View {
     private func dragTab(to dx: CGFloat) {
         guard var d = tabDrag, !d.settling else { return }
         d.translation = dx
+        if abs(dx) > 8 { d.moved = true }
         tabDrag = d
         reflowTabs()
     }
@@ -629,10 +673,12 @@ struct ContactsListView: View {
         withAnimation(.snappy(duration: 0.2)) { tabDrag = d }
         let order = d.order
         let changed = order != store.pinnedLists.map { $0.ref }
+        let held = d.moved || d.scrolled != 0 ? nil : store.pinnedLists.first { $0.ref == d.ref }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             if changed { store.pinned = order }
             tabDrag = nil
             if changed { Task { await store.savePinnedOrder() } }
+            if let held { tabMenu = held }
         }
     }
 
