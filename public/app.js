@@ -183,8 +183,7 @@ function renderSignIn(error) {
   $('#root').innerHTML = `
     <main class="center">
       <div class="signin">
-        <div class="mark">${ICON.person}</div>
-        <h1>Ligature</h1>
+        <h1 class="logo" role="img" aria-label="Ligature"></h1>
         <p>A personal CRM on top of Google Contacts. Your own fields stay here and never sync back to Google, iPhone or Mac.</p>
         ${error ? `<p class="error" role="alert">${h(error)}</p>` : ''}
         ${
@@ -549,7 +548,7 @@ function renderSidebar() {
   );
 
   el.innerHTML = `
-    <div class="brand"><div class="mark">${ICON.person}</div><div>Ligature</div></div>
+    <div class="brand"><h1 class="logo" role="img" aria-label="Ligature"></h1></div>
 
     <nav class="nav" aria-label="Accounts">
       <div class="nav-h">Accounts</div>

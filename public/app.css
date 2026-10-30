@@ -1,6 +1,7 @@
 :root {
   --paper: #f1ece5;
   --bg: #fffdfa;
+  --logo: #401212;
   --sidebar: transparent;
   --border: #e6dfd5;
   --text: #2a2622;
@@ -35,6 +36,7 @@
   :root:not([data-theme='light']) {
     --paper: #161412;
     --bg: #211f1c;
+    --logo: #ffffff;
     --sidebar: transparent;
     --border: #38332d;
     --text: #f1ece5;
@@ -69,6 +71,7 @@
 :root[data-theme='dark'] {
   --paper: #161412;
   --bg: #211f1c;
+  --logo: #ffffff;
   --sidebar: transparent;
   --border: #38332d;
   --text: #f1ece5;
@@ -162,7 +165,6 @@ body.resizing-sidebar, body.resizing-sidebar * { cursor: col-resize !important; 
 
 /* ---------------------------------------------------------------- sidebar */
 .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; font-size: 16px; font-weight: 600; }
-.mark { width: 28px; height: 28px; border-radius: 7px; background: var(--mark); color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-h { font-size: 12px; font-weight: 600; color: var(--secondary); padding: 0 8px 4px; }
 .nav-item {
@@ -406,6 +408,10 @@ textarea.input.addr-street { min-height: 0; height: auto; resize: none; }
 .center { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--sidebar); }
 .signin { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px; display: flex; flex-direction: column; gap: 16px; }
 .signin h1 { margin: 0; font-size: 22px; }
+/* The wordmark, drawn in the logo color (white in dark mode). */
+.logo { display: block; aspect-ratio: 346 / 97; background: var(--logo); -webkit-mask: url(/logo.svg) no-repeat center / contain; mask: url(/logo.svg) no-repeat center / contain; }
+.brand .logo { width: 92px; margin: 4px 0; }
+.signin .logo { width: 150px; margin: 0 0 4px; }
 .signin p { margin: 0; color: var(--secondary); }
 .signin .btn.primary { height: 40px; justify-content: center; font-size: 15px; }
 .error { color: var(--danger); }
@@ -995,10 +1001,6 @@ body {
 .main-bar { border-bottom-color: var(--row-line); }
 
 /* Sidebar */
-.brand .mark {
-  background: linear-gradient(145deg, #f3a066, var(--brand) 55%, #c9561c); border-radius: 9px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 2px 6px rgb(200 90 30 / 0.3);
-}
 .nav-h, .grid thead th, .own-h h2, .past-list h3, .keys-group h3 {
   text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; font-weight: 600; color: var(--secondary);
 }
