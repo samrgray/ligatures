@@ -509,24 +509,7 @@ struct ContactsTable: View {
                     .zIndex(colDrag?.id == col.def.id ? 0.5 : 0)
             }
         }
-        // While selecting, a tap on the rest of the row ticks it instead of opening or editing.
-        .overlay {
-            if selecting {
-                HStack(spacing: 0) {
-                    // Leaves the photo column (which stays put as you scroll sideways) to its own buttons.
-                    Color.clear.frame(width: max(0, scrollX) + photoColumn).allowsHitTesting(false)
-                    Button {
-                        if ticked { selection.remove(c.id) } else { selection.insert(c.id) }
-                    } label: {
-                        Color.clear.contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-                .zIndex(2)
-                .accessibilityLabel(c.displayName)
-                .accessibilityAddTraits(ticked ? [.isButton, .isSelected] : .isButton)
-            }
-        }
+        // Only the tick selects; the rest of the row works as usual while selecting.
         .overlay(alignment: .bottom) { if !below { Divider() } }
     }
 

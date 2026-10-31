@@ -436,12 +436,30 @@ struct ContactsListView: View {
         return ScrollViewReader { proxy in
         // Rows are only selectable in Select mode; otherwise iOS treats a tap as selecting the
         // row instead of opening the contact.
-        List(selection: selecting ? $selection : nil) {
+        // Only the ticks select (not the rows), so a tap on a row always opens its card.
+        List {
             // People shown together are rows next to each other, with a “+” between them.
             ForEach(list) { e in
                 ForEach(Array(e.members.enumerated()), id: \.element.id) { j, c in
                     let below = j < e.members.count - 1
-                    // While selecting, the tap goes to the row’s tick instead.
+                    let ticked = selecting && selection.contains(c.id)
+                    HStack(spacing: 0) {
+                    if selecting {
+                        Button {
+                            if ticked { selection.remove(c.id) } else { selection.insert(c.id) }
+                        } label: {
+                            Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
+                                .font(.app(.title2))
+                                .foregroundStyle(ticked ? Color.accentColor : Color.secondary)
+                                .frame(width: 40, alignment: .leading)
+                                .frame(maxHeight: .infinity)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.borderless)
+                        .transition(.move(edge: .leading).combined(with: .opacity))
+                        .accessibilityLabel("Select \(c.displayName)")
+                        .accessibilityAddTraits(ticked ? .isSelected : [])
+                    }
                     Button { open(c.id) } label: {
                         HStack(spacing: 8) {
                             ContactRowView(contact: c, sortByFirst: sortByFirst, pairedBelow: below, current: opened != nil && shownId == c.id,
@@ -455,19 +473,8 @@ struct ContactsListView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(RowButtonStyle())
-                    .disabled(selecting)
-                    // While selecting, the photo still opens (or switches) the card; only the tick selects.
-                    .overlay(alignment: .leading) {
-                        if selecting {
-                            Button { open(c.id) } label: {
-                                Color.clear.frame(width: CGFloat(photoSize) + 8, height: CGFloat(photoSize) + 8).contentShape(Circle())
-                            }
-                            .buttonStyle(.borderless)
-                            .offset(x: -4)
-                            .accessibilityLabel("Show \(c.displayName)")
-                        }
                     }
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(ticked ? Theme.selected : Color.clear)
                     .listRowSeparator(below ? .hidden : .automatic, edges: .bottom)
                     .listRowSeparator(j > 0 ? .hidden : .automatic, edges: .top)
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
@@ -490,6 +497,8 @@ struct ContactsListView: View {
             }
         }
         .listStyle(.plain)
+        // The list draws its own ticks; keep iOS’s edit-mode chrome out of it.
+        .environment(\.editMode, .constant(.inactive))
         .scrollContentBackground(.hidden)
         .refreshable { await store.refresh(sync: true) }
         .overlay {

@@ -68,12 +68,13 @@ struct PersonView: View {
             ZStack(alignment: .top) {
                 // The list stays visible above the card, a little dimmed; tap it to put the card away.
                 // Not over the photos down the left, which stay tappable.
+                // (Padded after the tap is set up, so taps on the photos reach the list.)
                 Color.black.opacity(shown ? 0.14 * max(0, 1 - pull / 300) : 0)
-                    .ignoresSafeArea()
-                    .padding(.leading, leading)
                     .contentShape(Rectangle())
                     .onTapGesture { closeCard() }
                     .accessibilityLabel("Close")
+                    .padding(.leading, leading)
+                    .ignoresSafeArea()
                 ScrollView(.horizontal) {
                     // The gap includes the room on the left, so the card before stays out of sight.
                     LazyHStack(spacing: Self.gap + leading) {
