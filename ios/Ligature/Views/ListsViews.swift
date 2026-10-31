@@ -15,13 +15,15 @@ struct ListPickerView: View {
         NavigationStack {
             List {
                 Section {
-                    ForEach(store.lists(for: accountId)) { list in
+                    ForEach(store.nestedLists(for: accountId), id: \.list.id) { item in
+                        let list = item.list
                         let count = people.filter { $0.groups.contains(list.id) }.count
                         Button {
                             Task { await toggle(list, allIn: count == people.count) }
                         } label: {
                             HStack(spacing: 8) {
                                 ListBadge(name: list.name, style: store.style(ListRef(accountId: accountId, id: list.id)), large: true)
+                                    .padding(.leading, CGFloat(min(item.depth, 8)) * 18)
                                 Spacer()
                                 if busy == list.id {
                                     ProgressView()
@@ -196,9 +198,11 @@ struct ManageListsView: View {
                 if parent != nil {
                     Button("Top Level") { Task { await store.nest(ref, inside: nil) } }
                 }
-                ForEach(store.lists(for: accountId).filter { $0.id != g.id && $0.id != "contactGroups/myContacts" && !inside.contains($0.id) }) { t in
+                ForEach(store.nestedLists(for: accountId).filter { $0.list.id != g.id && $0.list.id != "contactGroups/myContacts" && !inside.contains($0.list.id) }, id: \.list.id) { item in
+                    let t = item.list
+                    let title = Store.indented(t.name, depth: item.depth)
                     Button { Task { await store.nest(ref, inside: t.id) } } label: {
-                        if t.id == parent { Label(t.name, systemImage: "checkmark") } else { Text(t.name) }
+                        if t.id == parent { Label(title, systemImage: "checkmark") } else { Text(title) }
                     }
                 }
             }

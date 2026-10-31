@@ -126,8 +126,10 @@ struct FieldForm: View {
                     Picker("On", selection: $list) {
                         Text("Every Contact").tag(ListRef?.none)
                         ForEach(store.accounts) { a in
-                            ForEach(store.lists(for: a.id).filter { $0.id != "contactGroups/myContacts" }) { l in
-                                Text(store.accounts.count > 1 ? "\(l.name) (\(a.label ?? a.providerName))" : l.name)
+                            ForEach(store.nestedLists(for: a.id).filter { $0.list.id != "contactGroups/myContacts" }, id: \.list.id) { item in
+                                let l = item.list
+                                let name = Store.indented(l.name, depth: item.depth)
+                                Text(store.accounts.count > 1 ? "\(name) (\(a.label ?? a.providerName))" : name)
                                     .tag(Optional(ListRef(accountId: a.id, id: l.id)))
                             }
                         }

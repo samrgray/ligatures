@@ -937,9 +937,11 @@ dialog.add-dlg { width: min(480px, calc(100vw - 32px)); margin-top: 12vh; }
 
 /* Nested lists (the page’s CSP blocks inline styles, so each depth has a rule) */
 nav[aria-label="Lists"] .nav-row { padding-left: calc(var(--depth, 0) * 14px); }
-.nav-row[data-depth="1"] { --depth: 1; } .nav-row[data-depth="2"] { --depth: 2; } .nav-row[data-depth="3"] { --depth: 3; }
-.nav-row[data-depth="4"] { --depth: 4; } .nav-row[data-depth="5"] { --depth: 5; } .nav-row[data-depth="6"] { --depth: 6; }
-.nav-row[data-depth="7"] { --depth: 7; } .nav-row[data-depth="8"] { --depth: 8; }
+[data-depth="1"] { --depth: 1; } [data-depth="2"] { --depth: 2; } [data-depth="3"] { --depth: 3; }
+[data-depth="4"] { --depth: 4; } [data-depth="5"] { --depth: 5; } [data-depth="6"] { --depth: 6; }
+[data-depth="7"] { --depth: 7; } [data-depth="8"] { --depth: 8; }
+/* …and in the list picker and the “Move inside” menu */
+.menu > button[data-depth] { padding-left: calc(6px + var(--depth, 0) * 14px); }
 .nav-twisty {
   position: absolute; left: calc(var(--depth, 0) * 14px - 12px); top: 9px; width: 14px; height: 14px; padding: 0; border: 0; background: none;
   color: var(--secondary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1;

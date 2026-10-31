@@ -746,9 +746,19 @@ final class Store {
 
     // MARK: - Lists
 
-    /// One account’s lists in your order.
+    /// One account’s lists in your order, each followed by the lists inside it.
     func lists(for accountId: String) -> [ContactList] {
-        orderedLists.filter { $0.ref.accountId == accountId }.map { $0.list }
+        nestedLists(for: accountId).map(\.list)
+    }
+
+    /// One account’s lists as a tree, with how deep each one sits.
+    func nestedLists(for accountId: String) -> [(list: ContactList, depth: Int)] {
+        tree(orderedLists.filter { $0.ref.accountId == accountId }).map { (list: $0.entry.list, depth: $0.depth) }
+    }
+
+    /// A list’s name indented for menus and pickers, which can’t be padded.
+    static func indented(_ name: String, depth: Int) -> String {
+        depth == 0 ? name : String(repeating: "\u{2003}", count: depth - 1) + "↳ " + name
     }
 
     private func rawLists(_ accountId: String) -> [ContactList] {

@@ -1411,15 +1411,15 @@ function toggleCollapsed(accountId, id) {
   renderSidebar();
 }
 
-/** Lists as an indented tree, in your order, skipping the insides of collapsed ones. */
-function listTree(groups) {
+/** Lists as an indented tree, in your order, skipping the insides of collapsed ones (unless `all`). */
+function listTree(groups, all = false) {
   const ordered = sortPinnedFirst(groups);
   const rows = [];
   const visit = (accountId, parent, depth) => {
     for (const g of ordered) {
       if ((accountId && g.accountId !== accountId) || parentOf(g.accountId, g.id) !== parent) continue;
       const kids = ordered.some((x) => x.accountId === g.accountId && parentOf(x.accountId, x.id) === g.id);
-      const collapsed = collapsedLists.has(`${g.accountId}|${g.id}`);
+      const collapsed = !all && collapsedLists.has(`${g.accountId}|${g.id}`);
       rows.push({ g, depth, kids, collapsed });
       if (kids && !collapsed) visit(g.accountId, g.id, depth + 1);
     }
@@ -1490,6 +1490,15 @@ function listOrder() {
 function orderedLists(accountId) {
   const a = accountById(accountId);
   return sortPinnedFirst((a?.groups ?? []).map((g) => ({ ...g, accountId }))).map(({ accountId: _, ...g }) => g);
+}
+
+/** A list’s name indented for a native select, which can’t be padded. */
+const indentedName = (name, depth) => (depth ? `${'\u2003'.repeat(depth - 1)}↳ ${name}` : name);
+
+/** One account’s lists as the sidebar nests them, everything expanded: [{ g, depth }]. */
+function nestedLists(accountId) {
+  const a = accountById(accountId);
+  return listTree((a?.groups ?? []).map((g) => ({ ...g, accountId })), true).map(({ g: { accountId: _, ...g }, depth }) => ({ g, depth }));
 }
 
 // Drag a list in the sidebar to reorder it. Dropping it among the pinned lists pins it;
@@ -1719,7 +1728,9 @@ function listBadge(accountId, g, st = listStyle(accountId, g.id)) {
 
 /** The lists a contact is on, in your order. */
 function contactLists(accountId, groups) {
-  return orderedLists(accountId).filter((g) => groups.includes(g.id) && g.id !== 'contactGroups/myContacts');
+  return nestedLists(accountId)
+    .map(({ g }) => g)
+    .filter((g) => groups.includes(g.id) && g.id !== 'contactGroups/myContacts');
 }
 
 /** The first emoji someone typed (an emoji can be several characters). */
@@ -1840,13 +1851,13 @@ function openListMenu(btn) {
   const m = listMenu();
   const g = accountById(LM.accountId)?.groups.find((x) => x.id === LM.id);
   const inside = descendantsOf(LM.accountId, LM.id);
-  const targets = orderedLists(LM.accountId).filter((x) => x.id !== LM.id && x.id !== 'contactGroups/myContacts' && !inside.includes(x.id));
+  const targets = nestedLists(LM.accountId).filter(({ g: x }) => x.id !== LM.id && x.id !== 'contactGroups/myContacts' && !inside.includes(x.id));
   const parent = parentOf(LM.accountId, LM.id);
   const moveMenu = `<div class="menu-sep"></div><div class="menu-h">Move inside</div>${
     parent ? '<button type="button" role="menuitem" data-action="list-unnest"><span class="menu-check"></span>Top Level</button>' : ''
   }${targets
     .map(
-      (x) => `<button type="button" role="menuitem" data-action="list-nest" data-parent="${h(x.id)}"${x.id === parent ? ' aria-checked="true"' : ''}><span class="menu-check">${x.id === parent ? ICON.check : ''}</span>${h(x.name)}</button>`,
+      ({ g: x, depth }) => `<button type="button" role="menuitem" data-action="list-nest" data-parent="${h(x.id)}" data-depth="${Math.min(depth, 8)}"${x.id === parent ? ' aria-checked="true"' : ''}><span class="menu-check">${x.id === parent ? ICON.check : ''}</span>${h(x.name)}</button>`,
     )
     .join('')}`;
   m.innerHTML = `<button type="button" role="menuitem" data-action="list-pin"><span class="menu-check"></span>${isPinned(LM.accountId, LM.id) ? 'Unpin' : 'Pin to Top'}</button>
@@ -1970,10 +1981,10 @@ function fillListPicker() {
   const sections = accountIds.map((aid) => {
     const a = accountById(aid);
     const mine = people.filter((c) => c.accountId === aid);
-    const items = orderedLists(aid).map((g) => {
+    const items = nestedLists(aid).map(({ g, depth }) => {
       const n = mine.filter((c) => c.groups.includes(g.id)).length;
       const state = n === 0 ? 'false' : n === mine.length ? 'true' : 'mixed';
-      return `<button type="button" role="menuitemcheckbox" aria-checked="${state}" data-lp-account="${h(aid)}" data-lp-group="${h(g.id)}"${LP.busy ? ' disabled' : ''}>
+      return `<button type="button" role="menuitemcheckbox" aria-checked="${state}" data-lp-account="${h(aid)}" data-lp-group="${h(g.id)}" data-depth="${Math.min(depth, 8)}"${LP.busy ? ' disabled' : ''}>
           <span class="menu-check">${state === 'true' ? ICON.check : state === 'mixed' ? ICON.dash : ''}</span><span class="lp-name">${listBadge(aid, g)}</span></button>`;
     });
     const head = accountIds.length > 1 ? `<div class="menu-h">${h(a?.label || a?.providerName || '')}</div>` : '';
@@ -3370,9 +3381,9 @@ function renderFieldsDialog() {
   const listSelect = (f, attrs) => {
     const value = f?.listId ? `${f.accountId}|${f.listId}` : '';
     const opts = (a) =>
-      a.groups
-        .filter((g) => g.id !== 'contactGroups/myContacts')
-        .map((g) => `<option value="${h(`${a.id}|${g.id}`)}" ${`${a.id}|${g.id}` === value ? 'selected' : ''}>${h(g.name)}</option>`)
+      nestedLists(a.id)
+        .filter(({ g }) => g.id !== 'contactGroups/myContacts')
+        .map(({ g, depth }) => `<option value="${h(`${a.id}|${g.id}`)}" ${`${a.id}|${g.id}` === value ? 'selected' : ''}>${h(indentedName(g.name, depth))}</option>`)
         .join('');
     const gone = f?.listId && !fieldList(f) ? `<option value="${h(value)}" selected disabled>${h(fieldListName(f))} (deleted)</option>` : '';
     return `<select class="input" ${attrs}><option value="">Every contact</option>${gone}${
