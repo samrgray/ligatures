@@ -760,9 +760,15 @@ body.moving-list, body.moving-list * { cursor: grabbing !important; user-select:
 .list-drop { position: fixed; height: 2px; border-radius: 1px; background: var(--accent); z-index: 50; pointer-events: none; }
 
 /* ---------------------------------------------------------------- relationships */
-.grid tbody tr.grp:not(.grp-last) td:not([rowspan]) { border-bottom-color: transparent; }
-/* Stacked down the cell (the shared row is taller), so a pair is no wider than one person. */
-.av-stack { display: flex; flex-direction: column; gap: 4px; flex: none; }
+/* People shown together: adjacent rows, no line between them, a “+” on the join under the photos. */
+.grid tbody tr.grp td { border-bottom-color: transparent; }
+.grid tbody tr.grp td.c-name { overflow: visible; z-index: 2; }
+.grp-plus {
+  position: absolute; left: calc(10px + var(--av, 22px) / 2); bottom: 0; transform: translate(-50%, 50%); z-index: 1;
+  width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); color: var(--secondary); box-shadow: 0 0 0 1px var(--row-line), 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-size: 12px; font-weight: 600; line-height: 1; pointer-events: none;
+}
 
 /* Photo size in the table, from the slider. */
 .grid .mini-av { width: var(--av, 22px); height: var(--av, 22px); border-radius: 50%; font-size: max(9px, calc(var(--av, 22px) * 0.38)); }

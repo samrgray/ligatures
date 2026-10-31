@@ -1077,29 +1077,27 @@ function renderGrid() {
   if (S.layout === 'map') mapView?.update();
 }
 
-/** One person’s row. People shown together share the checkbox and name cells of the first row. */
+/**
+ * One person’s row. People shown together are rows next to each other, each ticked and opened
+ * on its own, with a “+” between them in the name column.
+ */
 function gridRow(c, j, members, cols) {
   const together = members.length > 1;
+  const pairedBelow = together && j < members.length - 1;
   const open = S.drawer && c.id === S.selectedId;
-  const ids = members.map((m) => m.id);
-  const span = together ? ` rowspan="${members.length}"` : '';
-  const av = (m) =>
-    `<span class="mini-av" aria-hidden="true">${
-      m.photoUrl ? `<img src="${h(thumb(m.photoUrl))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : h(initials(m))
-    }</span>`;
+  const av = `<span class="mini-av" aria-hidden="true">${
+    c.photoUrl ? `<img src="${h(thumb(c.photoUrl))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : h(initials(c))
+  }</span>`;
   const cells = cols
     .map((col) => {
       const v = String(col.text(c) ?? '');
       if (col.id === 'name') {
-        if (j > 0) return '';
-        const name = together ? togetherName(members) : v;
-        const avs = together ? `<span class="av-stack">${members.map(av).join('')}</span>` : av(c);
-        return `<td class="c-name"${span} data-ids="${h(ids.join(' '))}"${together ? ` title="${h(name)}"` : ''}><button type="button" class="cell-open" data-open="${h(c.id)}" draggable="${inArchive() ? 'false' : 'true'}">${avs}<span class="cell-name">${h(name)}</span>${
-          members.some((m) => m.draft) ? '<span class="draft-tag" title="Only in Ligatures, not in Google Contacts">Draft</span>' : ''
-        }</button></td>`;
+        const plus = pairedBelow ? `<span class="grp-plus" aria-hidden="true">+</span>` : '';
+        return `<td class="c-name" data-ids="${h(c.id)}"><button type="button" class="cell-open" data-open="${h(c.id)}" draggable="${inArchive() ? 'false' : 'true'}">${av}<span class="cell-name">${h(v)}</span>${
+          c.draft ? '<span class="draft-tag" title="Only in Ligatures, not in Google Contacts">Draft</span>' : ''
+        }</button>${plus}</td>`;
       }
-      const tip = together ? `${c.displayName || 'No name'}: ${v}` : v;
-      const title = (together && v) || v.length > 20 ? ` title="${h(tip)}"` : '';
+      const title = v.length > 20 ? ` title="${h(v)}"` : '';
       const href = v && col.href ? col.href(c) : '';
       let inner = href
         ? `<a href="${h(href)}"${/^https?:/i.test(href) ? ' target="_blank" rel="noopener noreferrer"' : ''}>${h(v)}</a>`
@@ -1114,11 +1112,8 @@ function gridRow(c, j, members, cols) {
       return `<td class="${col.nums ? 'nums' : ''}"${title}>${inner}</td>`;
     })
     .join('');
-  const cls = [open ? 'open' : '', c.draft ? 'is-draft' : '', S.selected.has(c.id) ? 'checked' : '', together ? 'grp' : '', together && j === members.length - 1 ? 'grp-last' : '']
-    .filter(Boolean)
-    .join(' ');
-  const label = together ? togetherName(members) : c.displayName || 'contact';
-  const check = j > 0 ? '' : `<td class="c-check"${span}><input type="checkbox" data-check="${h(ids.join(' '))}" aria-label="Select ${h(label)}"></td>`;
+  const cls = [open ? 'open' : '', c.draft ? 'is-draft' : '', S.selected.has(c.id) ? 'checked' : '', pairedBelow ? 'grp' : ''].filter(Boolean).join(' ');
+  const check = `<td class="c-check"><input type="checkbox" data-check="${h(c.id)}" aria-label="Select ${h(c.displayName || 'contact')}"></td>`;
   return `<tr data-id="${h(c.id)}" class="${cls}"${open ? ' aria-current="true"' : ''}>${check}${cells}<td class="c-fill"></td></tr>`;
 }
 
@@ -4189,10 +4184,8 @@ function gridClick(e) {
     return true;
   }
   if (e.metaKey || e.ctrlKey) {
-    // On the shared name of people shown together, Cmd-click ticks all of them.
-    const ids = t.closest('td[data-ids]')?.dataset.ids.split(' ') ?? [id];
-    const on = !ids.every((x) => S.selected.has(x));
-    for (const x of ids) on ? S.selected.add(x) : S.selected.delete(x);
+    if (S.selected.has(id)) S.selected.delete(id);
+    else S.selected.add(id);
     S.anchorId = id;
     syncChecks();
     return true;

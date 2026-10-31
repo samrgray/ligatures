@@ -262,8 +262,7 @@ struct ContactsListView: View {
                                 selection = all ? [] : ids
                             }
                         } else {
-                            // The list ticks whole rows (people shown together); the table, everyone in each block.
-                            let ids = showTable ? visible.map(\.id) : entries(visible).map(\.id)
+                            let ids = visible.map(\.id)
                             let all = !ids.isEmpty && ids.allSatisfy { selection.contains($0) }
                             Button(all ? "Deselect All" : "Select All") {
                                 selection = all ? [] : Set(ids)
@@ -422,44 +421,37 @@ struct ContactsListView: View {
         // Rows are only selectable in Select mode; otherwise iOS treats a tap as selecting the
         // row instead of opening the contact.
         List(selection: selecting ? $selection : nil) {
+            // People shown together are rows next to each other, with a “+” between them.
             ForEach(list) { e in
-                let c = e.lead
-                // While selecting, the tap goes to the row’s tick instead.
-                Button { open(e.id) } label: {
-                    HStack(spacing: 8) {
-                        if e.members.count > 1 {
-                            TogetherRowView(members: e.members, holdPhoto: { startSelecting(e.id) })
-                        } else {
-                            ContactRowView(contact: c, sortByFirst: sortByFirst, holdPhoto: { startSelecting(e.id) })
+                ForEach(Array(e.members.enumerated()), id: \.element.id) { j, c in
+                    let below = j < e.members.count - 1
+                    // While selecting, the tap goes to the row’s tick instead.
+                    Button { open(c.id) } label: {
+                        HStack(spacing: 8) {
+                            ContactRowView(contact: c, sortByFirst: sortByFirst, pairedBelow: below, holdPhoto: { startSelecting(c.id) })
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right")
+                                .font(.app(.footnote, .semibold))
+                                .foregroundStyle(.tertiary)
                         }
-                        Spacer(minLength: 0)
-                        Image(systemName: "chevron.right")
-                            .font(.app(.footnote, .semibold))
-                            .foregroundStyle(.tertiary)
+                        .padding(.trailing, showIndex ? 12 : 0)
+                        .contentShape(Rectangle())
                     }
-                    .padding(.trailing, showIndex ? 12 : 0)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(RowButtonStyle())
-                .disabled(selecting)
-                .listRowBackground(Color.clear)
+                    .buttonStyle(RowButtonStyle())
+                    .disabled(selecting)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(below ? .hidden : .automatic, edges: .bottom)
+                    .listRowSeparator(j > 0 ? .hidden : .automatic, edges: .top)
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        if e.members.count == 1 && !c.phone.isEmpty {
+                        if !c.phone.isEmpty {
                             Button { if let u = Links.tel(c.phone) { openURL(u) } } label: { Label("Call", systemImage: "phone.fill") }
                                 .tint(.green)
                             Button { if let u = Links.sms(c.phone) { openURL(u) } } label: { Label("Message", systemImage: "message.fill") }
                                 .tint(.blue)
                         }
                     }
-                    .contextMenu {
-                        if e.members.count > 1 {
-                            ForEach(e.members) { m in
-                                Menu(m.displayName.isEmpty ? "No Name" : m.displayName) { quickActions(m) }
-                            }
-                        } else {
-                            quickActions(c)
-                        }
-                    }
+                    .contextMenu { quickActions(c) }
+                }
             }
             if !items.isEmpty {
                 Text("\(items.count) \(items.count == 1 ? "Contact" : "Contacts")")
@@ -954,30 +946,18 @@ struct ContactsListView: View {
     }
 }
 
-/// People shown together: overlapping photos and “Alex & Jamie Smith”.
-struct TogetherRowView: View {
-    let members: [ContactRow]
-    var holdPhoto: (() -> Void)?
-    @Environment(\.photoSize) private var size
+/// The “+” on the join between people shown together.
+struct PairPlus: View {
+    static let size: CGFloat = 16
 
     var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                ForEach(Array(members.prefix(2).enumerated()), id: \.element.id) { i, m in
-                    Avatar(url: m.photoUrl, initials: m.initials, size: size * 0.72)
-                        .overlay(Circle().stroke(Theme.card, lineWidth: 2))
-                        .offset(x: (i == 0 ? -1 : 1) * size / 6, y: (i == 0 ? -1 : 1) * size / 6)
-                }
-            }
-            .frame(width: size, height: size)
-            .contentShape(Rectangle())
-            .gesture(HoldToSelect(enabled: holdPhoto != nil) { holdPhoto?() })
-            Text(Together.name(members))
-                .fontWeight(.semibold)
-                .lineLimit(1)
-        }
-        .padding(.vertical, 1)
-        .accessibilityElement(children: .combine)
+        Image(systemName: "plus")
+            .font(.system(size: 8, weight: .bold))
+            .foregroundStyle(.secondary)
+            .frame(width: Self.size, height: Self.size)
+            .background(Circle().fill(Theme.card).shadow(color: .black.opacity(0.08), radius: 1, y: 1))
+            .overlay(Circle().strokeBorder(Theme.line, lineWidth: 0.5))
+            .accessibilityHidden(true)
     }
 }
 
@@ -1005,6 +985,8 @@ struct DraftTag: View {
 struct ContactRowView: View {
     let contact: ContactRow
     let sortByFirst: Bool
+    /// Shown together with the person in the next row: a “+” between their photos.
+    var pairedBelow = false
     var holdPhoto: (() -> Void)?
     @Environment(\.photoSize) private var size
 
@@ -1016,6 +998,8 @@ struct ContactRowView: View {
                         Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
                     }
                 }
+                // Halfway to the next row’s photo (the list’s own row padding is about 8 points).
+                .overlay(alignment: .bottom) { if pairedBelow { PairPlus().offset(y: PairPlus.size / 2 + 9) } }
                 .gesture(HoldToSelect(enabled: holdPhoto != nil) { holdPhoto?() })
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {
