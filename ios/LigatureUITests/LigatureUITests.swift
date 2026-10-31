@@ -157,27 +157,20 @@ final class LigatureUITests: XCTestCase {
     func testAddAFieldAndAColumn() {
         XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5))
         app.buttons["Layout"].tap()
-        app.buttons["Your Fields…"].tap()
-        XCTAssertTrue(app.buttons["New Field"].waitForExistence(timeout: 3), "no Your Fields screen")
+        app.buttons["Table"].tap()
+        // The “+” after the last column opens Columns, where a new field becomes a column in one go.
+        let plus = app.buttons["Add a Column"]
+        for _ in 0..<5 where !plus.isHittable { app.swipeLeft() }
+        XCTAssertTrue(plus.waitForExistence(timeout: 3), "no + after the last column")
+        plus.tap()
+        XCTAssertTrue(app.buttons["New Field"].waitForExistence(timeout: 3), "no New Field in Columns")
         app.buttons["New Field"].tap()
         let name = app.textFields["Name"]
         XCTAssertTrue(name.waitForExistence(timeout: 3))
         name.tap()
         name.typeText("Favorite coffee")
         app.buttons["Add"].tap()
-        XCTAssertTrue(app.staticTexts["Favorite coffee"].waitForExistence(timeout: 3), "the new field isn’t listed")
-        shot("ui-fields")
-        app.buttons["Done"].tap()
-
-        app.buttons["Layout"].tap()
-        app.buttons["Table"].tap()
-        app.buttons["Layout"].tap()
-        app.buttons["Columns…"].tap()
-        // New fields come last among the hidden columns, below the half-height sheet’s fold.
-        let add = app.buttons["Favorite coffee"]
-        for _ in 0..<5 where !add.exists { app.swipeUp() }
-        XCTAssertTrue(add.waitForExistence(timeout: 3), "the new field isn’t offered as a column")
-        add.tap()
+        XCTAssertTrue(app.staticTexts["Favorite coffee"].waitForExistence(timeout: 3), "the new field isn’t a shown column")
         shot("ui-columns")
         app.buttons["Done"].tap()
         XCTAssertTrue(app.buttons["Favorite coffee"].waitForExistence(timeout: 3), "the column isn’t in the table")

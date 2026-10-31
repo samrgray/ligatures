@@ -245,7 +245,6 @@ function renderShell() {
         </div>
       </main>
     </div>
-    <dialog id="fields-dlg" aria-labelledby="fields-title"></dialog>
     <dialog id="columns-dlg" class="columns-dlg" aria-labelledby="columns-title"></dialog>
     <dialog id="confirm-dlg" class="confirm-dlg" aria-labelledby="confirm-title"></dialog>
     <dialog id="list-style-dlg" class="list-style-dlg" aria-labelledby="list-style-title"></dialog>
@@ -634,6 +633,7 @@ function renderSidebar() {
 
 const COL_MIN = 60;
 const CHECK_W = 40;
+const ADD_W = 44;
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
 function shortDate(ts) {
@@ -1058,7 +1058,7 @@ function renderGrid() {
             <span class="col-resize" data-resize="${h(c.id)}" title="Drag to resize. Double-click to reset." aria-hidden="true"></span></th>`,
         )
         .join('')}
-      <th class="c-fill" aria-hidden="true"></th></tr></thead>`;
+      <th class="c-fill"><button type="button" class="th-add" data-action="add-column" aria-label="Add a column" title="Add a column or field">${ICON.plus}</button></th></tr></thead>`;
 
   let body;
   if (!items.length) {
@@ -1123,7 +1123,7 @@ function applyWidths(cols = activeColumns()) {
   if (!table) return;
   // Saved widths follow you between devices; on a phone the pinned Name column stays narrow.
   const narrow = window.matchMedia('(max-width: 820px)').matches;
-  let total = CHECK_W;
+  let total = CHECK_W + ADD_W; // the “+” column after the last one
   for (const c of cols) {
     const w = narrow && c.id === 'name' ? Math.min(c.w, 150) : c.w;
     const col = table.querySelector(`col[data-col="${CSS.escape(c.id)}"]`);
@@ -1255,10 +1255,16 @@ function renderColumnsDialog() {
   const byId = new Map(defs.map((d) => [d.id, d]));
   const shown = S.cols.filter((c) => byId.has(c.id)).map((c) => byId.get(c.id));
   const hidden = defs.filter((d) => !S.cols.some((c) => c.id === d.id));
-  const item = (d, on, i) => `<li class="col-item${on ? '' : ' off'}" data-col-item="${h(d.id)}"${on && !d.fixed ? ' draggable="true"' : ''}>
+  // A list’s own fields only apply in that list; they’re edited here, but not shown as columns.
+  const elsewhere = S.session.fields.filter((f) => !fieldOnView(f));
+  const item = (d, on, i) => `<li class="col-item${on ? '' : ' off'}${d.own ? ' is-field' : ''}" data-col-item="${h(d.id)}"${on && !d.fixed ? ' draggable="true"' : ''}>
       <span class="grip" aria-hidden="true">${on && !d.fixed ? ICON.grip : ''}</span>
-      <label><input type="checkbox" data-col-toggle="${h(d.id)}" ${on ? 'checked' : ''} ${d.fixed ? 'disabled' : ''}>
-        <span>${h(d.label)}${d.own ? ' <span class="muted">· your field</span>' : ''}${d.fixed ? ' <span class="muted">· always shown</span>' : ''}</span></label>
+      ${
+        d.own
+          ? `<input type="checkbox" data-col-toggle="${h(d.id)}" ${on ? 'checked' : ''} aria-label="Show ${h(d.label)}">${fieldControls(d.field)}`
+          : `<label><input type="checkbox" data-col-toggle="${h(d.id)}" ${on ? 'checked' : ''} ${d.fixed ? 'disabled' : ''}>
+        <span>${h(d.label)}${d.fixed ? ' <span class="muted">· always shown</span>' : ''}</span></label>`
+      }
       ${
         on && !d.fixed
           ? `<span class="col-move">
@@ -1269,13 +1275,28 @@ function renderColumnsDialog() {
       }
     </li>`;
   dlg.innerHTML = `
-    <form method="dialog" class="dlg">
+    <form method="dialog" class="dlg" id="fields-form">
       <h2 id="columns-title">Columns</h2>
-      <p>Tick the columns to show. Drag or use the arrows to reorder; the top of the list is the left of the table. Drag a column’s edge in the table to resize it, and click a heading to sort.</p>
+      <p>Tick the columns to show; drag or use the arrows to reorder. Your fields (stored only in Ligatures, never synced to Google, iPhone or Mac) can be renamed and changed right here.</p>
+      ${newFieldRow()}
       <ul class="col-list" id="col-shown">${shown.map((d, i) => item(d, true, i)).join('')}</ul>
       ${hidden.length ? `<div class="col-h">Hidden</div><ul class="col-list">${hidden.map((d) => item(d, false)).join('')}</ul>` : ''}
+      ${
+        elsewhere.length
+          ? `<div class="col-h">Fields for other lists</div><ul class="col-list">${elsewhere
+              .map((f) => `<li class="col-item is-field off"><span class="grip"></span>${fieldControls(f)}</li>`)
+              .join('')}</ul>`
+          : ''
+      }
       <div class="dlg-foot"><button type="button" class="btn" data-action="cols-reset">Reset</button><span class="grow"></span><button class="btn primary" value="close">Done</button></div>
     </form>`;
+}
+
+function openColumnsDialog(focusNewField) {
+  renderColumnsDialog();
+  const dlg = $('#columns-dlg');
+  if (!dlg.open) dlg.showModal();
+  if (focusNewField) $('#new-field-label')?.focus();
 }
 
 function columnsChanged(focusSelector) {
@@ -3357,66 +3378,71 @@ async function archiveAction(action, ids, etags = {}) {
   if (msg) toast(msg.trim(), skipped.length ? 8000 : 5000);
 }
 
-// ---------------------------------------------------------------- your fields dialog
+// ---------------------------------------------------------------- your fields (in the Columns dialog)
 
-function renderFieldsDialog() {
-  const dlg = $('#fields-dlg');
-  const fields = S.session.fields;
-  const typeSelect = (value, attrs) =>
-    `<select class="input" ${attrs}>${[
-      ['text', 'Text'],
-      ['longtext', 'Long text'],
-      ['date', 'Date'],
-      ['url', 'Link'],
-      ['checkbox', 'Checkbox'],
-    ]
-      .map(([v, l]) => `<option value="${v}" ${v === value ? 'selected' : ''}>${l}</option>`)
-      .join('')}</select>`;
+const FIELD_TYPES = [
+  ['text', 'Text'],
+  ['longtext', 'Long text'],
+  ['date', 'Date'],
+  ['url', 'Link'],
+  ['checkbox', 'Checkbox'],
+];
+
+function fieldTypeSelect(value, attrs) {
+  return `<select class="input" ${attrs}>${FIELD_TYPES.map(([v, l]) => `<option value="${v}" ${v === value ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+}
+
+/** Who has a field: every contact, or the people in one list. */
+function fieldListSelect(f, attrs) {
   const accounts = S.session.accounts;
-  const listSelect = (f, attrs) => {
-    const value = f?.listId ? `${f.accountId}|${f.listId}` : '';
-    const opts = (a) =>
-      nestedLists(a.id)
-        .filter(({ g }) => g.id !== 'contactGroups/myContacts')
-        .map(({ g, depth }) => `<option value="${h(`${a.id}|${g.id}`)}" ${`${a.id}|${g.id}` === value ? 'selected' : ''}>${h(indentedName(g.name, depth))}</option>`)
-        .join('');
-    const gone = f?.listId && !fieldList(f) ? `<option value="${h(value)}" selected disabled>${h(fieldListName(f))} (deleted)</option>` : '';
-    return `<select class="input" ${attrs}><option value="">Every contact</option>${gone}${
-      accounts.length > 1 ? accounts.map((a) => `<optgroup label="${h(a.label)}">${opts(a)}</optgroup>`).join('') : accounts.map(opts).join('')
-    }</select>`;
-  };
+  const value = f?.listId ? `${f.accountId}|${f.listId}` : '';
+  const opts = (a) =>
+    nestedLists(a.id)
+      .filter(({ g }) => g.id !== 'contactGroups/myContacts')
+      .map(({ g, depth }) => `<option value="${h(`${a.id}|${g.id}`)}" ${`${a.id}|${g.id}` === value ? 'selected' : ''}>${h(indentedName(g.name, depth))}</option>`)
+      .join('');
+  const gone = f?.listId && !fieldList(f) ? `<option value="${h(value)}" selected disabled>${h(fieldListName(f))} (deleted)</option>` : '';
+  return `<select class="input" ${attrs}><option value="">Every contact</option>${gone}${
+    accounts.length > 1 ? accounts.map((a) => `<optgroup label="${h(a.label)}">${opts(a)}</optgroup>`).join('') : accounts.map(opts).join('')
+  }</select>`;
+}
+
+/** One of your fields, editable in place: name, type, who has it, and delete. */
+function fieldControls(f) {
+  return `<span class="field-row">
+      <input class="input" aria-label="Field name" data-field-label="${h(f.id)}" value="${h(f.label)}">
+      ${fieldTypeSelect(f.type, `aria-label="Type of ${h(f.label)}" data-field-type="${h(f.id)}"${f.key ? ' disabled' : ''}`)}
+      ${fieldListSelect(f, `aria-label="Who has ${h(f.label)}" data-field-list="${h(f.id)}"${f.key ? ' disabled' : ''}`)}
+      ${
+        f.key
+          ? `<span class="field-builtin" title="${f.key === 'signal' ? 'Built in: adds a Signal button' : f.key === 'signal_username' ? 'Built in: the Signal button uses it' : 'Built in: places people on the map'}">${ICON.pin}</span>`
+          : `<button type="button" class="icon-btn" data-action="delete-field" data-id="${h(f.id)}" aria-label="Delete ${h(f.label)}">${ICON.x}</button>`
+      }
+    </span>`;
+}
+
+/** Adding a field; it shows as a column straight away. */
+function newFieldRow() {
   const viewing = S.filter.type === 'group' && S.filter.id !== 'contactGroups/myContacts' ? { accountId: S.filter.accountId, listId: S.filter.id } : null;
-  dlg.innerHTML = `
-    <form method="dialog" class="dlg" id="fields-form">
-      <h2 id="fields-title">Your fields</h2>
-      <p>Extra fields on every contact, or only on people in one list. They’re stored only in Ligatures and never sync to Google, iPhone or Mac.</p>
-      ${fields
-        .map(
-          (f) => `<div class="field-row">
-            <input class="input" aria-label="Field name" data-field-label="${h(f.id)}" value="${h(f.label)}">
-            ${typeSelect(f.type, `aria-label="Type of ${h(f.label)}" data-field-type="${h(f.id)}"${f.key ? ' disabled' : ''}`)}
-            ${listSelect(f, `aria-label="Who has ${h(f.label)}" data-field-list="${h(f.id)}"${f.key ? ' disabled' : ''}`)}
-            ${
-              f.key
-                ? `<span class="field-builtin" title="${f.key === 'signal' ? 'Built in: adds a Signal button' : f.key === 'signal_username' ? 'Built in: the Signal button uses it' : 'Built in: places people on the map'}">${ICON.pin}</span>`
-                : `<button type="button" class="icon-btn" data-action="delete-field" data-id="${h(f.id)}" aria-label="Delete ${h(f.label)}">${ICON.x}</button>`
-            }
-          </div>`,
-        )
-        .join('')}
+  return `<div class="new-field">
+      <div class="col-h">New field</div>
       <div class="field-row">
-        <input class="input" id="new-field-label" aria-label="New field name" placeholder="New field">
-        ${typeSelect('text', 'id="new-field-type" aria-label="New field type"')}
-        ${listSelect(viewing, 'id="new-field-list" aria-label="Who has the new field"')}
-        <button type="button" class="icon-btn" data-action="add-field" aria-label="Add field">${ICON.plus}</button>
+        <input class="input" id="new-field-label" aria-label="New field name" placeholder="Name">
+        ${fieldTypeSelect('text', 'id="new-field-type" aria-label="New field type"')}
+        ${fieldListSelect(viewing, 'id="new-field-list" aria-label="Who has the new field"')}
+        <button type="button" class="btn primary" data-action="add-field">Add</button>
       </div>
-      <div class="dlg-foot"><button class="btn primary" value="close">Done</button></div>
-    </form>`;
+    </div>`;
 }
 
 async function fieldsChanged() {
   await refreshSession();
-  renderFieldsDialog();
+  if ($('#columns-dlg').open) {
+    const scroll = $('#columns-dlg').scrollTop;
+    renderColumnsDialog();
+    $('#columns-dlg').scrollTop = scroll;
+  }
+  renderGrid();
   if (S.mode === 'view') renderDetail();
 }
 
@@ -4435,9 +4461,9 @@ document.addEventListener('click', async (e) => {
     case 'compose':
       return openComposer();
     case 'columns':
-      renderColumnsDialog();
-      $('#columns-dlg').showModal();
-      return;
+      return openColumnsDialog(false);
+    case 'add-column':
+      return openColumnsDialog(true);
     case 'clear-select':
       return clearSelection();
     case 'close-detail':
@@ -4454,9 +4480,7 @@ document.addEventListener('click', async (e) => {
       location.href = '/';
       return;
     case 'fields':
-      renderFieldsDialog();
-      $('#fields-dlg').showModal();
-      return;
+      return openColumnsDialog(true);
     case 'add-field': {
       const label = $('#new-field-label').value.trim();
       if (!label) return $('#new-field-label').focus();
@@ -4466,8 +4490,11 @@ document.addEventListener('click', async (e) => {
           method: 'POST',
           body: { label, type: $('#new-field-type').value, list: listId ? { accountId, listId } : null },
         });
-        // A list’s field starts out as a column in that list’s table.
-        if (listId) {
+        // A new field starts out as a column: here if it applies here, otherwise in its list’s table.
+        if (fieldOnView(f)) {
+          S.cols.push({ id: `f:${f.id}` });
+          savePrefs();
+        } else if (listId) {
           const key = viewKey({ type: 'group', id: listId, accountId });
           const saved = S.session.user.prefs?.views?.[key];
           if (key === S.prefsView) {

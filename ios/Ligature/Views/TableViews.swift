@@ -84,6 +84,12 @@ struct ContactsTable: View {
 
     private var nameByFirst: Bool { prefs.nameSort == "first" }
 
+    /// The list you’re viewing, if any: where a new field starts out.
+    private var viewedList: ListRef? {
+        if case let .list(accountId, id) = filter, id != "contactGroups/myContacts" { return ListRef(accountId: accountId, id: id) }
+        return nil
+    }
+
     private var allColumns: [TableColumnDef] {
         let oneLine = { (s: String) in s.split(whereSeparator: \.isNewline).joined(separator: " ") }
         var cols: [TableColumnDef] = [
@@ -219,8 +225,13 @@ struct ContactsTable: View {
         .sheet(item: $picking) { ref in datePicker(ref) }
         .sheet(item: $listsFor) { c in ListPickerView(ids: [c.id], accountId: c.accountId) }
         .sheet(isPresented: showColumns) {
-            ColumnsSheet(choices: allColumns.map { ColumnsSheet.Choice(id: $0.id, label: $0.label) },
-                         shown: columns.map { col in ColumnPref(id: col.def.id, w: prefs.columns?.first { $0.id == col.def.id }?.w) }) { cols in
+            ColumnsSheet(choices: allColumns.map { d -> ColumnsSheet.Choice in
+                             var field: FieldDef?
+                             if case let .field(f) = d.kind { field = f }
+                             return ColumnsSheet.Choice(id: d.id, label: d.label, field: field)
+                         },
+                         shown: columns.map { col in ColumnPref(id: col.def.id, w: prefs.columns?.first { $0.id == col.def.id }?.w) },
+                         startList: viewedList, onView: onView) { cols in
                 var p = prefs
                 p.columns = cols
                 Task { await store.saveViewPrefs(key, p) }
@@ -259,6 +270,16 @@ struct ContactsTable: View {
                 }
                 .buttonStyle(.plain)
             }
+            // After the last column: add a column, or make a new field for one.
+            Button { showColumns.wrappedValue = true } label: {
+                Image(systemName: "plus")
+                    .font(.app(.footnote, .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add a Column")
         }
         .background(Theme.card)
         .overlay(alignment: .bottom) { Divider() }
@@ -543,26 +564,42 @@ struct ScrollTuner: UIViewRepresentable {
 
 /// Which columns the table shows for this view, and in what order. Name always comes first.
 /// Saved as you go, shared with the web.
+/// The table’s columns for this view, and your fields: show, hide and reorder columns; add a
+/// field (it shows as a column straight away); tap one of your fields to rename, retype or delete it.
 struct ColumnsSheet: View {
     struct Choice: Identifiable {
         let id: String
         let label: String
+        var field: FieldDef?
     }
 
     let choices: [Choice]
     @State var shown: [ColumnPref]
+    /// Who a new field is on to start with.
+    var startList: ListRef?
+    /// Whether a field shows as a column in this view.
+    var onView: (FieldDef) -> Bool = { _ in true }
     let save: ([ColumnPref]) -> Void
+    @Environment(Store.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @State private var editing: FieldsView.FieldTarget?
 
-    private func label(_ id: String) -> String { choices.first { $0.id == id }?.label ?? id }
+    private func choice(_ id: String) -> Choice? { choices.first { $0.id == id } }
     private var hidden: [Choice] { choices.filter { c in !shown.contains { $0.id == c.id } } }
+    /// A list’s own fields, while viewing somewhere else: edited here, not shown as columns.
+    private var elsewhere: [FieldDef] { store.fields.filter { !onView($0) } }
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
+                    Button { editing = FieldsView.FieldTarget(field: nil) } label: { Label("New Field", systemImage: "plus") }
+                } footer: {
+                    Text("Your fields are kept only in Ligatures. They never sync to Google, your iPhone or your Mac.")
+                }
+                Section {
                     ForEach(shown, id: \.id) { c in
-                        Text(label(c.id))
+                        row(c.id, label: choice(c.id)?.label ?? c.id, field: choice(c.id)?.field)
                             .moveDisabled(c.id == "name")
                             .deleteDisabled(c.id == "name")
                     }
@@ -584,17 +621,27 @@ struct ColumnsSheet: View {
                 if !hidden.isEmpty {
                     Section("Hidden") {
                         ForEach(hidden) { c in
-                            Button {
-                                shown.append(ColumnPref(id: c.id))
-                                save(shown)
-                            } label: {
-                                Label {
-                                    Text(c.label).foregroundStyle(Theme.ink)
-                                } icon: {
-                                    Image(systemName: "plus.circle.fill").foregroundStyle(.green)
+                            HStack {
+                                Button {
+                                    shown.append(ColumnPref(id: c.id))
+                                    save(shown)
+                                } label: {
+                                    Label {
+                                        Text(c.label).foregroundStyle(Theme.ink)
+                                    } icon: {
+                                        Image(systemName: "plus.circle.fill").foregroundStyle(.green)
+                                    }
                                 }
+                                .buttonStyle(.borderless)
+                                Spacer(minLength: 0)
+                                if let f = c.field { editButton(f) }
                             }
                         }
+                    }
+                }
+                if !elsewhere.isEmpty {
+                    Section("Fields for Other Lists") {
+                        ForEach(elsewhere) { f in row("f:\(f.id)", label: f.label, field: f) }
                     }
                 }
             }
@@ -602,7 +649,38 @@ struct ColumnsSheet: View {
             .navigationTitle("Columns")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.bold() } }
+            .sheet(item: $editing) { t in
+                FieldForm(field: t.field, startList: startList) { f in
+                    // A new field shows as a column straight away, if it applies here.
+                    guard onView(f), !shown.contains(where: { $0.id == "f:\(f.id)" }) else { return }
+                    shown.append(ColumnPref(id: "f:\(f.id)"))
+                    save(shown)
+                }
+            }
         }
         .presentationDetents([.medium, .large])
+        .storeAlert()
+    }
+
+    private func row(_ id: String, label: String, field: FieldDef?) -> some View {
+        HStack {
+            Text(label)
+            Spacer(minLength: 0)
+            if let field { editButton(field) }
+        }
+    }
+
+    /// One of your fields: its type, and a tap to change it.
+    private func editButton(_ f: FieldDef) -> some View {
+        Button { editing = FieldsView.FieldTarget(field: f) } label: {
+            HStack(spacing: 6) {
+                Text(f.key != nil ? "Built in" : FieldType(rawValue: f.type)?.title ?? f.type)
+                Image(systemName: "info.circle")
+            }
+            .font(.app(.subheadline))
+            .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel("Edit \(f.label)")
     }
 }

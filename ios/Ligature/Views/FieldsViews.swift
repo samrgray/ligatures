@@ -101,6 +101,10 @@ struct FieldsView: View {
 /// people in one list.
 struct FieldForm: View {
     let field: FieldDef?
+    /// For a new field: who has it to start with (the list you’re viewing).
+    var startList: ListRef?
+    /// Called with a new field once it’s made.
+    var onCreate: ((FieldDef) -> Void)?
     @Environment(Store.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var label = ""
@@ -166,7 +170,10 @@ struct FieldForm: View {
                 }
             }
             .onAppear {
-                guard let field else { return }
+                guard let field else {
+                    list = startList
+                    return
+                }
                 label = field.label
                 type = field.type
                 list = field.listId.map { ListRef(accountId: field.accountId ?? "", id: $0) }
@@ -181,7 +188,9 @@ struct FieldForm: View {
         if let field {
             ok = await store.updateField(field, label: label, type: type, list: list)
         } else {
-            ok = await store.createField(label: label, type: type, list: list)
+            let made = await store.createField(label: label, type: type, list: list)
+            if let made { onCreate?(made) }
+            ok = made != nil
         }
         saving = false
         if ok { dismiss() }

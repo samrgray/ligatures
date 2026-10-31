@@ -300,10 +300,12 @@ struct ContactsListView: View {
                                 Label("Map", systemImage: "map").tag("map")
                             }
                             Section {
+                                // In the table, your fields are managed with its columns.
                                 if showTable {
-                                    Button { showColumns = true } label: { Label("Columns…", systemImage: "rectangle.split.3x1") }
+                                    Button { showColumns = true } label: { Label("Columns & Fields…", systemImage: "rectangle.split.3x1") }
+                                } else {
+                                    Button { showFields = true } label: { Label("Your Fields…", systemImage: "list.bullet.rectangle") }
                                 }
-                                Button { showFields = true } label: { Label("Your Fields…", systemImage: "list.bullet.rectangle") }
                             }
                         } label: {
                             Image(systemName: showMap ? "map" : showTable ? "tablecells" : "list.bullet")

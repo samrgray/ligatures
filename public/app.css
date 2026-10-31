@@ -241,6 +241,13 @@ body.resizing-sidebar, body.resizing-sidebar * { cursor: col-resize !important; 
 .col-resize:hover::after { background: var(--accent); width: 2px; }
 body.resizing, body.resizing * { cursor: col-resize !important; user-select: none; }
 
+.grid thead th.c-fill { padding: 0 6px; overflow: visible; }
+.th-add {
+  width: 26px; height: 26px; border: 0; border-radius: 7px; background: none; color: var(--secondary);
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.th-add:hover { background: var(--field); color: var(--text); }
+.th-add svg { width: 15px; height: 15px; }
 .grid .c-check { position: sticky; left: 0; z-index: 1; padding: 0; text-align: center; }
 .grid .c-check input { display: block; margin: 0 auto; }
 .grid .c-name { position: sticky; left: 40px; z-index: 1; box-shadow: inset -1px 0 var(--row-line); }
@@ -421,7 +428,11 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.3); }
 .dlg h2 { margin: 0; font-size: 17px; }
 .dlg p { margin: 0; color: var(--secondary); font-size: 13px; }
 .field-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px 150px 32px; gap: 8px; align-items: center; }
-#fields-dlg { width: min(620px, calc(100vw - 32px)); }
+dialog.columns-dlg { width: min(680px, calc(100vw - 32px)); }
+.new-field { display: grid; gap: 14px; }
+.new-field .field-row { grid-template-columns: minmax(0, 1fr) 110px 150px auto; }
+.col-item.is-field .field-row { flex: 1; min-width: 0; padding: 4px 0; }
+.col-item.is-field .field-row .input { height: 32px; }
 @media (max-width: 560px) {
   .field-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px; }
   .field-row > :first-child { grid-column: 1 / -1; }

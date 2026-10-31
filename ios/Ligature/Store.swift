@@ -397,14 +397,16 @@ final class Store {
 
     // MARK: - Your fields: defined here, kept only in Ligature
 
-    /// A new field, on every contact or (with `list`) only on people in that list.
-    func createField(label: String, type: String, list: ListRef?) async -> Bool {
+    /// A new field, on every contact or (with `list`) only on people in that list. Nil if it
+    /// couldn’t be made.
+    func createField(label: String, type: String, list: ListRef?) async -> FieldDef? {
         let label = label.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !label.isEmpty else { return false }
+        guard !label.isEmpty else { return nil }
         if demo {
-            fields.append(FieldDef(id: UUID().uuidString, label: label, type: type, accountId: list?.accountId, listId: list?.id,
-                                   listName: list.flatMap { listName($0.id, accountId: $0.accountId) }))
-            return true
+            let f = FieldDef(id: UUID().uuidString, label: label, type: type, accountId: list?.accountId, listId: list?.id,
+                             listName: list.flatMap { listName($0.id, accountId: $0.accountId) })
+            fields.append(f)
+            return f
         }
         do {
             var body: [String: Any] = ["label": label, "type": type]
@@ -412,10 +414,10 @@ final class Store {
             let f: FieldDef = try await api.post("/fields", body)
             fields.append(f)
             saveCache()
-            return true
+            return f
         } catch {
             handle(error)
-            return false
+            return nil
         }
     }
 
