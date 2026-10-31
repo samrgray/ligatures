@@ -43,6 +43,10 @@ struct ContactsTable: View {
     @State private var listsFor: ContactRow?
     @State private var scrollBox = ScrollBox()
     @State private var colDrag: ColumnDrag?
+    /// A heading held and let go without moving: its menu.
+    @State private var columnMenu: TableColumnDef?
+    @State private var editingField: FieldsView.FieldTarget?
+    @State private var deletingField: FieldDef?
 
     /// A column heading held and being dragged sideways.
     struct ColumnDrag {
@@ -55,6 +59,8 @@ struct ContactsTable: View {
         var dx: CGFloat = 0
         /// The finger, across the window (for scrolling at the edges).
         var fingerX: CGFloat = 0
+        /// Dragged at all; if not, letting go opens the column’s menu.
+        var moved = false
     }
 
     /// The table’s UIKit scroll view, once found.
@@ -247,6 +253,24 @@ struct ContactsTable: View {
         }
         .sheet(item: $picking) { ref in datePicker(ref) }
         .sheet(item: $listsFor) { c in ListPickerView(ids: [c.id], accountId: c.accountId) }
+        .confirmationDialog(columnMenu?.label ?? "", isPresented: Binding(get: { columnMenu != nil }, set: { if !$0 { columnMenu = nil } }),
+                            titleVisibility: .visible, presenting: columnMenu) { def in
+            Button("Hide Column") { hideColumn(def.id) }
+            if case let .field(f) = def.kind {
+                Button("Edit Field") { editingField = FieldsView.FieldTarget(field: f) }
+                if f.key == nil {
+                    Button("Delete Field", role: .destructive) { deletingField = f }
+                }
+            }
+            Button("Columns & Fields…") { showColumns.wrappedValue = true }
+        }
+        .confirmationDialog("Delete “\(deletingField?.label ?? "")”?", isPresented: Binding(get: { deletingField != nil }, set: { if !$0 { deletingField = nil } }),
+                            titleVisibility: .visible, presenting: deletingField) { f in
+            Button("Delete Field", role: .destructive) { Task { await store.deleteField(f) } }
+        } message: { _ in
+            Text("Its values on every contact are deleted too. This can’t be undone.")
+        }
+        .sheet(item: $editingField) { t in FieldForm(field: t.field) }
         .sheet(isPresented: showColumns) {
             ColumnsSheet(choices: allColumns.map { d -> ColumnsSheet.Choice in
                              var field: FieldDef?
@@ -297,6 +321,7 @@ struct ContactsTable: View {
 
     private func dragColumn(_ dx: CGFloat) {
         colDrag?.dx = dx
+        if abs(dx) > 8 { colDrag?.moved = true }
         reflowColumns()
     }
 
@@ -330,10 +355,21 @@ struct ContactsTable: View {
         }
     }
 
+    private func hideColumn(_ id: String) {
+        var p = prefs
+        let widths = p.columns ?? []
+        p.columns = columns.map(\.def.id).filter { $0 != id }.map { c in ColumnPref(id: c, w: widths.first { $0.id == c }?.w) }
+        Task { await store.saveViewPrefs(key, p) }
+    }
+
     private func endColumnDrag() {
         guard let d = colDrag else { return }
         let changed = d.order != columns.map(\.def.id)
         withAnimation(.snappy(duration: 0.2)) { colDrag = nil }
+        if !d.moved, !changed {
+            columnMenu = allColumns.first { $0.id == d.id }
+            return
+        }
         guard changed else { return }
         var p = prefs
         let widths = p.columns ?? []
@@ -355,6 +391,7 @@ struct ContactsTable: View {
                     let x = min(maxX, max(minX, v.contentOffset.x + step))
                     if x != v.contentOffset.x {
                         v.setContentOffset(CGPoint(x: x, y: v.contentOffset.y), animated: false)
+                        colDrag?.moved = true
                         reflowColumns()
                     }
                 }
