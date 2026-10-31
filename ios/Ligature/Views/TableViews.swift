@@ -42,6 +42,20 @@ struct ContactsTable: View {
     @State private var pickedDate = Date()
     @State private var listsFor: ContactRow?
     @State private var scrollBox = ScrollBox()
+    @State private var colDrag: ColumnDrag?
+
+    /// A column heading held and being dragged sideways.
+    struct ColumnDrag {
+        let id: String
+        /// The columns’ order as it stands, the held one in its current slot.
+        var order: [String]
+        /// Where the held column started, from the table’s left, and the sideways scroll then.
+        let startLeft: CGFloat
+        let startScroll: CGFloat
+        var dx: CGFloat = 0
+        /// The finger, across the window (for scrolling at the edges).
+        var fingerX: CGFloat = 0
+    }
 
     /// The table’s UIKit scroll view, once found.
     final class ScrollBox { weak var view: UIScrollView? }
@@ -196,8 +210,15 @@ struct ContactsTable: View {
         scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x, y: y), animated: false)
     }
 
-    var body: some View {
+    /// The columns as shown: while one is being dragged, in the order it’s making.
+    private var shownColumns: [(def: TableColumnDef, width: CGFloat)] {
         let cols = columns
+        guard let d = colDrag else { return cols }
+        return d.order.compactMap { id in cols.first { $0.def.id == id } }
+    }
+
+    var body: some View {
+        let cols = shownColumns
         ScrollView([.horizontal, .vertical]) {
             LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
                 Section {
@@ -242,6 +263,106 @@ struct ContactsTable: View {
         .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
     }
 
+    // MARK: Moving columns
+
+    /// The sideways scroll, read straight from the scroll view while it’s moving under a drag.
+    private var scrollNow: CGFloat {
+        guard let v = scrollBox.view else { return scrollX }
+        return v.contentOffset.x + v.adjustedContentInset.left
+    }
+
+    /// Where a column starts, from the left of the first column.
+    private func left(_ id: String, _ cols: [(def: TableColumnDef, width: CGFloat)]) -> CGFloat {
+        var x: CGFloat = 0
+        for (i, c) in cols.enumerated() {
+            if c.def.id == id { return x }
+            x += width(i, c.width)
+        }
+        return x
+    }
+
+    /// The held column follows the finger (and the scroll); the rest sit in their slots.
+    private func heldOffset(_ id: String, _ cols: [(def: TableColumnDef, width: CGFloat)]) -> CGFloat {
+        guard let d = colDrag, d.id == id else { return 0 }
+        return d.startLeft + d.dx + (scrollX - d.startScroll) - left(id, cols)
+    }
+
+    private func startColumnDrag(_ id: String, _ cols: [(def: TableColumnDef, width: CGFloat)]) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        withAnimation(.snappy(duration: 0.18)) {
+            colDrag = ColumnDrag(id: id, order: cols.map(\.def.id), startLeft: left(id, cols), startScroll: scrollNow)
+        }
+        Task { await autoScrollColumns() }
+    }
+
+    private func dragColumn(_ dx: CGFloat) {
+        colDrag?.dx = dx
+        reflowColumns()
+    }
+
+    /// The others make room once the held column’s middle passes theirs.
+    private func reflowColumns() {
+        guard var d = colDrag else { return }
+        let cols = columns
+        let widthOf = { (id: String) -> CGFloat in
+            guard let i = d.order.firstIndex(of: id), let c = cols.first(where: { $0.def.id == id }) else { return 0 }
+            return width(i, c.width)
+        }
+        let middle = d.startLeft + d.dx + (scrollNow - d.startScroll) + widthOf(d.id) / 2
+        let others = d.order.filter { $0 != d.id }
+        var slot = others.count
+        var x: CGFloat = 0
+        for (j, o) in others.enumerated() {
+            let w = widthOf(o)
+            if j > 0, middle < x + w / 2 {
+                slot = j
+                break
+            }
+            x += w
+        }
+        var order = others
+        order.insert(d.id, at: slot)
+        guard order != d.order else { return }
+        UISelectionFeedbackGenerator().selectionChanged()
+        withAnimation(.snappy(duration: 0.2)) {
+            d.order = order
+            colDrag = d
+        }
+    }
+
+    private func endColumnDrag() {
+        guard let d = colDrag else { return }
+        let changed = d.order != columns.map(\.def.id)
+        withAnimation(.snappy(duration: 0.2)) { colDrag = nil }
+        guard changed else { return }
+        var p = prefs
+        let widths = p.columns ?? []
+        p.columns = d.order.map { id in ColumnPref(id: id, w: widths.first { $0.id == id }?.w) }
+        Task { await store.saveViewPrefs(key, p) }
+    }
+
+    /// Holding a column near either edge scrolls the table that way.
+    private func autoScrollColumns() async {
+        while colDrag != nil {
+            if let v = scrollBox.view, let d = colDrag, let w = v.window?.bounds.width {
+                let edge: CGFloat = 44
+                var step: CGFloat = 0
+                if d.fingerX < photoColumn + edge { step = -min(14, max(3, (photoColumn + edge - d.fingerX) / 3)) }
+                else if d.fingerX > w - edge { step = min(14, max(3, (d.fingerX - (w - edge)) / 3)) }
+                if step != 0 {
+                    let minX = -v.adjustedContentInset.left
+                    let maxX = max(minX, v.contentSize.width - v.bounds.width + v.adjustedContentInset.right)
+                    let x = min(maxX, max(minX, v.contentOffset.x + step))
+                    if x != v.contentOffset.x {
+                        v.setContentOffset(CGPoint(x: x, y: v.contentOffset.y), animated: false)
+                        reflowColumns()
+                    }
+                }
+            }
+            try? await Task.sleep(for: .milliseconds(16))
+        }
+    }
+
     private var avatarSize: CGFloat { max(28, photoSize * 0.85) }
     /// The photos are the one column that stays put while you scroll sideways.
     private var photoColumn: CGFloat { avatarSize + 20 + (selecting ? checkWidth : 0) }
@@ -256,6 +377,7 @@ struct ContactsTable: View {
                 .offset(x: scrollX)
                 .zIndex(1)
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
+                let held = colDrag?.id == col.def.id
                 Button { setSort(col.def.id) } label: {
                     HStack(spacing: 3) {
                         Text(col.def.label).lineLimit(1)
@@ -268,9 +390,20 @@ struct ContactsTable: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
                     .frame(width: width(i, col.width), height: 30, alignment: .leading)
-                    .background(Theme.card)
+                    .background(held ? Theme.selected : Theme.card)
                 }
                 .buttonStyle(.plain)
+                // Press and hold a heading, then drag it sideways to move the column. Name stays first.
+                .gesture(HoldToDrag(
+                    enabled: col.def.id != "name" && !selecting,
+                    began: { startColumnDrag(col.def.id, cols) },
+                    changed: { dx in dragColumn(dx) },
+                    ended: { endColumnDrag() },
+                    at: { x in colDrag?.fingerX = x }
+                ))
+                .shadow(color: .black.opacity(held ? 0.18 : 0), radius: 6, y: 2)
+                .offset(x: heldOffset(col.def.id, cols))
+                .zIndex(held ? 0.5 : 0)
             }
             // After the last column: add a column, or make a new field for one.
             Button { showColumns.wrappedValue = true } label: {
@@ -334,7 +467,9 @@ struct ContactsTable: View {
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
                 cell(c, col.def)
                     .frame(width: width(i, col.width), height: rowHeight, alignment: .leading)
-                    .background(ground)
+                    .background(colDrag?.id == col.def.id ? Theme.selected : ground)
+                    .offset(x: heldOffset(col.def.id, cols))
+                    .zIndex(colDrag?.id == col.def.id ? 0.5 : 0)
             }
         }
         // While selecting, a tap on the rest of the row ticks it instead of opening or editing.

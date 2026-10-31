@@ -1066,53 +1066,6 @@ private struct TabFrames: PreferenceKey {
     }
 }
 
-/// Press and hold, then drag: UIKit’s long-press recognizer, which keeps reporting as the finger
-/// moves after it fires. Unlike a SwiftUI drag gesture, it doesn’t stop a scroll view scrolling.
-private struct HoldToDrag: UIGestureRecognizerRepresentable {
-    let enabled: Bool
-    let began: () -> Void
-    let changed: (CGFloat) -> Void
-    let ended: () -> Void
-
-    init(enabled: Bool, began: @escaping () -> Void, changed: @escaping (CGFloat) -> Void, ended: @escaping () -> Void) {
-        self.enabled = enabled
-        self.began = began
-        self.changed = changed
-        self.ended = ended
-    }
-
-    final class Recognizer: UILongPressGestureRecognizer {
-        var startX: CGFloat = 0
-    }
-
-    func makeUIGestureRecognizer(context: Context) -> Recognizer {
-        let g = Recognizer()
-        g.minimumPressDuration = 0.3
-        g.allowableMovement = 10
-        g.isEnabled = enabled
-        return g
-    }
-
-    func updateUIGestureRecognizer(_ g: Recognizer, context: Context) {
-        g.isEnabled = enabled
-    }
-
-    func handleUIGestureRecognizerAction(_ g: Recognizer, context: Context) {
-        let x = g.location(in: nil).x
-        switch g.state {
-        case .began:
-            g.startX = x
-            began()
-        case .changed:
-            changed(x - g.startX)
-        case .ended, .cancelled, .failed:
-            ended()
-        default:
-            break
-        }
-    }
-}
-
 /// How big photos are in the list and table; pinch to change it.
 private struct PhotoSizeKey: EnvironmentKey { static let defaultValue: CGFloat = 36 }
 extension EnvironmentValues {
