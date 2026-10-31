@@ -262,7 +262,7 @@ struct ContactsListView: View {
                                 selection = all ? [] : ids
                             }
                         } else {
-                            // The list ticks whole rows (people shown together); the table, each person.
+                            // The list ticks whole rows (people shown together); the table, everyone in each block.
                             let ids = showTable ? visible.map(\.id) : entries(visible).map(\.id)
                             let all = !ids.isEmpty && ids.allSatisfy { selection.contains($0) }
                             Button(all ? "Deselect All" : "Select All") {

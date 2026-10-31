@@ -1093,7 +1093,7 @@ function gridRow(c, j, members, cols) {
       if (col.id === 'name') {
         if (j > 0) return '';
         const name = together ? togetherName(members) : v;
-        const avs = together ? `<span class="av-stack">${members.slice(0, 3).map(av).join('')}</span>` : av(c);
+        const avs = together ? `<span class="av-stack">${members.map(av).join('')}</span>` : av(c);
         return `<td class="c-name"${span} data-ids="${h(ids.join(' '))}"${together ? ` title="${h(name)}"` : ''}><button type="button" class="cell-open" data-open="${h(c.id)}" draggable="${inArchive() ? 'false' : 'true'}">${avs}<span class="cell-name">${h(name)}</span>${
           members.some((m) => m.draft) ? '<span class="draft-tag" title="Only in Ligatures, not in Google Contacts">Draft</span>' : ''
         }</button></td>`;

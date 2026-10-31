@@ -145,6 +145,29 @@ struct ContactsTable: View {
         }.map(\.c)
     }
 
+    /// People shown together, as on the web: one block wherever the first of them sorts, with
+    /// their photos stacked and one name, and a line each for the other columns. A list or
+    /// search only shows the members it matches.
+    private struct Entry: Identifiable {
+        let members: [ContactRow]
+        var id: String { members[0].id }
+    }
+
+    private var entries: [Entry] {
+        let r = rows
+        let groups = store.together
+        guard !groups.isEmpty else { return r.map { Entry(members: [$0]) } }
+        let shown = Set(r.map(\.id))
+        var done = Set<String>()
+        var out: [Entry] = []
+        for c in r where !done.contains(c.id) {
+            let members = (groups[c.id] ?? [c]).filter { shown.contains($0.id) }
+            done.formUnion(members.map(\.id))
+            out.append(Entry(members: members))
+        }
+        return out
+    }
+
     private func setSort(_ id: String) {
         var p = prefs
         let s = sort
@@ -154,14 +177,15 @@ struct ContactsTable: View {
 
     // MARK: Body
 
-    /// Rows have a fixed height, so a letter’s row is found by count and scrolled to directly,
+    /// Lines have a fixed height, so a letter’s row is found by count and scrolled to directly,
     /// leaving the sideways scroll where it is.
     private func jump(to l: String) {
         guard let scroll = scrollBox.view, let nameKey = allColumns.first?.sortKey else { return }
-        let r = rows
-        guard let i = AlphaIndex.target(r.map { AlphaIndex.letter(nameKey($0)) }, pick: l, descending: sort.dir == "desc") else { return }
+        let es = entries
+        guard let i = AlphaIndex.target(es.map { AlphaIndex.letter(nameKey($0.members[0])) }, pick: l, descending: sort.dir == "desc") else { return }
+        let lines = es[..<i].reduce(0) { $0 + $1.members.count }
         let maxY = max(-scroll.adjustedContentInset.top, scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
-        let y = min(maxY, max(-scroll.adjustedContentInset.top, CGFloat(i) * rowHeight - scroll.adjustedContentInset.top))
+        let y = min(maxY, max(-scroll.adjustedContentInset.top, CGFloat(lines) * rowHeight - scroll.adjustedContentInset.top))
         scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x, y: y), animated: false)
     }
 
@@ -170,7 +194,7 @@ struct ContactsTable: View {
         ScrollView([.horizontal, .vertical]) {
             LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
                 Section {
-                    ForEach(rows) { c in row(c, cols) }
+                    ForEach(entries) { e in row(e, cols) }
                 } header: {
                     header(cols)
                 }
@@ -181,7 +205,7 @@ struct ContactsTable: View {
         .overlay(alignment: .trailing) {
             // A–Z down the side while sorted by name, as in Contacts.
             if sort.id == "name", rows.count >= 12 {
-                AlphabetScrubber(available: Set(rows.compactMap { c in allColumns.first?.sortKey.map { AlphaIndex.letter($0(c)) } })) { l in jump(to: l) }
+                AlphabetScrubber(available: Set(entries.compactMap { e in allColumns.first?.sortKey.map { AlphaIndex.letter($0(e.members[0])) } })) { l in jump(to: l) }
                     .padding(.top, 36)
                     .padding(.bottom, 12)
             }
@@ -237,11 +261,16 @@ struct ContactsTable: View {
         .overlay(alignment: .bottom) { Divider() }
     }
 
-    private func row(_ c: ContactRow, _ cols: [(def: TableColumnDef, width: CGFloat)]) -> some View {
-        let ticked = selecting && selection.contains(c.id)
+    /// One person’s row, or a block for people shown together (ticked and opened as one).
+    private func row(_ e: Entry, _ cols: [(def: TableColumnDef, width: CGFloat)]) -> some View {
+        let lead = e.members[0]
+        let ids = e.members.map(\.id)
+        let name = e.members.count > 1 ? Together.name(e.members) : lead.displayName
+        let height = rowHeight * CGFloat(e.members.count)
+        let ticked = selecting && ids.allSatisfy { selection.contains($0) }
         let ground = ticked ? Theme.selected : Theme.card
-        return HStack(spacing: 0) {
-            Button { open(c.id) } label: {
+        return HStack(alignment: .top, spacing: 0) {
+            Button { open(lead.id) } label: {
                 HStack(spacing: 0) {
                     if selecting {
                         Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
@@ -250,61 +279,85 @@ struct ContactsTable: View {
                             .frame(width: checkWidth, alignment: .trailing)
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     }
-                    Avatar(url: c.photoUrl, initials: c.initials, size: avatarSize)
-                        .overlay {
-                            if c.isDraft {
-                                Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
-                            }
+                    // Stacked down the column, so a pair is no wider than one person.
+                    VStack(spacing: 4) {
+                        ForEach(e.members) { m in
+                            Avatar(url: m.photoUrl, initials: m.initials, size: avatarSize)
+                                .overlay {
+                                    if m.isDraft {
+                                        Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
+                                    }
+                                }
                         }
-                        .frame(maxWidth: .infinity)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(width: photoColumn, height: rowHeight)
+                .frame(width: photoColumn, height: height)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .gesture(HoldToSelect(enabled: !selecting) { startSelecting(c.id) })
+            .gesture(HoldToSelect(enabled: !selecting) {
+                startSelecting(lead.id)
+                selection.formUnion(ids)
+            })
             .background(ground)
             .offset(x: scrollX)
             .zIndex(1)
-            .accessibilityLabel("Open \(c.displayName)")
-            ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
-                cell(c, col.def)
-                    .frame(width: width(i, col.width), height: rowHeight, alignment: .leading)
+            .accessibilityLabel("Open \(name)")
+            if let first = cols.first {
+                nameCell(e.members, name, lines: max(1, Int((height - 12) / 19)))
+                    .frame(width: width(0, first.width), height: height, alignment: .leading)
                     .background(ground)
+            }
+            VStack(spacing: 0) {
+                ForEach(e.members) { m in
+                    HStack(spacing: 0) {
+                        ForEach(Array(cols.enumerated()).dropFirst(), id: \.element.def.id) { i, col in
+                            cell(m, col.def)
+                                .frame(width: width(i, col.width), height: rowHeight, alignment: .leading)
+                                .background(ground)
+                        }
+                    }
+                }
             }
         }
         // While selecting, a tap anywhere on the row ticks it instead of opening or editing.
         .overlay {
             if selecting {
                 Button {
-                    if ticked { selection.remove(c.id) } else { selection.insert(c.id) }
+                    if ticked { selection.subtract(ids) } else { selection.formUnion(ids) }
                 } label: {
                     Color.clear.contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .zIndex(2)
-                .accessibilityLabel(c.displayName)
+                .accessibilityLabel(name)
                 .accessibilityAddTraits(ticked ? [.isButton, .isSelected] : .isButton)
             }
         }
         .overlay(alignment: .bottom) { Divider() }
     }
 
+    private func nameCell(_ members: [ContactRow], _ name: String, lines: Int) -> some View {
+        let draft = members.contains { $0.isDraft }
+        return Button { open(members[0].id) } label: {
+            HStack(spacing: 8) {
+                Text(name.isEmpty ? "No name" : name).fontWeight(.medium).italic(draft).lineLimit(lines)
+                if draft { DraftTag() }
+                Spacer(minLength: 0)
+            }
+            .padding(.trailing, 10)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     @ViewBuilder
     private func cell(_ c: ContactRow, _ def: TableColumnDef) -> some View {
         switch def.kind {
         case .name:
-            Button { open(c.id) } label: {
-                HStack(spacing: 8) {
-                    Text(def.value(c)).fontWeight(.medium).italic(c.isDraft).lineLimit(textLines)
-                    if c.isDraft { DraftTag() }
-                    Spacer(minLength: 0)
-                }
-                .padding(.trailing, 10)
-                .frame(maxHeight: .infinity)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+            nameCell([c], def.value(c), lines: textLines)
         case .lists:
             Button { listsFor = c } label: {
                 HStack(spacing: 4) {

@@ -761,9 +761,8 @@ body.moving-list, body.moving-list * { cursor: grabbing !important; user-select:
 
 /* ---------------------------------------------------------------- relationships */
 .grid tbody tr.grp:not(.grp-last) td:not([rowspan]) { border-bottom-color: transparent; }
-.av-stack { display: flex; flex: none; }
-.av-stack .mini-av { box-shadow: 0 0 0 2px var(--bg); }
-.av-stack .mini-av + .mini-av { margin-left: calc(var(--av, 22px) * -0.35); }
+/* Stacked down the cell (the shared row is taller), so a pair is no wider than one person. */
+.av-stack { display: flex; flex-direction: column; gap: 4px; flex: none; }
 
 /* Photo size in the table, from the slider. */
 .grid .mini-av { width: var(--av, 22px); height: var(--av, 22px); border-radius: 50%; font-size: max(9px, calc(var(--av, 22px) * 0.38)); }
