@@ -73,15 +73,26 @@ struct ContactsListView: View {
     /// The contact cards on top of the list, when open.
     @State private var opened: OpenedCards?
 
+    /// Whose card is showing, to mark their photo in the list.
+    @State private var shownId: String?
+
     private struct OpenedCards: Identifiable {
-        let id = UUID()
+        var id = UUID()
         let start: String
         let order: [[String]]
     }
 
     /// Opens someone’s card over the list, with everyone in the list you’re viewing beside it.
+    /// With a card already open, it switches to them instead.
     private func open(_ id: String) {
-        opened = OpenedCards(start: id, order: entries(visible).map { $0.members.map(\.id) })
+        opened = OpenedCards(id: opened?.id ?? UUID(), start: id, order: entries(visible).map { $0.members.map(\.id) })
+    }
+
+    /// How much of the list shows left of an open card: the photos, and the ticks while selecting.
+    private var cardInset: CGFloat {
+        if showMap { return 0 }
+        if showTable { return max(28, CGFloat(tablePhotoSize) * 0.85) + 20 + (selecting ? 38 : 0) + 4 }
+        return 20 + CGFloat(photoSize) + 12 + (selecting ? 40 : 0)
     }
     @State private var showNew = false
     @State private var showSettings = false
@@ -235,6 +246,7 @@ struct ContactsListView: View {
                         if tabs.count > 1 { tabStrip }
                         if showTable {
                             ContactsTable(items: visible, filter: filter, selecting: selecting, selection: $selection,
+                                          current: opened == nil ? nil : shownId,
                                           startSelecting: startSelecting, showColumns: $showColumns) { open($0) }
                                 .simultaneousGesture(pinch)
                                 .environment(\.cardZoomNamespace, cardZoom)
@@ -330,8 +342,10 @@ struct ContactsListView: View {
         }
         .overlay {
             if let o = opened {
-                PersonView(id: o.start, order: o.order, onClose: { opened = nil })
+                PersonView(id: o.start, order: o.order, leading: cardInset, onShow: { shownId = $0 },
+                           onClose: { opened = nil; shownId = nil })
                     .id(o.id)
+                    .animation(.snappy, value: cardInset)
                     .environment(\.openPerson) { open($0) }
             }
         }
@@ -430,7 +444,8 @@ struct ContactsListView: View {
                     // While selecting, the tap goes to the row’s tick instead.
                     Button { open(c.id) } label: {
                         HStack(spacing: 8) {
-                            ContactRowView(contact: c, sortByFirst: sortByFirst, pairedBelow: below, holdPhoto: { startSelecting(c.id) })
+                            ContactRowView(contact: c, sortByFirst: sortByFirst, pairedBelow: below, current: opened != nil && shownId == c.id,
+                                           holdPhoto: { startSelecting(c.id) })
                             Spacer(minLength: 0)
                             Image(systemName: "chevron.right")
                                 .font(.app(.footnote, .semibold))
@@ -441,6 +456,17 @@ struct ContactsListView: View {
                     }
                     .buttonStyle(RowButtonStyle())
                     .disabled(selecting)
+                    // While selecting, the photo still opens (or switches) the card; only the tick selects.
+                    .overlay(alignment: .leading) {
+                        if selecting {
+                            Button { open(c.id) } label: {
+                                Color.clear.frame(width: CGFloat(photoSize) + 8, height: CGFloat(photoSize) + 8).contentShape(Circle())
+                            }
+                            .buttonStyle(.borderless)
+                            .offset(x: -4)
+                            .accessibilityLabel("Show \(c.displayName)")
+                        }
+                    }
                     .listRowBackground(Color.clear)
                     .listRowSeparator(below ? .hidden : .automatic, edges: .bottom)
                     .listRowSeparator(j > 0 ? .hidden : .automatic, edges: .top)
@@ -989,6 +1015,8 @@ struct ContactRowView: View {
     let sortByFirst: Bool
     /// Shown together with the person in the next row: a “+” between their photos.
     var pairedBelow = false
+    /// Their card is the one open.
+    var current = false
     var holdPhoto: (() -> Void)?
     @Environment(\.photoSize) private var size
 
@@ -1000,6 +1028,7 @@ struct ContactRowView: View {
                         Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
                     }
                 }
+                .overlay { if current { Circle().strokeBorder(Color.accentColor, lineWidth: 2.5).padding(-4) } }
                 // Halfway to the next row’s photo (the list’s own row padding is about 8 points).
                 .overlay(alignment: .bottom) { if pairedBelow { PairPlus().offset(y: PairPlus.size / 2 + 9) } }
                 .gesture(HoldToSelect(enabled: holdPhoto != nil) { holdPhoto?() })

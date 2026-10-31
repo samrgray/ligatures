@@ -25,6 +25,8 @@ struct ContactsTable: View {
     let filter: ListFilter
     var selecting = false
     @Binding var selection: Set<String>
+    /// Whose card is open, to mark their photo.
+    var current: String? = nil
     /// Holding a photo starts selecting, with that person ticked.
     var startSelecting: (String) -> Void = { _ in }
     /// Choosing this view’s columns (from the layout menu).
@@ -290,50 +292,64 @@ struct ContactsTable: View {
         let ticked = selecting && selection.contains(c.id)
         let ground = ticked ? Theme.selected : Theme.card
         return HStack(spacing: 0) {
-            Button { open(c.id) } label: {
-                HStack(spacing: 0) {
-                    if selecting {
+            HStack(spacing: 0) {
+                // While selecting, only the tick selects; the photo still opens (or switches) the card.
+                if selecting {
+                    Button {
+                        if ticked { selection.remove(c.id) } else { selection.insert(c.id) }
+                    } label: {
                         Image(systemName: ticked ? "checkmark.circle.fill" : "circle")
                             .font(.app(.title2))
                             .foregroundStyle(ticked ? Color.accentColor : Color.secondary)
-                            .frame(width: checkWidth, alignment: .trailing)
-                            .transition(.move(edge: .leading).combined(with: .opacity))
+                            .frame(width: checkWidth, height: rowHeight, alignment: .trailing)
+                            .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+                    .accessibilityLabel("Select \(c.displayName)")
+                    .accessibilityAddTraits(ticked ? .isSelected : [])
+                }
+                Button { open(c.id) } label: {
                     Avatar(url: c.photoUrl, initials: c.initials, size: avatarSize)
                         .overlay {
                             if c.isDraft {
                                 Circle().strokeBorder(Theme.brand, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5])).padding(-3)
                             }
                         }
-                        .frame(maxWidth: .infinity)
+                        .overlay { if current == c.id { Circle().strokeBorder(Color.accentColor, lineWidth: 2.5).padding(-4) } }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .contentShape(Rectangle())
                 }
-                .frame(width: photoColumn, height: rowHeight)
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .gesture(HoldToSelect(enabled: !selecting) { startSelecting(c.id) })
+                .accessibilityLabel("Open \(c.displayName)")
             }
-            .buttonStyle(.plain)
-            .gesture(HoldToSelect(enabled: !selecting) { startSelecting(c.id) })
+            .frame(width: photoColumn, height: rowHeight)
             .background(ground)
             // The “+” sits on the join; both rows draw it, so it’s whole whichever row is on top.
             .overlay(alignment: .bottomTrailing) { if below { pairPlus.offset(y: PairPlus.size / 2) } }
             .overlay(alignment: .topTrailing) { if above { pairPlus.offset(y: -PairPlus.size / 2) } }
             .offset(x: scrollX)
             .zIndex(1)
-            .accessibilityLabel("Open \(c.displayName)")
             ForEach(Array(cols.enumerated()), id: \.element.def.id) { i, col in
                 cell(c, col.def)
                     .frame(width: width(i, col.width), height: rowHeight, alignment: .leading)
                     .background(ground)
             }
         }
-        // While selecting, a tap anywhere on the row ticks it instead of opening or editing.
+        // While selecting, a tap on the rest of the row ticks it instead of opening or editing.
         .overlay {
             if selecting {
-                Button {
-                    if ticked { selection.remove(c.id) } else { selection.insert(c.id) }
-                } label: {
-                    Color.clear.contentShape(Rectangle())
+                HStack(spacing: 0) {
+                    // Leaves the photo column (which stays put as you scroll sideways) to its own buttons.
+                    Color.clear.frame(width: max(0, scrollX) + photoColumn).allowsHitTesting(false)
+                    Button {
+                        if ticked { selection.remove(c.id) } else { selection.insert(c.id) }
+                    } label: {
+                        Color.clear.contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
                 .zIndex(2)
                 .accessibilityLabel(c.displayName)
                 .accessibilityAddTraits(ticked ? [.isButton, .isSelected] : .isButton)

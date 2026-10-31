@@ -15,6 +15,10 @@ struct PersonView: View {
     let id: String
     /// Everyone shown in the list you came from, in order (people shown together are one entry).
     var order: [[String]] = []
+    /// Room left of the cards, so the list’s photos (and ticks) show and can be tapped.
+    var leading: CGFloat = 0
+    /// Whose card is showing.
+    var onShow: (String) -> Void = { _ in }
     var onClose: () -> Void = {}
     @Environment(Store.self) private var store
     @State private var position: String?
@@ -25,9 +29,12 @@ struct PersonView: View {
     /// For people shown together: which of them each card shows.
     @State private var chosen: [String: String] = [:]
 
-    init(id: String, order: [[String]] = [], onClose: @escaping () -> Void = {}) {
+    init(id: String, order: [[String]] = [], leading: CGFloat = 0, onShow: @escaping (String) -> Void = { _ in },
+         onClose: @escaping () -> Void = {}) {
         self.id = id
         self.order = order
+        self.leading = leading
+        self.onShow = onShow
         self.onClose = onClose
         let entry = order.first { $0.contains(id) }
         _position = State(initialValue: entry?.first ?? id)
@@ -60,13 +67,16 @@ struct PersonView: View {
             let height = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
             ZStack(alignment: .top) {
                 // The list stays visible above the card, a little dimmed; tap it to put the card away.
+                // Not over the photos down the left, which stay tappable.
                 Color.black.opacity(shown ? 0.14 * max(0, 1 - pull / 300) : 0)
                     .ignoresSafeArea()
+                    .padding(.leading, leading)
                     .contentShape(Rectangle())
                     .onTapGesture { closeCard() }
                     .accessibilityLabel("Close")
                 ScrollView(.horizontal) {
-                    LazyHStack(spacing: Self.gap) {
+                    // The gap includes the room on the left, so the card before stays out of sight.
+                    LazyHStack(spacing: Self.gap + leading) {
                         ForEach(entries.compactMap(\.first), id: \.self) { lead in
                             ContactDetailView(
                                 id: chosen[lead] ?? lead,
@@ -106,6 +116,7 @@ struct PersonView: View {
                 .scrollPosition(id: $position)
                 .scrollIndicators(.hidden)
                 .scrollClipDisabled()
+                .padding(.leading, leading)
                 .padding(.top, Self.topGap)
                 .ignoresSafeArea(edges: .bottom)
                 // Slides up from the bottom when it opens, and back down when it closes.
@@ -113,6 +124,14 @@ struct PersonView: View {
             }
         }
         .sensoryFeedback(.selection, trigger: position)
+        .onChange(of: chosen[current] ?? current, initial: true) { _, shown in onShow(shown) }
+        // Tapping someone in the list while a card is open switches to them.
+        .onChange(of: id) { _, next in
+            let entry = order.first { $0.contains(next) }
+            let lead = entry?.first ?? next
+            if lead != next { chosen[lead] = next }
+            withAnimation(.snappy) { position = lead }
+        }
         .onAppear { withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) { shown = true } }
     }
 }
