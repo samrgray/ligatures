@@ -312,6 +312,17 @@ struct ContactDetail: Codable, Hashable {
     /// Everything search looks through, so an edit is findable straight away.
     var search: String? = nil
     let account: AccountRef
+    /// Who the @-mentions in the notes and fields point to (so links survive renames).
+    var mentions: [MentionRef]? = nil
+
+    func mentions(in source: String) -> [MentionRef] { (mentions ?? []).filter { $0.source == source } }
+}
+
+/// One remembered @-mention: in which text (“notes” or “f:<field id>”), the name, and who.
+struct MentionRef: Codable, Hashable {
+    let source: String
+    let name: String
+    let id: String
 }
 
 struct ListResult: Decodable {

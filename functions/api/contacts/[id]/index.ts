@@ -4,6 +4,14 @@ import { requireUser } from '../../../../lib/session';
 import { provider } from '../../../../lib/providers';
 import { cached, loadContact, saveDraft, saveFromProvider } from '../../../../lib/contacts';
 import { cleanEdit, contactPayload } from '../../../../lib/payload';
+import { NOTES, fixMentions, rememberMentions } from '../../../../lib/mentions';
+import type { ContactRow, UserRow } from '../../../../lib/types';
+
+/** After an edit: remember who the notes mention, and if they were renamed, update mentions of them. */
+async function afterEdit(env: Env, user: UserRow, before: ContactRow, saved: ContactRow, notes: string | undefined, waitUntil: (p: Promise<unknown>) => void) {
+  if (notes !== undefined) await rememberMentions(env.DB, user.id, saved.id, [{ source: NOTES, text: notes }]);
+  if (before.display_name !== saved.display_name) waitUntil(fixMentions(env, user).catch((e) => console.warn('mention renames failed', e)));
+}
 
 // GET /api/contacts/:id
 export const onRequestGet: PagesFunction<Env, 'id', Data> = async ({ env, data, params }) => {
@@ -14,7 +22,7 @@ export const onRequestGet: PagesFunction<Env, 'id', Data> = async ({ env, data, 
 
 // PATCH /api/contacts/:id  { etag, edit }  → write Google fields. The etag the user saw goes
 // to Google with the write; if anything changed since, Google rejects it and we reload.
-export const onRequestPatch: PagesFunction<Env, 'id', Data> = async ({ request, env, data, params }) => {
+export const onRequestPatch: PagesFunction<Env, 'id', Data> = async ({ request, env, data, params, waitUntil }) => {
   const user = requireUser(data.user);
   const body = await readJson<{ etag?: string; edit?: unknown }>(request);
   if (!body.etag) throw new HttpError(400, 'Missing etag.');
@@ -30,7 +38,9 @@ export const onRequestPatch: PagesFunction<Env, 'id', Data> = async ({ request, 
         contact: await contactPayload(env.DB, user, row, account),
       });
     }
-    const saved = await saveDraft(env.DB, row, p.editDraft(JSON.parse(row.data_json ?? '{}'), cleanEdit(body.edit)), account.provider);
+    const edit = cleanEdit(body.edit);
+    const saved = await saveDraft(env.DB, row, p.editDraft(JSON.parse(row.data_json ?? '{}'), edit), account.provider);
+    await afterEdit(env, user, row, saved, edit.notes, waitUntil);
     return json(await contactPayload(env.DB, user, saved, account));
   }
 
@@ -45,8 +55,10 @@ export const onRequestPatch: PagesFunction<Env, 'id', Data> = async ({ request, 
   if (body.etag !== row.etag) await conflict();
 
   try {
-    const updated = await p.update(ctx, { ...cached(row), etag: body.etag }, cleanEdit(body.edit));
+    const edit = cleanEdit(body.edit);
+    const updated = await p.update(ctx, { ...cached(row), etag: body.etag }, edit);
     const saved = await saveFromProvider(env.DB, row, updated, account.provider);
+    await afterEdit(env, user, row, saved, edit.notes, waitUntil);
     return json(await contactPayload(env.DB, user, saved, account));
   } catch (e) {
     if (e instanceof HttpError && e.code === 'conflict') await conflict();

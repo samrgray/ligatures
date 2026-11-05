@@ -3,6 +3,7 @@ import { HttpError, json, now, readJson } from '../../../../lib/http';
 import { requireUser } from '../../../../lib/session';
 import { loadContact, stampLink } from '../../../../lib/contacts';
 import { contactPayload } from '../../../../lib/payload';
+import { fieldSource, rememberMentions } from '../../../../lib/mentions';
 
 // PUT /api/contacts/:id/fields  { values: { [fieldId]: string } }
 // Your own fields. Stored only in Ligature’s database, never sent to Google.
@@ -17,10 +18,12 @@ export const onRequestPut: PagesFunction<Env, 'id', Data> = async ({ request, en
   );
   const t = now();
   const stmts: D1PreparedStatement[] = [];
+  const texts: { source: string; text: string }[] = [];
   for (const [fieldId, raw] of Object.entries(values)) {
     if (!owned.has(fieldId)) throw new HttpError(400, 'Unknown field.');
     if (typeof raw !== 'string') throw new HttpError(400, 'Field values must be text.');
     const value = raw.slice(0, 20000);
+    texts.push({ source: fieldSource(fieldId), text: value });
     stmts.push(
       value.trim()
         ? env.DB
@@ -33,6 +36,7 @@ export const onRequestPut: PagesFunction<Env, 'id', Data> = async ({ request, en
     );
   }
   if (stmts.length) await env.DB.batch(stmts);
+  await rememberMentions(env.DB, user.id, row.id, texts);
 
   // First time this contact gets fields of its own: put our ID in Google’s hidden per-app data
   // so the link survives merges. If that fails, the next sync retries.

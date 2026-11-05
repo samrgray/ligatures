@@ -218,6 +218,21 @@ const MIGRATIONS: string[][] = [
     )`,
     `CREATE INDEX IF NOT EXISTS photo_originals_user ON photo_originals(user_id)`,
   ],
+  [
+    // @-mentions: who each “@Name” in a contact’s notes or text fields points to, so links
+    // survive renames (and the text is rewritten to the new name). source: 'notes' or 'f:<field id>'.
+    `CREATE TABLE IF NOT EXISTS mentions (
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+      source TEXT NOT NULL,
+      name TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      PRIMARY KEY (contact_id, source, name)
+    )`,
+    `CREATE INDEX IF NOT EXISTS mentions_user ON mentions(user_id)`,
+    `CREATE INDEX IF NOT EXISTS mentions_target ON mentions(target_id)`,
+  ],
 ];
 
 let ready: Promise<void> | null = null;

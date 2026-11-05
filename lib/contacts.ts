@@ -2,6 +2,7 @@ import type { AccountRow, Card, ContactRow, Env, UserRow } from './types';
 import type { ProviderContact, ProviderCtx } from './providers/types';
 import { provider } from './providers';
 import { HttpError, now } from './http';
+import { rememberNotes } from './mentions';
 
 const MAX_CHUNK_BYTES = 800_000;
 const STAMPS_PER_SYNC = 10;
@@ -186,6 +187,7 @@ export async function syncAccount(env: Env, db: D1Database, user: UserRow, accou
 
   const assigned = new Set<string>();
   const upserts: Record<string, unknown>[] = [];
+  const notes: { id: string; notes: string }[] = [];
   const merges: { id: string; into: string }[] = [];
   const deletes: string[] = [];
 
@@ -208,6 +210,7 @@ export async function syncAccount(env: Env, db: D1Database, user: UserRow, accou
     assigned.add(id);
 
     const card = p.toCard(c.raw);
+    notes.push({ id, notes: card.notes });
     upserts.push({
       id,
       pcid: c.providerContactId,
@@ -298,6 +301,12 @@ export async function syncAccount(env: Env, db: D1Database, user: UserRow, accou
   );
   await db.batch(stmts);
   account.sync_token = result.syncToken;
+  // Who the @-mentions in changed notes point to (notes edited in Google or on iPhone too).
+  try {
+    await rememberNotes(db, user.id, notes);
+  } catch (e) {
+    console.warn('mentions not recorded', e);
+  }
   account.last_synced_at = t;
 
   // Retry: contacts that carry your own fields but whose link didn’t reach Google when saved.

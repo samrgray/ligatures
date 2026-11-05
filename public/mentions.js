@@ -6,6 +6,7 @@ const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 let getContacts = () => [];
+let getKnown = () => [];
 let openContact = () => {};
 let cache = { list: null, byFirst: new Map() };
 
@@ -29,8 +30,9 @@ function index() {
 
 const WORD = /[\p{L}\p{N}]/u;
 
-/** Every “@Name” in the text that names one of your contacts: [{ start, end, id, name }]. */
-export function findMentions(text) {
+/** Every “@Name” in the text that names one of your contacts: [{ start, end, id, name }].
+ *  `known`: who the server remembers each mention pointing to ([{ name, id }]), which wins. */
+export function findMentions(text, known = []) {
   const out = [];
   const s = String(text ?? '');
   if (!s.includes('@')) return out;
@@ -39,7 +41,11 @@ export function findMentions(text) {
     if (i > 0 && WORD.test(s[i - 1])) continue; // an email address, not a mention
     const rest = s.slice(i + 1);
     const first = (/^[^\s@]+/.exec(rest)?.[0] ?? '').toLowerCase();
-    const cands = byFirst.get(first) ?? byFirst.get(first.replace(/[.,;:!?)’'”"]+$/u, '')) ?? [];
+    const trimmed = first.replace(/[.,;:!?)’'”"]+$/u, '');
+    const remembered = known
+      .map((k) => ({ id: k.id, name: k.name.trim().replace(/\s+/g, ' '), lower: k.name.trim().replace(/\s+/g, ' ').toLowerCase() }))
+      .filter((k) => [first, trimmed].includes(k.lower.split(' ')[0]));
+    const cands = [...remembered, ...(byFirst.get(first) ?? byFirst.get(trimmed) ?? [])].sort((a, b) => b.lower.length - a.lower.length);
     for (const c of cands) {
       // Case-insensitive, and any run of spaces between the words.
       c.re ??= new RegExp(c.lower.split(' ').map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+'), 'iuy');
@@ -56,11 +62,11 @@ export function findMentions(text) {
 }
 
 /** The text as HTML, with each mention a link to that person. */
-export function mentionHtml(text) {
+export function mentionHtml(text, known = []) {
   const s = String(text ?? '');
   let html = '';
   let at = 0;
-  for (const m of findMentions(s)) {
+  for (const m of findMentions(s, known)) {
     html += esc(s.slice(at, m.start));
     html += `<a href="#" class="mention" data-mention="${esc(m.id)}">${esc(s.slice(m.start, m.end))}</a>`;
     at = m.end;
@@ -69,9 +75,9 @@ export function mentionHtml(text) {
 }
 
 /** Links to the people a field’s value mentions, shown under its box. */
-export function mentionLinks(text) {
+export function mentionLinks(text, known = []) {
   const seen = new Set();
-  const links = findMentions(text)
+  const links = findMentions(text, known)
     .filter((m) => !seen.has(m.id) && seen.add(m.id))
     .map((m) => `<a href="#" class="mention" data-mention="${esc(m.id)}">@${esc(m.name)}</a>`);
   return `<div class="mention-links"${links.length ? '' : ' hidden'}>${links.join('')}</div>`;
@@ -165,11 +171,12 @@ function pick(i) {
 function refreshLinks(el) {
   if (!el.classList?.contains('own-input')) return;
   const box = el.closest('dd')?.querySelector('.mention-links');
-  if (box) box.outerHTML = mentionLinks(el.value);
+  if (box) box.outerHTML = mentionLinks(el.value, getKnown(`f:${el.dataset.field}`));
 }
 
-export function initMentions({ contacts, open }) {
+export function initMentions({ contacts, open, known }) {
   getContacts = contacts;
+  if (known) getKnown = known;
   openContact = open;
   document.addEventListener('input', (e) => {
     if (!e.target.matches?.(FIELDS)) return;

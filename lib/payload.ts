@@ -1,6 +1,7 @@
 import type { AccountRow, Card, CardEdit, ContactRow, Labeled, UserRow } from './types';
 import { provider } from './providers';
 import { HttpError } from './http';
+import { mentionsOf } from './mentions';
 
 export interface FieldInfo {
   label: string;
@@ -80,6 +81,8 @@ export async function contactPayload(db: D1Database, user: UserRow, row: Contact
     linked: Boolean(row.link_stamped),
     account: { id: account.id, provider: account.provider, providerName: p.name, label: account.label },
     syncedAt: row.updated_at,
+    // Who the @-mentions in the notes and fields point to (the links survive renames).
+    mentions: await mentionsOf(db, row.id),
   };
 }
 

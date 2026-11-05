@@ -263,7 +263,7 @@ function renderShell() {
     saveRelationship();
   });
   $('#rel-dlg').addEventListener('input', (e) => RD && relDialogInput(e.target));
-  initMentions({ contacts: () => S.contacts, open: (id) => select(id) });
+  initMentions({ contacts: () => S.contacts, open: (id) => select(id), known: knownMentions });
   $('#compose-dlg').addEventListener('cancel', (e) => {
     if (!closeComposer()) e.preventDefault();
   });
@@ -2148,7 +2148,7 @@ function propRows(card) {
       }${ICON.down}</button>`,
     ]);
   }
-  if (card.notes) rows.push(['notes', mentionHtml(card.notes)]);
+  if (card.notes) rows.push(['notes', mentionHtml(card.notes, knownMentions('notes'))]);
   return rows;
 }
 
@@ -2458,9 +2458,14 @@ function renderDetail() {
   drawHeroMap(d);
 }
 
+/** Who the open contact’s @-mentions point to, as the server remembers them, for one source. */
+function knownMentions(source) {
+  return (S.detail?.mentions ?? []).filter((m) => m.source === source);
+}
+
 function ownFieldRow(f) {
   const value = S.detail?.fields[f.id] ?? '';
-  const tags = f.type === 'text' || f.type === 'longtext' ? mentionLinks(value) : '';
+  const tags = f.type === 'text' || f.type === 'longtext' ? mentionLinks(value, knownMentions(`f:${f.id}`)) : '';
   return `<dt><label for="own-${h(f.id)}">${h(f.label)}</label></dt><dd>${ownFieldInput(f, value)}${tags}</dd>`;
 }
 

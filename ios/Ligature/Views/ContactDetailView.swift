@@ -447,7 +447,7 @@ struct ContactDetailView: View {
             }
         }
         if !c.notes.isEmpty {
-            CardSection { NotesRow(notes: c.notes).cardRow(first: true) }
+            CardSection { NotesRow(notes: c.notes, known: detail?.mentions(in: "notes") ?? []).cardRow(first: true) }
         }
     }
 
@@ -746,7 +746,7 @@ struct FieldEditor: View {
     /// Tagging people: suggestions while typing “@”, links to them otherwise.
     @ViewBuilder private var mentions: some View {
         if field.type == "text" || field.type == "longtext", field.key == nil {
-            if focused { MentionSuggestions(text: $text) } else { MentionLinks(text: text) }
+            if focused { MentionSuggestions(text: $text) } else { MentionLinks(text: text, known: store.details[contactId]?.mentions(in: "f:\(field.id)") ?? []) }
         }
     }
 

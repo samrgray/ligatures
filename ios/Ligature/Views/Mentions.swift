@@ -24,16 +24,19 @@ enum Mentions {
 
     /// Every “@Name” in the text that names one of these contacts. Longer names win (“@Ann Lee”
     /// over “@Ann”); an @ inside a word (an email address) isn’t a mention.
-    static func find(in text: String, contacts: [ContactRow]) -> [Mention] {
+    /// `known`: who the server remembers each mention pointing to, which wins.
+    static func find(in text: String, contacts: [ContactRow], known: [MentionRef] = []) -> [Mention] {
         guard text.contains("@") else { return [] }
-        var byFirst: [String: [(id: String, name: String)]] = [:]
-        for c in contacts {
-            let name = clean(c.displayName)
-            guard !name.isEmpty else { continue }
+        var byFirst: [String: [(id: String, name: String, rank: Int)]] = [:]
+        func add(_ id: String, _ raw: String, _ rank: Int) {
+            let name = clean(raw)
+            guard !name.isEmpty else { return }
             let first = String(name.split(separator: " ").first ?? "").lowercased()
-            byFirst[first, default: []].append((c.id, name))
+            byFirst[first, default: []].append((id, name, rank))
         }
-        byFirst = byFirst.mapValues { $0.sorted { $0.name.count > $1.name.count } }
+        for k in known { add(k.id, k.name, 0) }
+        for c in contacts { add(c.id, c.displayName, 1) }
+        byFirst = byFirst.mapValues { $0.sorted { $0.name.count != $1.name.count ? $0.name.count > $1.name.count : $0.rank < $1.rank } }
 
         var out: [Mention] = []
         var i = text.startIndex
@@ -56,10 +59,10 @@ enum Mentions {
     }
 
     /// The text with each mention a link (handled by `openMentions`).
-    static func attributed(_ text: String, contacts: [ContactRow]) -> AttributedString {
+    static func attributed(_ text: String, contacts: [ContactRow], known: [MentionRef] = []) -> AttributedString {
         var out = AttributedString()
         var at = text.startIndex
-        for m in find(in: text, contacts: contacts) {
+        for m in find(in: text, contacts: contacts, known: known) {
             out += AttributedString(String(text[at..<m.range.lowerBound]))
             var link = AttributedString(String(text[m.range]))
             link.link = URL(string: "\(scheme):\(m.id.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? m.id)")
@@ -123,10 +126,11 @@ private struct OpenMentions: ViewModifier {
 /// Text with its mentions as links.
 struct MentionText: View {
     let text: String
+    var known: [MentionRef] = []
     @Environment(Store.self) private var store
 
     var body: some View {
-        Text(Mentions.attributed(text, contacts: store.contacts))
+        Text(Mentions.attributed(text, contacts: store.contacts, known: known))
             .multilineTextAlignment(.leading)
             .openMentions()
     }
@@ -135,11 +139,12 @@ struct MentionText: View {
 /// Notes on a contact, with mentions as links. Long-press to copy.
 struct NotesRow: View {
     let notes: String
+    var known: [MentionRef] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("notes").font(.app(.caption)).foregroundStyle(.secondary)
-            MentionText(text: notes)
+            MentionText(text: notes, known: known)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
@@ -152,11 +157,12 @@ struct NotesRow: View {
 /// The people a field’s value mentions, as links under its box.
 struct MentionLinks: View {
     let text: String
+    var known: [MentionRef] = []
     @Environment(Store.self) private var store
     @Environment(\.openPerson) private var openPerson
 
     var body: some View {
-        let found = Mentions.find(in: text, contacts: store.contacts)
+        let found = Mentions.find(in: text, contacts: store.contacts, known: known)
         let people = found.reduce(into: [Mention]()) { acc, m in if !acc.contains(where: { $0.id == m.id }) { acc.append(m) } }
         if !people.isEmpty {
             FlowLinks(people: people) { openPerson($0) }
