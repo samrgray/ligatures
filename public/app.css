@@ -1104,3 +1104,13 @@ dialog::backdrop { background: rgb(50 35 20 / 0.16); backdrop-filter: blur(3px);
 .font-opt .font-name { font-size: 16px; font-weight: 600; min-width: 150px; }
 .font-opt .font-sample { color: var(--secondary); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .font-opt .menu-check { margin-left: auto; color: var(--accent); }
+
+/* @-mentions */
+a.mention { color: var(--accent); font-weight: 500; }
+a.mention:hover { text-decoration: underline; }
+.mention-links { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; font-size: 13px; }
+.mention-links[hidden] { display: none; }
+.mention-menu { min-width: 200px; max-width: min(320px, calc(100vw - 16px)); }
+.mention-menu > button { gap: 8px; }
+.mention-menu > button.active { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.mention-org { margin-left: auto; padding-left: 8px; color: var(--secondary); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

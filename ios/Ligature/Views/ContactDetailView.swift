@@ -447,7 +447,7 @@ struct ContactDetailView: View {
             }
         }
         if !c.notes.isEmpty {
-            CardSection { ValueRow(label: "notes", value: c.notes, url: nil, tinted: false).cardRow(first: true) }
+            CardSection { NotesRow(notes: c.notes).cardRow(first: true) }
         }
     }
 
@@ -725,6 +725,7 @@ struct FieldEditor: View {
                     .lineLimit(1...10)
                     .focused($focused)
                     .fieldWell(focused: focused)
+                mentions
             default:
                 TextField(field.type == "url" ? "https://" : "Add", text: $text)
                     .keyboardType(field.type == "url" ? .URL : .default)
@@ -734,11 +735,19 @@ struct FieldEditor: View {
                     .submitLabel(.done)
                     .onSubmit(save)
                     .fieldWell(focused: focused)
+                mentions
             }
         }
         .onAppear { text = stored }
         .onChange(of: stored) { _, v in if !focused { text = v } }
         .onChange(of: focused) { _, isFocused in if !isFocused { save() } }
+    }
+
+    /// Tagging people: suggestions while typing “@”, links to them otherwise.
+    @ViewBuilder private var mentions: some View {
+        if field.type == "text" || field.type == "longtext", field.key == nil {
+            if focused { MentionSuggestions(text: $text) } else { MentionLinks(text: text) }
+        }
     }
 
     /// The date in a well; tap for a calendar.

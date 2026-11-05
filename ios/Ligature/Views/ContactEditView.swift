@@ -73,6 +73,7 @@ struct ContactEditView: View {
                 multiSection("website", items: $urls, labels: Self.urlLabels, keyboard: .URL)
                 Section("Notes") {
                     TextField("Notes", text: $notes, axis: .vertical).lineLimit(3...12)
+                    MentionSuggestions(text: $notes)
                 }
                 if original == nil {
                     Section {

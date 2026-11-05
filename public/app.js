@@ -5,6 +5,7 @@ import {
 } from './messaging.js';
 import { ROLES, otherId, relationshipBody, roleLabel, roleOf, togetherGroups, togetherName } from './relations.js';
 import { demoApi, demoOn, setDemo } from './demo.js';
+import { initMentions, mentionHtml, mentionLinks } from './mentions.js';
 
 const S = {
   session: null,
@@ -262,6 +263,7 @@ function renderShell() {
     saveRelationship();
   });
   $('#rel-dlg').addEventListener('input', (e) => RD && relDialogInput(e.target));
+  initMentions({ contacts: () => S.contacts, open: (id) => select(id) });
   $('#compose-dlg').addEventListener('cancel', (e) => {
     if (!closeComposer()) e.preventDefault();
   });
@@ -2146,7 +2148,7 @@ function propRows(card) {
       }${ICON.down}</button>`,
     ]);
   }
-  if (card.notes) rows.push(['notes', h(card.notes)]);
+  if (card.notes) rows.push(['notes', mentionHtml(card.notes)]);
   return rows;
 }
 
@@ -2457,7 +2459,9 @@ function renderDetail() {
 }
 
 function ownFieldRow(f) {
-  return `<dt><label for="own-${h(f.id)}">${h(f.label)}</label></dt><dd>${ownFieldInput(f, S.detail?.fields[f.id] ?? '')}</dd>`;
+  const value = S.detail?.fields[f.id] ?? '';
+  const tags = f.type === 'text' || f.type === 'longtext' ? mentionLinks(value) : '';
+  return `<dt><label for="own-${h(f.id)}">${h(f.label)}</label></dt><dd>${ownFieldInput(f, value)}${tags}</dd>`;
 }
 
 function pastValue(f, v) {
