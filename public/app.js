@@ -160,20 +160,39 @@ const ICON = {
 async function boot() {
   const params = new URLSearchParams(location.search);
   const authError = params.get('auth_error');
-  if (authError) history.replaceState(null, '', '/');
+  if (authError) history.replaceState(null, '', location.pathname);
   try {
     S.session = await api('/session');
   } catch (e) {
     $('#root').innerHTML = `<div class="center"><div class="signin"><h1>Ligatures</h1><p class="error">${h(e.message)}</p></div></div>`;
     return;
   }
-  if (!S.session.user) return renderSignIn(authError);
+  if (!S.session.user) {
+    // Come back to a bookmarked list or person after signing in.
+    if (location.pathname !== '/') {
+      try {
+        sessionStorage.setItem(RETURN_KEY, location.pathname);
+      } catch {
+        /* lands on All Contacts instead */
+      }
+    }
+    return renderSignIn(authError);
+  }
   applyFont(currentFont());
   const gmail = params.get('gmail');
-  if (gmail) history.replaceState(null, '', '/');
+  if (gmail) history.replaceState(null, '', location.pathname);
+  try {
+    const back = sessionStorage.getItem(RETURN_KEY);
+    sessionStorage.removeItem(RETURN_KEY);
+    if (back && location.pathname === '/') history.replaceState(null, '', back);
+  } catch {
+    /* no saved place */
+  }
+  S.filter = readUrl().filter ?? S.filter;
   loadPrefs();
   renderShell();
   await loadContacts();
+  await applyUrl();
   if (authError) toast(authError, 8000);
   else if (gmail === 'connected') toast('Gmail connected. Ligatures can now send email for you.', 5000);
   if (gmail || authError) await resumeComposer();
@@ -1194,10 +1213,109 @@ function markOpen() {
   }
 }
 
+// ---------------------------------------------------------------- addresses and the browser’s Back and Forward
+//
+// Every list, account and contact has its own address, so it can be bookmarked or shared with
+// yourself, and Back and Forward step through where you’ve been:
+//   /                          All Contacts        /archive          Archived
+//   /account/<account>         one account         /list/<account>/<list>
+// followed by /contact/<id> while someone’s card is open.
+
+const RETURN_KEY = 'ligature-return';
+const LIST_PREFIX = 'contactGroups/'; // left out of addresses, for shorter ones
+const urlPart = encodeURIComponent;
+
+function urlFor(filter = S.filter, contactId = S.drawer && S.mode !== 'new' ? S.selectedId : null) {
+  let path = '';
+  if (filter.type === 'archive') path = '/archive';
+  else if (filter.type === 'account') path = `/account/${urlPart(filter.id)}`;
+  else if (filter.type === 'group') {
+    const list = filter.id.startsWith(LIST_PREFIX) ? filter.id.slice(LIST_PREFIX.length) : filter.id;
+    path = `/list/${urlPart(filter.accountId)}/${urlPart(list)}`;
+  }
+  if (contactId) path += `/contact/${urlPart(contactId)}`;
+  return path || '/';
+}
+
+/** What the address asks for. Lists and accounts are checked against yours once signed in. */
+function readUrl() {
+  const parts = location.pathname.split('/').filter(Boolean).map((p) => {
+    try {
+      return decodeURIComponent(p);
+    } catch {
+      return p;
+    }
+  });
+  let filter = { type: 'all' };
+  let contact = null;
+  let i = 0;
+  if (parts[0] === 'archive') {
+    filter = { type: 'archive' };
+    i = 1;
+  } else if (parts[0] === 'account' && parts[1]) {
+    filter = { type: 'account', id: parts[1] };
+    i = 2;
+  } else if (parts[0] === 'list' && parts[1] && parts[2]) {
+    const groups = accountById(parts[1])?.groups ?? [];
+    const g = groups.find((x) => x.id === parts[2]) ?? groups.find((x) => x.id === LIST_PREFIX + parts[2]);
+    filter = g ? { type: 'group', accountId: parts[1], id: g.id } : { type: 'all' };
+    i = 3;
+  }
+  if (filter.type === 'account' && !accountById(filter.id)) filter = { type: 'all' };
+  if (parts[i] === 'contact' && parts[i + 1]) contact = parts[i + 1];
+  return { filter, contact };
+}
+
+const sameFilter = (a, b) => a.type === b.type && a.id === b.id && a.accountId === b.accountId;
+
+/** Put the address and page title in step with what’s showing. */
+function syncUrl(push) {
+  const url = urlFor();
+  const c = S.drawer && S.mode !== 'new' ? (S.detail?.id === S.selectedId ? S.detail.card : contactById(S.selectedId)) : null;
+  const name = c?.displayName || (c ? [c.givenName, c.familyName].filter(Boolean).join(' ') : '');
+  document.title = [name, S.filter.type === 'archive' ? 'Archived' : viewTitle(), 'Ligatures'].filter(Boolean).join(' – ');
+  if (url === location.pathname) return;
+  if (push) history.pushState(null, '', url);
+  else history.replaceState(null, '', url);
+}
+
+/** Show the list you’ve switched to (from the sidebar, an address, or Back and Forward). */
+function showFilter() {
+  clearSelection();
+  renderSidebar();
+  renderGrid();
+  setView('main');
+  const wrap = $('#grid-wrap');
+  if (wrap) wrap.scrollTop = 0;
+}
+
+/** Go to what the address says: on opening the page, and on Back and Forward. */
+async function applyUrl() {
+  const { filter, contact } = readUrl();
+  if (!sameFilter(filter, S.filter)) {
+    S.filter = filter;
+    showFilter();
+  }
+  if (contact) {
+    if (!(S.drawer && S.selectedId === contact)) {
+      // Unsaved edits you chose to keep: stay put, and put the address back.
+      if (!(await select(contact, false))) return syncUrl(true);
+    }
+  } else if (S.drawer) {
+    if (!(await closeDrawer(false))) return syncUrl(true);
+  }
+  syncUrl(false);
+}
+
+window.addEventListener('popstate', () => {
+  if (S.session?.user) applyUrl();
+});
+
 // ---------------------------------------------------------------- detail panel
 
-function setDrawer(open) {
+function setDrawer(open, push = false) {
   S.drawer = open;
+  syncUrl(push);
   const d = $('#detail');
   if (!d) return;
   d.classList.toggle('open', open);
@@ -1205,21 +1323,23 @@ function setDrawer(open) {
   markOpen();
 }
 
-async function select(id) {
-  if (S.mode !== 'view' && !(await confirmDiscard())) return;
-  draft = null;
-  S.mode = 'view';
-  S.selectedId = id;
-  setDrawer(true);
-  renderDetail();
-  await loadDetail(id);
-}
-
-async function closeDrawer() {
+/** Open someone’s card. `push`: a new step in the browser’s history (Back returns here). */
+async function select(id, push = true) {
   if (S.mode !== 'view' && !(await confirmDiscard())) return false;
   draft = null;
   S.mode = 'view';
-  setDrawer(false);
+  S.selectedId = id;
+  setDrawer(true, push);
+  renderDetail();
+  await loadDetail(id);
+  return true;
+}
+
+async function closeDrawer(push = true) {
+  if (S.mode !== 'view' && !(await confirmDiscard())) return false;
+  draft = null;
+  S.mode = 'view';
+  setDrawer(false, push);
   if (S.selectedId) $(`[data-open="${CSS.escape(S.selectedId)}"]`)?.focus({ preventScroll: true });
   return true;
 }
@@ -1232,7 +1352,7 @@ function moveSelection(step) {
   const btn = $(`[data-open="${CSS.escape(next.id)}"]`);
   btn?.focus({ preventScroll: true });
   btn?.closest('tr')?.scrollIntoView({ block: 'nearest' });
-  if (S.drawer) select(next.id);
+  if (S.drawer) select(next.id, false);
   else S.selectedId = next.id;
 }
 
@@ -1245,6 +1365,7 @@ async function loadDetail(id) {
       S.selectedId = d.id; // followed a merge
       markOpen();
     }
+    syncUrl(false); // the page title, now the name is known
   } catch (e) {
     S.detail = null;
     handleError(e);
@@ -1920,7 +2041,10 @@ async function deleteList(target) {
       .flatMap((x) => (x.accountId === target.accountId && x.parentId === g.id ? (up ? [{ ...x, parentId: up }] : []) : [x]));
     const styles = listStyles().filter((x) => !(x.accountId === target.accountId && x.id === g.id));
     S.session.user.prefs = { ...(S.session.user.prefs || {}), listParents: parents, listStyles: styles };
-    if (S.filter.type === 'group' && S.filter.id === g.id && S.filter.accountId === target.accountId) S.filter = { type: 'all' };
+    if (S.filter.type === 'group' && S.filter.id === g.id && S.filter.accountId === target.accountId) {
+      S.filter = { type: 'all' };
+      syncUrl(false);
+    }
     applyListResult(target.accountId, r);
     toast(`Deleted ${g.name}.`, 2500);
   } catch (e) {
@@ -3603,6 +3727,7 @@ async function resumeComposer() {
   delete saved.viewQuery;
   renderSidebar();
   renderGrid();
+  syncUrl(false);
   C = { ...saved, step: 'loading', people: [], items: [], results: {}, errors: {}, queueIndex: 0, sending: false, stopping: false };
   renderComposer();
   $('#compose-dlg').showModal();
@@ -4441,11 +4566,8 @@ document.addEventListener('click', async (e) => {
   if (t.dataset.filter) {
     const type = t.dataset.filter;
     S.filter = type === 'all' || type === 'archive' ? { type } : type === 'account' ? { type, id: t.dataset.id } : { type, id: t.dataset.id, accountId: t.dataset.account };
-    clearSelection();
-    renderSidebar();
-    renderGrid();
-    setView('main');
-    $('#grid-wrap').scrollTop = 0;
+    showFilter();
+    syncUrl(true);
     return;
   }
 
