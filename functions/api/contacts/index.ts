@@ -22,6 +22,22 @@ function addressParts(list: Address[]) {
   };
 }
 
+/** Ligatures sees new contacts within an hour of connecting as already there before it. */
+const FIRST_SYNC = 60 * 60 * 1000;
+
+/**
+ * When a contact was created and last modified, as ISO times ('' if unknown). Providers may not
+ * say when a contact was made, so “created” is when Ligatures first saw it, left blank for
+ * everyone already there when the account was connected. “Modified” is the latest of the
+ * provider’s own time and your fields.
+ */
+function dates(r: { created_at: number; updated_at: number; account_created: number; fields_at: number | null; draft: number }, provider?: string) {
+  const iso = (t: number) => (t > 0 ? new Date(t).toISOString() : '');
+  const known = r.draft || r.created_at > r.account_created + FIRST_SYNC;
+  const mod = Math.max(Date.parse(provider || '') || 0, r.fields_at ?? 0, r.draft ? r.updated_at : 0);
+  return { created: known ? iso(r.created_at) : '', modified: iso(mod) };
+}
+
 // GET /api/contacts  → one row per contact for the table: the columns it can show, plus
 // your own fields and when you last messaged them.
 export const onRequestGet: PagesFunction<Env, string, Data> = async ({ env, data }) => {
@@ -29,14 +45,18 @@ export const onRequestGet: PagesFunction<Env, string, Data> = async ({ env, data
   const rows = (
     await env.DB
       .prepare(
-        `SELECT c.id, c.account_id, c.data_json, c.draft, a.provider,
-           (SELECT json_group_object(fv.field_id, fv.value) FROM field_values fv WHERE fv.contact_id = c.id) AS fields_json
+        `SELECT c.id, c.account_id, c.data_json, c.draft, a.provider, c.created_at, c.updated_at, a.created_at AS account_created,
+           (SELECT json_group_object(fv.field_id, fv.value) FROM field_values fv WHERE fv.contact_id = c.id) AS fields_json,
+           (SELECT MAX(fv.updated_at) FROM field_values fv WHERE fv.contact_id = c.id) AS fields_at
          FROM contacts c JOIN accounts a ON a.id = c.account_id
          WHERE c.user_id = ?1 AND c.deleted_at IS NULL AND c.merged_into IS NULL AND c.archived_at IS NULL
          ORDER BY c.sort_key`,
       )
       .bind(user.id)
-      .all<{ id: string; account_id: string; data_json: string; draft: number; provider: string; fields_json: string | null }>()
+      .all<{
+        id: string; account_id: string; data_json: string; draft: number; provider: string; fields_json: string | null;
+        created_at: number; updated_at: number; account_created: number; fields_at: number | null;
+      }>()
   ).results;
   const defs = await fieldDefsFor(env.DB, user.id);
 
@@ -66,6 +86,7 @@ export const onRequestGet: PagesFunction<Env, string, Data> = async ({ env, data
         search: searchText(card, fields, defs, r.account_id),
         groups: card.groups,
         fields,
+        ...dates(r, card.modifiedAt),
         ...(r.draft ? { draft: true } : {}),
       };
     }),

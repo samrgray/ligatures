@@ -256,7 +256,7 @@ interface GoogleField {
 interface GooglePerson {
   resourceName: string;
   etag: string;
-  metadata?: { deleted?: boolean; sources?: { type?: string; id?: string; etag?: string }[] };
+  metadata?: { deleted?: boolean; sources?: { type?: string; id?: string; etag?: string; updateTime?: string }[] };
   names?: (GoogleField & { givenName?: string; familyName?: string; middleName?: string; displayName?: string; displayNameLastFirst?: string })[];
   nicknames?: (GoogleField & { value?: string })[];
   organizations?: (GoogleField & { name?: string; title?: string; department?: string })[];
@@ -471,6 +471,8 @@ export const google: Provider = {
       groups: (p.memberships ?? [])
         .map((m) => m.contactGroupMembership?.contactGroupResourceName)
         .filter((g): g is string => Boolean(g)),
+      // Google keeps no creation time, only when the contact last changed.
+      modifiedAt: p.metadata?.sources?.find((x) => x.type === 'CONTACT')?.updateTime ?? '',
     };
   },
 

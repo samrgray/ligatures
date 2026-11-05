@@ -59,7 +59,9 @@ extension Store {
             return ContactRow(
                 id: "demo-\(i)", accountId: "demo", givenName: first, familyName: last, displayName: "\(first) \(last)",
                 organization: org, title: title, email: email, phone: phone, photoUrl: Self.demoPhoto(first),
-                search: "\(first) \(last) \(org) \(email) \(phone)".lowercased(), groups: groups, fields: fields, draft: i == 4 ? true : nil
+                search: "\(first) \(last) \(org) \(email) \(phone)".lowercased(), groups: groups, fields: fields, draft: i == 4 ? true : nil,
+                created: i % 3 == 0 ? Date(timeIntervalSinceNow: -Double((i * 7919) % 400 + 30) * 86400).ISO8601Format() : nil,
+                modified: Date(timeIntervalSinceNow: -Double((i * 7919) % 400) * 86400).ISO8601Format()
             )
         }
         for c in contacts { details[c.id] = demoDetail(c) }

@@ -187,6 +187,9 @@ struct ContactRow: Codable, Identifiable, Hashable {
     var birthday: String? = nil
     var birthdayKey: String? = nil
     var notes: String? = nil
+    /// ISO times. Created is empty for people already in Google when it was connected.
+    var created: String? = nil
+    var modified: String? = nil
 }
 
 /// Everything a message template can use about one person.

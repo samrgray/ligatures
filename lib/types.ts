@@ -99,6 +99,8 @@ export interface Card {
   notes: string;
   photoUrl: string;
   groups: string[];
+  /** When the provider last changed this contact (ISO time), if it says. */
+  modifiedAt?: string;
 }
 
 /** The parts of a Card the app can write back to a provider. */

@@ -121,6 +121,7 @@ function seed() {
         birthday: i % 5 === 3 ? '' : `${MONTHS[month]} ${day}, ${1970 + ((i * 3) % 30)}`,
         birthdayKey: i % 5 === 3 ? '' : `${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
         notes: i % 4 === 2 ? 'Kids go to Lincoln.' : '',
+        modifiedAt: new Date(Date.now() - ((i * 7919) % 400) * 86400000).toISOString(),
         photoUrl: PHOTOS.has(first.toLowerCase()) ? `/demo/${first.toLowerCase()}.jpg` : '',
         groups: ['contactGroups/myContacts', ...lists],
       },
@@ -201,6 +202,9 @@ function row(c) {
     search: search(c),
     groups: card.groups,
     fields: copy(c.fields),
+    // Some added after connecting; the rest were already there.
+    created: c.card.modifiedAt && Number(c.id.replace(/\D/g, '')) % 3 === 0 ? new Date(Date.parse(c.card.modifiedAt) - 30 * 86400000).toISOString() : '',
+    modified: c.card.modifiedAt ?? '',
     ...(c.draft ? { draft: true } : {}),
     ...(c.archivedAt ? { archivedAt: c.archivedAt } : {}),
   };

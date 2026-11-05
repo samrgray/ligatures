@@ -756,6 +756,9 @@ function columnDefs(all = false) {
     { id: 'birthday', label: 'Birthday', w: 140, text: (c) => c.birthday, sort: (c) => c.birthdayKey },
     { id: 'lists', label: 'Lists', w: 180, text: (c) => (accountById(c.accountId)?.groups ?? []).filter((g) => c.groups.includes(g.id)).map((g) => g.name).join(', ') },
     { id: 'notes', label: 'Notes', w: 260, text: (c) => oneLine(c.notes) },
+    // Created is blank for people already in Google when you connected it (Google doesn’t keep it).
+    { id: 'created', label: 'Created', w: 120, nums: true, text: (c) => (c.created ? shortDate(Date.parse(c.created)) : ''), sort: (c) => c.created ?? '' },
+    { id: 'modified', label: 'Modified', w: 120, nums: true, text: (c) => (c.modified ? shortDate(Date.parse(c.modified)) : ''), sort: (c) => c.modified ?? '' },
     ...S.session.fields.filter((f) => all || fieldOnView(f)).map((f) => ({
       id: `f:${f.id}`,
       label: f.label,

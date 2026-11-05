@@ -129,6 +129,10 @@ struct ContactsTable: View {
                 store.lists(for: c.accountId).filter { c.groups.contains($0.id) }.map(\.name).joined(separator: ", ")
             }),
             TableColumnDef(id: "notes", label: "Notes", width: 260, kind: .text, value: { oneLine($0.notes ?? "") }),
+            TableColumnDef(id: "created", label: "Created", width: 120, kind: .text, numeric: true, value: { Self.shortTime($0.created) },
+                           sortKey: { $0.created ?? "" }),
+            TableColumnDef(id: "modified", label: "Modified", width: 120, kind: .text, numeric: true, value: { Self.shortTime($0.modified) },
+                           sortKey: { $0.modified ?? "" }),
         ]
         for f in store.fields where onView(f) {
             let w: CGFloat = f.type == "checkbox" ? 100 : f.type == "date" ? 130 : f.type == "longtext" ? 260 : 180
@@ -655,6 +659,21 @@ struct ContactsTable: View {
     }
 
     /// “Oct 14”, with the year only when it isn’t this year.
+    private static let isoPlain = ISO8601DateFormatter()
+    private static let isoFractional: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
+    /// An ISO time (from the server) as a short local date.
+    static func shortTime(_ iso: String?) -> String {
+        guard let iso, !iso.isEmpty else { return "" }
+        guard let d = isoFractional.date(from: iso) ?? isoPlain.date(from: iso) else { return "" }
+        let sameYear = Calendar.current.component(.year, from: d) == Calendar.current.component(.year, from: Date())
+        return d.formatted(sameYear ? .dateTime.month(.abbreviated).day() : .dateTime.month(.abbreviated).day().year())
+    }
+
     static func shortDay(_ iso: String) -> String {
         guard let d = FieldEditor.day.date(from: iso) else { return iso }
         let sameYear = Calendar.current.component(.year, from: d) == Calendar.current.component(.year, from: Date())
